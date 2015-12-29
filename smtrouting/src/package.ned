@@ -1,0 +1,3 @@
+package smt;
+
+@license(LGPL);
