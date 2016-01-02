@@ -13,23 +13,20 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __SMTROUTING_SMTLAUNCHD_H_
-#define __SMTROUTING_SMTLAUNCHD_H_
+#include "SMTLaunchd.h"
 
-#include <omnetpp.h>
-#include "TraCIScenarioManagerLaunchd.h"
+Define_Module(SMTLaunchd);
 
-/**
- * TODO - Generated class
- */
-class SMTLaunchd: public Veins::TraCIScenarioManagerLaunchd {
-public:
-    SMTLaunchd(){}
-    virtual ~SMTLaunchd();
+SMTLaunchd::SMTLaunchd() {
+    launchConfig = NULL;
+}
 
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
-    virtual void finish();
-};
+SMTLaunchd::~SMTLaunchd() {
+}
 
-#endif
+cXMLElement* SMTLaunchd::getLaunchdConfig() {
+    if (launchConfig==NULL) {
+        launchConfig = par("launchConfig").xmlValue();
+    }
+    return launchConfig;
+}

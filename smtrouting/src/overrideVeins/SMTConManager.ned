@@ -13,14 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "SMTLaunchd.h"
 
-Define_Module(SMTLaunchd);
+package smt.overrideVeins;
+import org.car2x.veins.base.connectionManager.ConnectionManager;
 
-void SMTLaunchd::initialize(int stage) {
-}
-
-void SMTLaunchd::handleMessage(cMessage *msg)
+simple SMTConManager extends ConnectionManager
 {
-// TODO - Generated method body
+    parameters:
+        @display("i=abstract/multicast");
+        @class(SMTConManager);
+        // 禁用连接更新标志位，用于加快处理速度
+        bool disableConnectionUpdate = default(false);
 }
+

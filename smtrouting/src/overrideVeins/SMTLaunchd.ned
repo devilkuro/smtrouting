@@ -13,26 +13,15 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "SMTMap.h"
+package smt.overrideVeins;
 
-Define_Module(SMTMap);
-
-SMTMap::~SMTMap() {
-}
-
-void SMTMap::initialize() {
-    if (launchd == NULL) {
-        launchd = SMTLaunchdAccess().get();
-    }
-    if (launchdConfig == NULL) {
-        launchdConfig = launchd->getLaunchdConfig();
-    }
-    cXMLElement* elm = launchdConfig->getFirstChildWithTag("copy");
-    std::cout
-            << elm->getAttribute("file") << endl;
-    //->getFirstChildWithTag("copy")->getAttribute("file")
-}
-
-void SMTMap::handleMessage(cMessage *msg) {
-// TODO - Generated method body
+import org.car2x.veins.modules.mobility.traci.TraCIScenarioManagerLaunchd;
+//
+// 用来获取launchConfig信息
+//
+simple SMTLaunchd extends TraCIScenarioManagerLaunchd
+{
+    parameters:
+        @class(SMTLaunchd);
+        @display("i=block/cogwheel");
 }

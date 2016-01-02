@@ -21,6 +21,7 @@
 #include <vector>
 #include <map>
 #include <list>
+#include "SMTLaunchd.h"
 
 using std::string;
 using std::vector;
@@ -33,7 +34,7 @@ class SMTJunction;
 class SMTTlLogic;
 class SMTConnection;
 /**
- * SMTEdge:道路edge.
+ * SMTEdge:閬撹矾edge.
  */
 class SMTEdge {
 public:
@@ -49,12 +50,12 @@ public:
     string function;
 
     // SMT attributes
-    bool isInternal;    // 标识是否为internal edge
+    bool isInternal;    // 鏍囪瘑鏄惁涓篿nternal edge
     vector<SMTLane*> vecLanes;
     vector<SMTConnection*> vecConnection;
 };
 /**
- * SMTLane:车道lane.
+ * SMTLane:杞﹂亾lane.
  */
 class SMTLane {
 public:
@@ -74,19 +75,19 @@ public:
     vector<SMTLane*> vecNext;   // vector of next lanes
 };
 /**
- * SMTJunction:路口junction.
+ * SMTJunction:璺彛junction.
  */
 class SMTJunction {
     // not implement now
 };
 /**
- * SMTTlLogic:交通灯逻辑tlLogic.
+ * SMTTlLogic:浜ら�氱伅閫昏緫tlLogic.
  */
 class SMTTlLogic {
     // not implement now
 };
 /**
- * SMTConnection:连接connection.
+ * SMTConnection:杩炴帴connection.
  */
 class SMTConnection {
 public:
@@ -100,23 +101,27 @@ public:
     int toLane; // The lane of the outgoing edge at which the connection ends
     string via; // The id of the lane to use to pass this connection across the junction
     // tl is ignored    // The id of the traffic light that controls this connection; the attribute is missing if the connection is not controlled by a traffic light
-    int linkIndex;  // The index of the signal responsible for the connection within the traffic light; the attribute is missing if the connection is not controlled by a traffic light
+    int linkIndex; // The index of the signal responsible for the connection within the traffic light; the attribute is missing if the connection is not controlled by a traffic light
     string dir; // The direction of the connection. "s" = straight, "t" = turn, "l" = left, "r" = right, "L" = partially left, R = partially right, "invalid" = no direction
     // state is ignored // The state of the connection. "-" = dead end, "=" = equal, "m" = minor link, "M" = major link, traffic light only: "O" = controller off, "o" = yellow flashing, "y" = yellow minor link, "Y" = yellow major link, "r" = red, "g" = green minor, "G" green major
 
     // SMT attributes
 };
 /**
- * SMTMap:地图系统,负责管理地图拓扑结构.
+ * SMTMap:鍦板浘绯荤粺,璐熻矗绠＄悊鍦板浘鎷撴墤缁撴瀯.
  */
 class SMTMap: public cSimpleModule {
 public:
-    SMTMap();
+    SMTMap() :
+            launchd(NULL), launchdConfig(NULL) {
+    }
     virtual ~SMTMap();
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
+    SMTLaunchd* launchd;
+    cXMLElement* launchdConfig; // 浠嶴MTLaunchd浼犺繃鏉ョ殑launchdConfig
 };
 
 #endif

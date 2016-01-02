@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- debug config -->
+<launch>
+	<copy file="smt.net.xml" />
+	<copy file="smt.rou.xml" />
+	<copy file="smt.poly.xml" />
+	<copy file="smt.sumo.cfg" type="config" />
+</launch>
+

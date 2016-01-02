@@ -13,15 +13,27 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package smt.launchd;
+#ifndef __SMTROUTING_SMTLAUNCHD_H_
+#define __SMTROUTING_SMTLAUNCHD_H_
 
-import org.car2x.veins.modules.mobility.traci.TraCIScenarioManagerLaunchd;
-//
-// 用来获取launchConfig信息
-//
-simple SMTLaunchd extends TraCIScenarioManagerLaunchd
-{
-    parameters:
-        @class(SMTLaunchd);
-        @display("i=block/cogwheel");
-}
+#include <omnetpp.h>
+#include "TraCIScenarioManagerLaunchd.h"
+
+/**
+ * TODO - Generated class
+ */
+class SMTLaunchd: public Veins::TraCIScenarioManagerLaunchd {
+public:
+    SMTLaunchd();
+    virtual ~SMTLaunchd();
+
+    cXMLElement* getLaunchdConfig();
+};
+
+class SMTLaunchdAccess{
+public:
+    SMTLaunchd* get(){
+        return FindModule<SMTLaunchd*>::findGlobalModule();
+    }
+};
+#endif

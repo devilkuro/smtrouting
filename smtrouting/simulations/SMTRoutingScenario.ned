@@ -17,10 +17,10 @@ package smt.simulations;
 
 import org.car2x.veins.base.connectionManager.ConnectionManager;
 import org.car2x.veins.base.modules.BaseWorldUtility;
-import org.car2x.veins.modules.mobility.traci.TraCIScenarioManagerLaunchd;
 import org.car2x.veins.modules.obstacle.ObstacleControl;
 import org.car2x.veins.modules.world.annotations.AnnotationManager;
 import smt.map.SMTMap;
+import smt.overrideVeins.SMTLaunchd;
 
 network SMTRoutingScenario
 {
@@ -47,7 +47,7 @@ network SMTRoutingScenario
                 playgroundSizeZ = playgroundSizeZ;
                 @display("p=30,0;i=misc/globe");
         }
-        manager: TraCIScenarioManagerLaunchd {
+        manager: SMTLaunchd {
             parameters:
                 @display("p=512,128");
         }
