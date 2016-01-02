@@ -16,7 +16,7 @@
 package smt.map;
 
 //
-// TODO auto-generated module
+// SMT地图系统，用于管理地图与车辆
 //
 simple SMTMap
 {
@@ -25,6 +25,7 @@ simple SMTMap
         @display("i=block/network2");
         @labels("SMTMap");
         
+        bool debug = default(false);
         xml netXML = default(xmldoc("smt.net.xml"));
         xml rouXML = default(xmldoc("smt.rou.xml"));
 }

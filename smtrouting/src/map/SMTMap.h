@@ -39,7 +39,7 @@ class SMTConnection;
 class SMTEdge {
 public:
     SMTEdge() :
-            priority(-1) {
+            priority(-1), isInternal(false) {
     }
     virtual ~SMTEdge();
     // xml attributes
@@ -51,8 +51,8 @@ public:
 
     // SMT attributes
     bool isInternal;    // 标识是否为internal edge
-    vector<SMTLane*> vecLanes;
-    vector<SMTConnection*> vecConnection;
+    vector<SMTLane*> laneVector;
+    vector<SMTConnection*> conVector;
 };
 /**
  * SMTLane:车道lane.
@@ -60,7 +60,7 @@ public:
 class SMTLane {
 public:
     SMTLane() :
-            index(0), speed(0), length(0) {
+            index(0), speed(0), length(0), edge(NULL) {
     }
     virtual ~SMTLane();
     // xml attributes
@@ -72,7 +72,7 @@ public:
 
     // SMT attributes
     SMTEdge* edge;  // parent edge
-    vector<SMTLane*> vecNext;   // vector of next lanes
+    vector<SMTLane*> nextVector;   // vector of next lanes
 };
 /**
  * SMTJunction:路口junction.
@@ -91,7 +91,8 @@ class SMTTlLogic {
  */
 class SMTConnection {
 public:
-    SMTConnection() {
+    SMTConnection() :
+            fromLane(0), toLane(0), linkIndex(0) {
     }
     virtual ~SMTConnection();
     // xml attributes
@@ -106,6 +107,11 @@ public:
     // state is ignored // The state of the connection. "-" = dead end, "=" = equal, "m" = minor link, "M" = major link, traffic light only: "O" = controller off, "o" = yellow flashing, "y" = yellow minor link, "Y" = yellow major link, "r" = red, "g" = green minor, "G" green major
 
     // SMT attributes
+    SMTEdge* fromSMTEdge;
+    SMTEdge* toSMTEdge;
+    SMTLane* fromSMTLane;
+    SMTLane* toSMTLane;
+    SMTLane* viaSMTLane;
 };
 /**
  * SMTMap:地图系统,负责管理地图拓扑结构.
@@ -113,15 +119,26 @@ public:
 class SMTMap: public cSimpleModule {
 public:
     SMTMap() :
-            launchd(NULL), launchdConfig(NULL) {
+            debug(false), rouXML(0), netXML(0) {
     }
     virtual ~SMTMap();
 protected:
+    // parameters
+    bool debug;
+    cXMLElement* rouXML;
+    cXMLElement* netXML;
+
+    map<string, SMTEdge*> edgeMap;
+    map<string, SMTLane*> laneMap;
+    // functions
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
-    SMTLaunchd* launchd;
-    cXMLElement* launchdConfig; // 从SMTLaunchd传过来的launchdConfig
+    virtual void initNetFromXML(cXMLElement* xml);
+    virtual void initVechileTypeFromXML(cXMLElement* xml);
+    void addEdgeFromEdgeXML(cXMLElement* xml);
+    void addConFromConXML(cXMLElement* xml);
+
 };
 
 #endif

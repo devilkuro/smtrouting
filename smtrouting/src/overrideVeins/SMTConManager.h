@@ -9,7 +9,7 @@
 #define SMTCONMANAGER_H_
 
 #include "MiXiMDefs.h"
-#include "BaseConnectionManager.h"
+#include "ConnectionManager.h"
 
 class SMTConManager: public ConnectionManager {
 public:

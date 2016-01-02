@@ -16,7 +16,7 @@ double SMTConManager::calcInterfDist() {
         return playgroundSize->x > playgroundSize->y ?
                 playgroundSize->x : playgroundSize->y;
     } else {
-        ConnectionManager::calcInterfDist();
+        return ConnectionManager::calcInterfDist();
     }
 }
 
@@ -26,7 +26,7 @@ void SMTConManager::initialize(int stage) {
                 hasPar("disableConnectionUpdate") ?
                         par("disableConnectionUpdate").boolValue() : false;
     }
-    BaseConnectionManager::initialize(stage);
+    ConnectionManager::initialize(stage);
 }
 
 void SMTConManager::updateConnections(int nicID, const Coord* oldPos,
@@ -34,6 +34,6 @@ void SMTConManager::updateConnections(int nicID, const Coord* oldPos,
     if (disableConnectionUpdate) {
         // do nothing
     } else {
-        BaseConnectionManager::updateConnections(nicID, oldPos, newPos);
+        ConnectionManager::updateConnections(nicID, oldPos, newPos);
     }
 }
