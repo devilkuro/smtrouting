@@ -33,16 +33,33 @@ SMTMap::~SMTMap() {
     // TODO 释放资源
 }
 
+SMTLaunchd* SMTMap::getLaunchd() {
+    if (NULL == launchd) {
+        launchd = SMTLaunchdAccess().get();
+    }
+    return launchd;
+}
 void SMTMap::initialize() {
     debug = hasPar("debug") ? par("debug") : false;
     rouXML = par("rouXML").xmlValue();
     netXML = par("netXML").xmlValue();
 
     initNetFromXML(netXML);
+    // TODO optimizeNet
+    stepMsg = new cMessage("step message of SMTMap");
+    scheduleAt(simTime() + 0.1, stepMsg);
 }
 
 void SMTMap::handleMessage(cMessage *msg) {
-
+    if (msg == stepMsg) {
+        if (getLaunchd()->isConnected()) {
+            if(debug){
+                verfyNetConfig();
+            }
+        }else{
+            scheduleAt(simTime() + 0.1, stepMsg);
+        }
+    }
 }
 
 void SMTMap::initNetFromXML(cXMLElement* xml) {
@@ -57,7 +74,7 @@ void SMTMap::initNetFromXML(cXMLElement* xml) {
     cXMLElement* conXML = xml->getFirstChildWithTag("connection");
     while (conXML) {
         addConFromConXML(conXML);
-        conXML = edgeXML->getNextSiblingWithTag("connection");
+        conXML = conXML->getNextSiblingWithTag("connection");
     }
 
 }
@@ -153,7 +170,7 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
                 << con->to << " via " << con->via << "." << std::endl;
     }
     bool hasConnected = false;
-    for (int i = 0; i < (int)con->fromSMTLane->nextVector.size(); i++) {
+    for (int i = 0; i < (int) con->fromSMTLane->nextVector.size(); i++) {
         if (con->fromSMTLane->nextVector[i] == con->toSMTLane) {
             hasConnected = true;
         }
@@ -165,4 +182,9 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
         con->fromSMTLane->nextVector.push_back(con->toSMTLane);
     }
 
+}
+
+void SMTMap::verfyNetConfig() {
+//    list<string> edgeList = getLaunchd()->getCommandInterface()->get
+    //TODO
 }

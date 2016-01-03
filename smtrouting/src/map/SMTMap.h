@@ -119,14 +119,18 @@ public:
 class SMTMap: public cSimpleModule {
 public:
     SMTMap() :
-            debug(false), rouXML(0), netXML(0) {
+            debug(false), launchd(0), rouXML(0), netXML(0), stepMsg(0) {
     }
     virtual ~SMTMap();
+
+    SMTLaunchd* getLaunchd();
 protected:
     // parameters
     bool debug;
+    SMTLaunchd* launchd;
     cXMLElement* rouXML;
     cXMLElement* netXML;
+    cMessage* stepMsg;
 
     map<string, SMTEdge*> edgeMap;
     map<string, SMTLane*> laneMap;
@@ -138,6 +142,7 @@ protected:
     virtual void initVechileTypeFromXML(cXMLElement* xml);
     void addEdgeFromEdgeXML(cXMLElement* xml);
     void addConFromConXML(cXMLElement* xml);
+    void verfyNetConfig();
 
 };
 
