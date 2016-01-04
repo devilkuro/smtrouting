@@ -19,6 +19,9 @@ Define_Module(SMTMap);
 
 SMTEdge::~SMTEdge() {
     // TODO 释放资源
+    for (unsigned int i = 0; i < conVector.size(); i++) {
+        delete (conVector[i]);
+    }
 }
 
 SMTLane::~SMTLane() {
@@ -109,31 +112,26 @@ void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
         lane->edge = edge;
         if (tempLaneMap.find(lane->index) != tempLaneMap.end()) {
             std::cout
-                    << "Error@SMTMap::insertEdgeFromEdgeXML-duplicated lane index"
+                    << "Warning@SMTMap::insertEdgeFromEdgeXML-duplicated lane index"
                     << std::endl;
+            delete lane;
         } else {
+            ASSERT2(laneMap.find(lane->id) == laneMap.end(),
+                    "duplicated lane id");
+            laneMap[lane->id] = lane;
             tempLaneMap[lane->index] = lane;
-            if (laneMap.find(lane->id) != laneMap.end()) {
-                std::cout
-                        << "Error@SMTMap::insertEdgeFromEdgeXML-duplicated lane"
-                        << std::endl;
-            } else {
-                laneMap[lane->id] = lane;
+            if (debug) {
                 std::cout << "add lane '" << lane->id << "' to map."
                         << std::endl;
             }
+
         }
         laneXML = laneXML->getNextSiblingWithTag("lane");
     }
     // set the vector
     for (int i = 0; i < (int) tempLaneMap.size(); i++) {
-        if (tempLaneMap.find(i) == tempLaneMap.end()) {
-            std::cout
-                    << "Error@SMTMap::insertEdgeFromEdgeXML-missing lane index"
-                    << std::endl;
-        } else {
-            edge->laneVector.push_back(tempLaneMap[i]);
-        }
+        ASSERT2(tempLaneMap.find(i) != tempLaneMap.end(), "missing lane index");
+        edge->laneVector.push_back(tempLaneMap[i]);
     }
     if (edgeMap.find(edge->id) == edgeMap.end()) {
         edgeMap[edge->id] = edge;
@@ -141,8 +139,9 @@ void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
             std::cout << "add edge '" << edge->id << "' to map." << std::endl;
         }
     } else {
-        std::cout << "Error@SMTMap::insertEdgeFromEdgeXML-duplicated edge"
+        std::cout << "Warning@SMTMap::insertEdgeFromEdgeXML-duplicated edge"
                 << std::endl;
+        delete edge;
     }
 }
 
@@ -159,7 +158,9 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     con->linkIndex = strtol(attrMap["linkIndex"].c_str(), 0, 0);
     con->dir = attrMap["dir"];
     // SMT 属性
+    ASSERT2(edgeMap.find(con->from) != edgeMap.end(), "unknown from edge.");
     con->fromSMTEdge = edgeMap[con->from];
+    ASSERT2(edgeMap.find(con->to) != edgeMap.end(), "unknown to edge.");
     con->toSMTEdge = edgeMap[con->to];
     con->fromSMTLane = edgeMap[con->from]->laneVector[con->fromLane];
     con->toSMTLane = edgeMap[con->to]->laneVector[con->toLane];
@@ -168,7 +169,6 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     }
 
     // 处理关联
-    con->fromSMTEdge->conVector.push_back(con);
     if (debug) {
         std::cout << "add connection between '" << con->from << "' and '"
                 << con->to << "' via '" << con->via << "'." << std::endl;
@@ -180,12 +180,14 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
         }
     }
     if (hasConnected) {
-        std::cout << "Error@SMTMap::insertEdgeFromEdgeXML-duplicated connection"
+        std::cout << "Warning@SMTMap::insertEdgeFromEdgeXML-duplicated connection"
                 << std::endl;
+        delete (con);
     } else {
+        con->fromSMTEdge->conVector.push_back(con);
+        con->fromSMTLane->conVector.push_back(con);
         con->fromSMTLane->nextVector.push_back(con->toSMTLane);
     }
-
 }
 
 void SMTMap::verifyNetConfig() {
@@ -236,7 +238,7 @@ void SMTMap::verifyNetConfig() {
             if (laneLinkedSet.find(*linkedIt) == laneLinkedSet.end()) {
                 std::cout << "lane '" << (*it) << "' linked lane '"
                         << (*linkedIt) << "' is missing." << std::endl;
-            }else{
+            } else {
                 laneLinkedSet.erase(*linkedIt);
             }
         }

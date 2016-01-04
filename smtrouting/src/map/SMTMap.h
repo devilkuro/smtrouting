@@ -54,8 +54,8 @@ public:
 
     // SMT attributes
     bool isInternal;    // 标识是否为internal edge
-    vector<SMTLane*> laneVector;
-    vector<SMTConnection*> conVector;
+    vector<SMTLane*> laneVector;    // vector of related lanes
+    vector<SMTConnection*> conVector;   // vector of related connections
     // optimized attributes
     map<string,vector<SMTConnection*> > conVecMap;
 };
@@ -77,6 +77,7 @@ public:
 
     // SMT attributes
     SMTEdge* edge;  // parent edge
+    vector<SMTConnection*> conVector;   // vector of related connections
     vector<SMTLane*> nextVector;   // vector of next lanes
 };
 /**
