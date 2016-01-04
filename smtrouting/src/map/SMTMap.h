@@ -21,12 +21,15 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <set>
 #include "SMTLaunchd.h"
+#include "SMTComInterface.h"
 
 using std::string;
 using std::vector;
 using std::map;
 using std::list;
+using std::set;
 
 class SMTEdge;
 class SMTLane;
@@ -53,6 +56,8 @@ public:
     bool isInternal;    // 标识是否为internal edge
     vector<SMTLane*> laneVector;
     vector<SMTConnection*> conVector;
+    // optimized attributes
+    map<string,vector<SMTConnection*> > conVecMap;
 };
 /**
  * SMTLane:车道lane.
@@ -92,7 +97,8 @@ class SMTTlLogic {
 class SMTConnection {
 public:
     SMTConnection() :
-            fromLane(0), toLane(0), linkIndex(0) {
+            fromLane(0), toLane(0), linkIndex(0), fromSMTEdge(0), toSMTEdge(0), fromSMTLane(
+                    0), toSMTLane(0), viaSMTLane(0) {
     }
     virtual ~SMTConnection();
     // xml attributes
@@ -124,6 +130,9 @@ public:
     virtual ~SMTMap();
 
     SMTLaunchd* getLaunchd();
+
+    // Map topology API
+
 protected:
     // parameters
     bool debug;
@@ -142,7 +151,7 @@ protected:
     virtual void initVechileTypeFromXML(cXMLElement* xml);
     void addEdgeFromEdgeXML(cXMLElement* xml);
     void addConFromConXML(cXMLElement* xml);
-    void verfyNetConfig();
+    void verifyNetConfig();
 
 };
 

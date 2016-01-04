@@ -20,19 +20,28 @@
 #include "TraCIScenarioManagerLaunchd.h"
 
 /**
- * TODO - Generated class
+ * 用于修改VeinsLaunchd
  */
+
+class SMTComInterface;
 class SMTLaunchd: public Veins::TraCIScenarioManagerLaunchd {
+
 public:
-    SMTLaunchd();
+    SMTLaunchd() :
+            smtComIfc(0) {
+    }
     virtual ~SMTLaunchd();
 
     cXMLElement* getLaunchdConfig();
+    SMTComInterface* getSMTComInterface();
+
+protected:
+    SMTComInterface* smtComIfc;
 };
 
-class SMTLaunchdAccess{
+class SMTLaunchdAccess {
 public:
-    SMTLaunchd* get(){
+    SMTLaunchd* get() {
         return FindModule<SMTLaunchd*>::findGlobalModule();
     }
 };

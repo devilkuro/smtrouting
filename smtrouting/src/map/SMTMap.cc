@@ -53,10 +53,10 @@ void SMTMap::initialize() {
 void SMTMap::handleMessage(cMessage *msg) {
     if (msg == stepMsg) {
         if (getLaunchd()->isConnected()) {
-            if(debug){
-                verfyNetConfig();
+            if (debug) {
+                verifyNetConfig();
             }
-        }else{
+        } else {
             scheduleAt(simTime() + 0.1, stepMsg);
         }
     }
@@ -119,6 +119,8 @@ void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
                         << std::endl;
             } else {
                 laneMap[lane->id] = lane;
+                std::cout << "add lane '" << lane->id << "' to map."
+                        << std::endl;
             }
         }
         laneXML = laneXML->getNextSiblingWithTag("lane");
@@ -136,7 +138,7 @@ void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
     if (edgeMap.find(edge->id) == edgeMap.end()) {
         edgeMap[edge->id] = edge;
         if (debug) {
-            std::cout << "add edge " << edge->id << " to map." << std::endl;
+            std::cout << "add edge '" << edge->id << "' to map." << std::endl;
         }
     } else {
         std::cout << "Error@SMTMap::insertEdgeFromEdgeXML-duplicated edge"
@@ -161,13 +163,15 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     con->toSMTEdge = edgeMap[con->to];
     con->fromSMTLane = edgeMap[con->from]->laneVector[con->fromLane];
     con->toSMTLane = edgeMap[con->to]->laneVector[con->toLane];
-    con->viaSMTLane = laneMap[con->via];
+    if (laneMap.find(con->via) != laneMap.end()) {
+        con->viaSMTLane = laneMap[con->via];
+    }
 
     // 处理关联
     con->fromSMTEdge->conVector.push_back(con);
     if (debug) {
-        std::cout << "add connection between " << con->from << " and "
-                << con->to << " via " << con->via << "." << std::endl;
+        std::cout << "add connection between '" << con->from << "' and '"
+                << con->to << "' via '" << con->via << "'." << std::endl;
     }
     bool hasConnected = false;
     for (int i = 0; i < (int) con->fromSMTLane->nextVector.size(); i++) {
@@ -184,7 +188,63 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
 
 }
 
-void SMTMap::verfyNetConfig() {
-//    list<string> edgeList = getLaunchd()->getCommandInterface()->get
-    //TODO
+void SMTMap::verifyNetConfig() {
+    SMTComInterface* comIfc = getLaunchd()->getSMTComInterface();
+
+    // verify the edges and lanes.
+    list<string> laneList = comIfc->getLaneIds();
+    if (laneList.size() != laneMap.size()) {
+        std::cout << "lane number is mismatch." << std::endl;
+    }
+    for (list<string>::iterator it = laneList.begin(); it != laneList.end();
+            it++) {
+        if (laneMap.find(*it) == laneMap.end()) {
+            std::cout << "lane '" << (*it) << "' is missing." << std::endl;
+        }
+        string edge = comIfc->getLaneEdgeId(*it);
+        if (edgeMap.find(edge) == edgeMap.end()) {
+            std::cout << "edge '" << (*it) << "' is missing." << std::endl;
+        }
+    }
+    set<string> laneSet = set<string>(laneList.begin(), laneList.end());
+    for (map<string, SMTLane*>::iterator it = laneMap.begin();
+            it != laneMap.end(); it++) {
+        if (laneSet.find(it->first) == laneSet.end()) {
+            std::cout << "lane '" << (it->first) << "' is redundant."
+                    << std::endl;
+        }
+        string edge = comIfc->getLaneEdgeId(it->first);
+        if (edgeMap.find(edge) == edgeMap.end()) {
+            std::cout << "edge '" << (it->first) << "' is redundant."
+                    << std::endl;
+        }
+    }
+    std::cout << "verifying lanes and edges finished." << std::endl;
+    // vrtify the connections
+    for (list<string>::iterator it = laneList.begin(); it != laneList.end();
+            it++) {
+        list<string> laneLinkedLanes = comIfc->getLaneLinkedLaneIds(*it);
+        set<string> laneLinkedSet;
+        for (int i = 0; i < (int) laneMap[*it]->nextVector.size(); i++) {
+            laneLinkedSet.insert(laneMap[*it]->nextVector[i]->id);
+        }
+        if (laneLinkedLanes.size() != laneMap[*it]->nextVector.size()) {
+            std::cout << "lane linked lane number is mismatch." << std::endl;
+        }
+        for (list<string>::iterator linkedIt = laneLinkedLanes.begin();
+                linkedIt != laneLinkedLanes.end(); linkedIt++) {
+            if (laneLinkedSet.find(*linkedIt) == laneLinkedSet.end()) {
+                std::cout << "lane '" << (*it) << "' linked lane '"
+                        << (*linkedIt) << "' is missing." << std::endl;
+            }else{
+                laneLinkedSet.erase(*linkedIt);
+            }
+        }
+        for (set<string>::iterator linkedIt = laneLinkedSet.begin();
+                linkedIt != laneLinkedSet.end(); linkedIt++) {
+            std::cout << "lane '" << (*it) << "' linked lane '" << (*linkedIt)
+                    << "' is redundant." << std::endl;
+        }
+    }
+    std::cout << "verifying connections finished." << std::endl;
 }

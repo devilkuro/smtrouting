@@ -13,27 +13,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "SMTLaunchd.h"
-#include "SMTComInterface.h"
+#ifndef SMTCOMINTERFACE_H_
+#define SMTCOMINTERFACE_H_
 
-Define_Module(SMTLaunchd);
+#include "TraCICommandInterface.h"
 
+class SMTComInterface: public Veins::TraCICommandInterface {
 
-SMTLaunchd::~SMTLaunchd() {
-}
+public:
+    SMTComInterface(Veins::TraCIConnection& con);
+    virtual ~SMTComInterface();
+    std::list<std::string> getLaneLinkedLaneIds(std::string laneId);
+protected:
+    Veins::TraCIConnection& smtConnection;
+};
 
-cXMLElement* SMTLaunchd::getLaunchdConfig() {
-    if (launchConfig==NULL) {
-        launchConfig = par("launchConfig").xmlValue();
-    }
-    return launchConfig;
-}
-
-SMTComInterface* SMTLaunchd::getSMTComInterface() {
-    if (!smtComIfc) {
-        if(connection){
-            smtComIfc = new SMTComInterface(*connection);
-        }
-    }
-    return smtComIfc;
-}
+#endif /* SMTCOMINTERFACE_H_ */
