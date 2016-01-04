@@ -36,6 +36,7 @@ class SMTLane;
 class SMTJunction;
 class SMTTlLogic;
 class SMTConnection;
+class SMTRoute;
 /**
  * SMTEdge:道路edge.
  */
@@ -56,8 +57,9 @@ public:
     bool isInternal;    // 标识是否为internal edge
     vector<SMTLane*> laneVector;    // vector of related lanes
     vector<SMTConnection*> conVector;   // vector of related connections
+
     // optimized attributes
-    map<string,vector<SMTConnection*> > conVecMap;
+    map<string, vector<SMTRoute*> > routeVecMap;
 };
 /**
  * SMTLane:车道lane.
@@ -119,6 +121,20 @@ public:
     SMTLane* fromSMTLane;
     SMTLane* toSMTLane;
     SMTLane* viaSMTLane;
+};
+
+/**
+ * SMTRoute:edge到edge的路径.
+ */
+class SMTRoute {
+public:
+    SMTRoute() {
+    }
+    virtual ~SMTRoute();
+
+    list<SMTEdge*> edgeList;
+
+
 };
 /**
  * SMTMap:地图系统,负责管理地图拓扑结构.

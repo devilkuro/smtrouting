@@ -34,6 +34,18 @@ SMTConnection::~SMTConnection() {
 
 SMTMap::~SMTMap() {
     // TODO 释放资源
+    // release edgeMap
+    // 释放SMTEdge的同时会释放相关的SMTConnection内存
+    for (map<string, SMTEdge*>::iterator it = edgeMap.begin();
+            it != edgeMap.end(); it++) {
+        delete (it->second);
+    }
+    // release laneMap
+    for (map<string, SMTLane*>::iterator it = laneMap.begin();
+            it != laneMap.end(); it++) {
+        delete (it->second);
+    }
+
 }
 
 SMTLaunchd* SMTMap::getLaunchd() {
@@ -180,7 +192,8 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
         }
     }
     if (hasConnected) {
-        std::cout << "Warning@SMTMap::insertEdgeFromEdgeXML-duplicated connection"
+        std::cout
+                << "Warning@SMTMap::insertEdgeFromEdgeXML-duplicated connection"
                 << std::endl;
         delete (con);
     } else {
