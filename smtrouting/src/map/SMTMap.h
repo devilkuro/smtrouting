@@ -132,9 +132,10 @@ public:
     }
     virtual ~SMTRoute();
 
-    list<SMTEdge*> edgeList;
-
-
+    list<SMTEdge*> via;    // 路径包含的edge列表(目的街道为终点)
+    SMTEdge* start;
+    SMTEdge* target;
+    double getViaLength();  // 返回via路径的长度
 };
 /**
  * SMTMap:地图系统,负责管理地图拓扑结构.

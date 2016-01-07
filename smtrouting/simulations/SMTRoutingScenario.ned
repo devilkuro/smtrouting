@@ -15,12 +15,12 @@
 
 package smt.simulations;
 
-import org.car2x.veins.base.connectionManager.ConnectionManager;
 import org.car2x.veins.base.modules.BaseWorldUtility;
 import org.car2x.veins.modules.obstacle.ObstacleControl;
 import org.car2x.veins.modules.world.annotations.AnnotationManager;
 import smt.map.SMTMap;
 import smt.overrideVeins.SMTLaunchd;
+import smt.overrideVeins.SMTConManager;
 
 network SMTRoutingScenario
 {
@@ -36,7 +36,7 @@ network SMTRoutingScenario
         annotations: AnnotationManager {
             @display("p=260,50");
         }
-        connectionManager: ConnectionManager {
+        connectionManager: SMTConManager {
             parameters:
                 @display("p=150,0;i=abstract/multicast");
         }

@@ -18,4 +18,6 @@
     <vType id="L03F" accel="2.6" decel="4.5" sigma="0.5" length="1.5" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
     <vType id="L04F" accel="2.6" decel="4.5" sigma="0.5" length="2.0" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
     <vType id="L00P" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+
+	<route id="route0" edges="4/2to2/2 2/2to2/4 2/4to2/6"/>
 </routes>

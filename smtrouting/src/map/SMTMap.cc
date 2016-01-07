@@ -33,7 +33,6 @@ SMTConnection::~SMTConnection() {
 }
 
 SMTMap::~SMTMap() {
-    // TODO 释放资源
     // release edgeMap
     // 释放SMTEdge的同时会释放相关的SMTConnection内存
     for (map<string, SMTEdge*>::iterator it = edgeMap.begin();

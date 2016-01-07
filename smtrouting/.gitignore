@@ -1,3 +1,6 @@
 /out/
 /src/Makefile
+/simulations/results/
 *.exe
+Makefile
+Makefile.vc
