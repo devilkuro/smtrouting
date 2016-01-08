@@ -150,6 +150,7 @@ public:
     SMTLaunchd* getLaunchd();
 
     // Map topology API
+    SMTEdge* getSMTEdge(string id);
 
 protected:
     // parameters

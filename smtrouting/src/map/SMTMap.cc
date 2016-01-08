@@ -32,6 +32,13 @@ SMTConnection::~SMTConnection() {
     // TODO 释放资源
 }
 
+SMTRoute::~SMTRoute() {
+    // TODO 释放资源
+}
+
+double SMTRoute::getViaLength() {
+    // TODO 获取via路径长度
+}
 SMTMap::~SMTMap() {
     // release edgeMap
     // 释放SMTEdge的同时会释放相关的SMTConnection内存
@@ -53,6 +60,12 @@ SMTLaunchd* SMTMap::getLaunchd() {
     }
     return launchd;
 }
+
+SMTEdge* SMTMap::getSMTEdge(string id) {
+    ASSERT2(edgeMap.find(id)!=edgeMap.end(),"try to get SMTEdge from an unknown id.");
+    return edgeMap[id];
+}
+
 void SMTMap::initialize() {
     debug = hasPar("debug") ? par("debug") : false;
     rouXML = par("rouXML").xmlValue();
@@ -262,3 +275,4 @@ void SMTMap::verifyNetConfig() {
     }
     std::cout << "verifying connections finished." << std::endl;
 }
+

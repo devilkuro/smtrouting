@@ -19,6 +19,25 @@ SMTMobility::~SMTMobility() {
 
 }
 
+void SMTMobility::initialize(int stage) {
+    Veins::TraCIMobility::initialize(stage);
+}
+
+void SMTMobility::finish() {
+    Veins::TraCIMobility::finish();
+}
+
+void SMTMobility::preInitialize(std::string external_id, const Coord& position,
+        std::string road_id, double speed, double angle) {
+    Veins::TraCIMobility::preInitialize(external_id,position,road_id,speed,angle);
+}
+
+void SMTMobility::nextPosition(const Coord& position, std::string road_id,
+        double speed, double angle,
+        Veins::TraCIScenarioManager::VehicleSignal signals) {
+    Veins::TraCIMobility::nextPosition(position,road_id,speed,angle,signals);
+}
+
 void SMTMobility::processAfterRouting() {
     // 选路之后每个周期都会执行(请确保判定完备,不要执行复杂度过高的操作)
 }
@@ -42,24 +61,6 @@ void SMTMobility::processWhenInitializingRoad() {
 
 void SMTMobility::processWhenNextPosition() {
     // 车辆变更位置时出现(请确保判定完备,不要执行复杂度过高的操作)
-}
-
-void SMTMobility::initialize(int stage) {
-}
-
-void SMTMobility::finish() {
-}
-
-void SMTMobility::preInitialize(std::string external_id, const Coord& position,
-        std::string road_id, double speed, double angle) {
-}
-
-void SMTMobility::nextPosition(const Coord& position, std::string road_id,
-        double speed, double angle,
-        Veins::TraCIScenarioManager::VehicleSignal signals) {
-}
-
-void SMTMobility::changePosition() {
 }
 
 
