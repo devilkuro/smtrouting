@@ -22,9 +22,9 @@
 class SMTMobility: public Veins::TraCIMobility {
 public:
     SMTMobility() :
-            hasRouted(false), hasInitialized(false), state_enterEdgeTime(0), state_enterQueueTime(
-                    0), state_outQueueTime(0), state_outEdgeTime(0), state_enterNextEdgeTime(
-                    0) {
+            smtMap(0), hasRouted(false), hasInitialized(false), state_enterEdgeTime(
+                    0), state_enterQueueTime(0), state_outQueueTime(0), state_outEdgeTime(
+                    0), state_enterNextEdgeTime(0) {
     }
     virtual ~SMTMobility();
 
@@ -37,6 +37,15 @@ public:
             Veins::TraCIScenarioManager::VehicleSignal signals =
                     Veins::TraCIScenarioManager::VEH_SIGNAL_UNDEF);
 protected:
+    // 接口成员
+    SMTMap* smtMap;
+    SMTMap* getMap(){
+        if(smtMap==NULL){
+            smtMap = SMTMapAccess().get();
+        }
+        return smtMap;
+    }
+    // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
     string last_road_id;    // 用于记录上一条道路的id

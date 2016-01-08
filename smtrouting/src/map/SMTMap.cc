@@ -73,6 +73,7 @@ void SMTMap::initialize() {
 
     initNetFromXML(netXML);
     // TODO optimizeNet
+    optimizeNet();
     stepMsg = new cMessage("step message of SMTMap");
     scheduleAt(simTime() + 0.1, stepMsg);
 }
@@ -103,7 +104,10 @@ void SMTMap::initNetFromXML(cXMLElement* xml) {
         addConFromConXML(conXML);
         conXML = conXML->getNextSiblingWithTag("connection");
     }
+}
 
+void SMTMap::optimizeNet() {
+    // TODO 优化网络,生成易于寻路的参数
 }
 
 void SMTMap::initVechileTypeFromXML(cXMLElement* xml) {

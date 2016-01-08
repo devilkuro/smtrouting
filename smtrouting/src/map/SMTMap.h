@@ -59,7 +59,7 @@ public:
     vector<SMTConnection*> conVector;   // vector of related connections
 
     // optimized attributes
-    map<string, vector<SMTRoute*> > routeVecMap;
+    map<SMTEdge*, vector<SMTRoute*> > routeVecMap;
 };
 /**
  * SMTLane:车道lane.
@@ -162,16 +162,23 @@ protected:
 
     map<string, SMTEdge*> edgeMap;
     map<string, SMTLane*> laneMap;
+
     // functions
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
     virtual void initNetFromXML(cXMLElement* xml);
+    virtual void optimizeNet();
     virtual void initVechileTypeFromXML(cXMLElement* xml);
     void addEdgeFromEdgeXML(cXMLElement* xml);
     void addConFromConXML(cXMLElement* xml);
     void verifyNetConfig();
-
 };
 
+class SMTMapAccess {
+public:
+    SMTMap* get() {
+        return FindModule<SMTMap*>::findGlobalModule();
+    }
+};
 #endif
