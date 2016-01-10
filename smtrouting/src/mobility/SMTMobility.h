@@ -21,10 +21,24 @@
 
 class SMTMobility: public Veins::TraCIMobility {
 public:
+    class SMTStat {
+        SMTStat() :
+                lastDroveAt(0), enterEdgeTime(0), enterQueueTime(0), outQueueTime(
+                        0), outEdgeTime(0), enterNextEdgeTime(0) {
+
+        }
+
+        // 统计相关
+        double lastDroveAt; // 用于记录上一次停车的时间
+        double lastStopAt;
+        double enterEdgeTime; // 进入edge时间
+        double enterQueueTime;    // 进入队列区时间
+        double outQueueTime;  // 启动准备离开队列区
+        double outEdgeTime;   // 离开edge时间
+        double enterNextEdgeTime; // 进入下一条edge时间
+    };
     SMTMobility() :
-            smtMap(0), hasRouted(false), hasInitialized(false), state_enterEdgeTime(
-                    0), state_enterQueueTime(0), state_outQueueTime(0), state_outEdgeTime(
-                    0), state_enterNextEdgeTime(0) {
+            smtMap(0), hasRouted(false), hasInitialized(false) {
     }
     virtual ~SMTMobility();
 
@@ -39,8 +53,9 @@ public:
 protected:
     // 接口成员
     SMTMap* smtMap;
-    SMTMap* getMap(){
-        if(smtMap==NULL){
+    SMTStat smtStat;
+    SMTMap* getMap() {
+        if (smtMap == NULL) {
             smtMap = SMTMapAccess().get();
         }
         return smtMap;
@@ -48,16 +63,8 @@ protected:
     // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
-    string last_road_id;    // 用于记录上一条道路的id
-    string last_primary_road_id;    // 记录上一条主要道路id
-    simtime_t last_droveAt; // 用于记录上一次停车的时间
-
-    // 统计相关
-    double state_enterEdgeTime; // 进入edge时间
-    double state_enterQueueTime;    // 进入队列区时间
-    double state_outQueueTime;  // 启动准备离开队列区
-    double state_outEdgeTime;   // 离开edge时间
-    double state_enterNextEdgeTime; // 进入下一条edge时间
+    string lastRoadId;    // 用于记录上一条道路的id
+    string lastPrimaryRoadId;    // 记录上一条主要道路id
 
     // overload these function in different mobility
     // processAfterRouting

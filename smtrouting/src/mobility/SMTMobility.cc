@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <mobility/SMTMobility.h>
+#include "SMTMobility.h"
 
 SMTMobility::~SMTMobility() {
 
@@ -21,6 +21,9 @@ SMTMobility::~SMTMobility() {
 
 void SMTMobility::initialize(int stage) {
     Veins::TraCIMobility::initialize(stage);
+    if(stage == 0){
+        smtMap = getMap();
+    }
 }
 
 void SMTMobility::finish() {
@@ -30,12 +33,43 @@ void SMTMobility::finish() {
 void SMTMobility::preInitialize(std::string external_id, const Coord& position,
         std::string road_id, double speed, double angle) {
     Veins::TraCIMobility::preInitialize(external_id,position,road_id,speed,angle);
+    if(!hasRouted){
+            if(getMapSystem()->isInitializedFinished()){
+                // Map system must be initialized first
+                EV << "cfg.init finished!" << endl;
+                // initialize the route
+                processAtRouting();
+                hasRouted = true;
+            }
+        }else{
+            // process after the routing
+            processAfterRouting();
+        }
+        // road change
+        if(road_id != lastRoadId){
+            // statistics process
+            if(!hasInitialized){
+                // when the car first appear on the map.
+                processWhenInitializingRoad();
+                getMapSystem()->registerVehiclePosition(road_id);
+                // switch record process trigger
+                hasInitialized = true;
+            }else{
+                // when road changed
+                processWhenChangeRoad();
+            }
+            // in nextPosition the car has been on the road, then updata the last_road_id and enterTime
+            lastRoadId = road_id;
+        }
+        // normal process
+        processWhenNextPosition();
 }
 
 void SMTMobility::nextPosition(const Coord& position, std::string road_id,
         double speed, double angle,
         Veins::TraCIScenarioManager::VehicleSignal signals) {
     Veins::TraCIMobility::nextPosition(position,road_id,speed,angle,signals);
+
 }
 
 void SMTMobility::processAfterRouting() {
