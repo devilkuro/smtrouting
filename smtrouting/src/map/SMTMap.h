@@ -143,11 +143,15 @@ public:
 class SMTMap: public cSimpleModule {
 public:
     SMTMap() :
-            debug(false), launchd(0), rouXML(0), netXML(0), stepMsg(0) {
+            debug(false), hasInitialized(false), launchd(0), rouXML(0), netXML(
+                    0), stepMsg(0) {
     }
     virtual ~SMTMap();
 
     SMTLaunchd* getLaunchd();
+    bool isReady() {
+        return hasInitialized;
+    }
 
     // Map topology API
     SMTEdge* getSMTEdge(string id);
@@ -155,6 +159,7 @@ public:
 protected:
     // parameters
     bool debug;
+    bool hasInitialized;
     SMTLaunchd* launchd;
     cXMLElement* rouXML;
     cXMLElement* netXML;
