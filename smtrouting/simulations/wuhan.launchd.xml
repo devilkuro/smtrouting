@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- debug config -->
+<launch>
+	<copy file="wuhan.net.xml" />
+	<copy file="wuhan.rou.xml" />
+	<copy file="wuhan.sumo.cfg" type="config" />
+</launch>
+

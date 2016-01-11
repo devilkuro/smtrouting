@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<routes>
+    <!-- vType 'vtype0' is default type, do not edit it. -->
+    <vType id="vtype0" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
+    <vType id="L00S" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+    <vType id="L00N" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
+    <vType id="L00F" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
+    <vType id="L01S" accel="2.6" decel="4.5" sigma="0.5" length="0.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+    <vType id="L02S" accel="2.6" decel="4.5" sigma="0.5" length="1.0" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+    <vType id="L03S" accel="2.6" decel="4.5" sigma="0.5" length="1.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+    <vType id="L04S" accel="2.6" decel="4.5" sigma="0.5" length="2.0" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+    <vType id="L01N" accel="2.6" decel="4.5" sigma="0.5" length="0.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
+    <vType id="L02N" accel="2.6" decel="4.5" sigma="0.5" length="1.0" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
+    <vType id="L03N" accel="2.6" decel="4.5" sigma="0.5" length="1.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
+    <vType id="L04N" accel="2.6" decel="4.5" sigma="0.5" length="2.0" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
+    <vType id="L01F" accel="2.6" decel="4.5" sigma="0.5" length="0.5" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
+    <vType id="L02F" accel="2.6" decel="4.5" sigma="0.5" length="1.0" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
+    <vType id="L03F" accel="2.6" decel="4.5" sigma="0.5" length="1.5" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
+    <vType id="L04F" accel="2.6" decel="4.5" sigma="0.5" length="2.0" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
+    <vType id="L00P" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+
+	<route id="route0" edges="4/2to2/2 2/2to2/4 2/4to2/6"/>
+</routes>
