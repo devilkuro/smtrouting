@@ -22,6 +22,7 @@
 class SMTMobility: public Veins::TraCIMobility {
 public:
     class SMTStat {
+    public:
         SMTStat() :
                 lastDroveAt(0), enterEdgeTime(0), enterQueueTime(0), outQueueTime(
                         0), outEdgeTime(0), enterNextEdgeTime(0) {
