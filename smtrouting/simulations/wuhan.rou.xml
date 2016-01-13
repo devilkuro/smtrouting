@@ -1,23 +1,176 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <routes>
-    <!-- vType 'vtype0' is default type, do not edit it. -->
-    <vType id="vtype0" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
-    <vType id="L00S" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
-    <vType id="L00N" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
-    <vType id="L00F" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
-    <vType id="L01S" accel="2.6" decel="4.5" sigma="0.5" length="0.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
-    <vType id="L02S" accel="2.6" decel="4.5" sigma="0.5" length="1.0" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
-    <vType id="L03S" accel="2.6" decel="4.5" sigma="0.5" length="1.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
-    <vType id="L04S" accel="2.6" decel="4.5" sigma="0.5" length="2.0" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
-    <vType id="L01N" accel="2.6" decel="4.5" sigma="0.5" length="0.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
-    <vType id="L02N" accel="2.6" decel="4.5" sigma="0.5" length="1.0" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
-    <vType id="L03N" accel="2.6" decel="4.5" sigma="0.5" length="1.5" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
-    <vType id="L04N" accel="2.6" decel="4.5" sigma="0.5" length="2.0" minGap="2.5" maxSpeed="14" color="0.50,0.50,0.00"/>
-    <vType id="L01F" accel="2.6" decel="4.5" sigma="0.5" length="0.5" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
-    <vType id="L02F" accel="2.6" decel="4.5" sigma="0.5" length="1.0" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
-    <vType id="L03F" accel="2.6" decel="4.5" sigma="0.5" length="1.5" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
-    <vType id="L04F" accel="2.6" decel="4.5" sigma="0.5" length="2.0" minGap="2.5" maxSpeed="18" color="1.00,0.00,0.00"/>
-    <vType id="L00P" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="10" color="0.00,1.00,0.00"/>
+  <vType accel="2.60" color=".00,0.50,0.00" decel="4.50" id="vType0" length="2.00" maxSpeed="10.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".20,0.50,0.00" decel="4.50" id="vType1" length="2.00" maxSpeed="11.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".40,0.50,0.00" decel="4.50" id="vType2" length="2.00" maxSpeed="12.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".60,0.50,0.00" decel="4.50" id="vType3" length="2.00" maxSpeed="13.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".80,0.50,0.00" decel="4.50" id="vType4" length="2.00" maxSpeed="14.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color="1.00,0.50,0.00" decel="4.50" id="vType5" length="2.00" maxSpeed="15.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".00,0.50,0.00" decel="4.50" id="vType6" length="2.50" maxSpeed="10.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".20,0.50,0.00" decel="4.50" id="vType7" length="2.50" maxSpeed="11.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".40,0.50,0.00" decel="4.50" id="vType8" length="2.50" maxSpeed="12.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".60,0.50,0.00" decel="4.50" id="vType9" length="2.50" maxSpeed="13.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".80,0.50,0.00" decel="4.50" id="vType10" length="2.50" maxSpeed="14.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color="1.00,0.50,0.00" decel="4.50" id="vType11" length="2.50" maxSpeed="15.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".00,0.50,0.00" decel="4.50" id="vType12" length="3.00" maxSpeed="10.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".20,0.50,0.00" decel="4.50" id="vType13" length="3.00" maxSpeed="11.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".40,0.50,0.00" decel="4.50" id="vType14" length="3.00" maxSpeed="12.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".60,0.50,0.00" decel="4.50" id="vType15" length="3.00" maxSpeed="13.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".80,0.50,0.00" decel="4.50" id="vType16" length="3.00" maxSpeed="14.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color="1.00,0.50,0.00" decel="4.50" id="vType17" length="3.00" maxSpeed="15.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".00,0.50,0.00" decel="4.50" id="vType18" length="3.50" maxSpeed="10.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".20,0.50,0.00" decel="4.50" id="vType19" length="3.50" maxSpeed="11.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".40,0.50,0.00" decel="4.50" id="vType20" length="3.50" maxSpeed="12.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".60,0.50,0.00" decel="4.50" id="vType21" length="3.50" maxSpeed="13.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".80,0.50,0.00" decel="4.50" id="vType22" length="3.50" maxSpeed="14.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color="1.00,0.50,0.00" decel="4.50" id="vType23" length="3.50" maxSpeed="15.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".00,0.50,0.00" decel="4.50" id="vType24" length="4.00" maxSpeed="10.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".20,0.50,0.00" decel="4.50" id="vType25" length="4.00" maxSpeed="11.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".40,0.50,0.00" decel="4.50" id="vType26" length="4.00" maxSpeed="12.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".60,0.50,0.00" decel="4.50" id="vType27" length="4.00" maxSpeed="13.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color=".80,0.50,0.00" decel="4.50" id="vType28" length="4.00" maxSpeed="14.00" minGap="2.50" sigma=".50"/>
+  <vType accel="2.60" color="1.00,0.50,0.00" decel="4.50" id="vType29" length="4.00" maxSpeed="15.00" minGap="2.50" sigma=".50"/>
 
-	<route id="route0" edges="4/2to2/2 2/2to2/4 2/4to2/6"/>
+  <route edges="4/6to4/8" id="4/6to4/8"/>
+  <route edges="18/6to18/8" id="18/6to18/8"/>
+  <route edges="4/8to6/8" id="4/8to6/8"/>
+  <route edges="4/8to4/10" id="4/8to4/10"/>
+  <route edges="4/8to4/6" id="4/8to4/6"/>
+  <route edges="6/8to10/8" id="6/8to10/8"/>
+  <route edges="6/8to6/10" id="6/8to6/10"/>
+  <route edges="6/8to4/8" id="6/8to4/8"/>
+  <route edges="10/8to14/8" id="10/8to14/8"/>
+  <route edges="10/8to10/10" id="10/8to10/10"/>
+  <route edges="10/8to6/8" id="10/8to6/8"/>
+  <route edges="14/8to18/8" id="14/8to18/8"/>
+  <route edges="14/8to14/12" id="14/8to14/12"/>
+  <route edges="14/8to10/8" id="14/8to10/8"/>
+  <route edges="18/8to20/8" id="18/8to20/8"/>
+  <route edges="18/8to18/12" id="18/8to18/12"/>
+  <route edges="18/8to14/8" id="18/8to14/8"/>
+  <route edges="18/8to18/6" id="18/8to18/6"/>
+  <route edges="20/8to22/8" id="20/8to22/8"/>
+  <route edges="20/8to20/12" id="20/8to20/12"/>
+  <route edges="20/8to18/8" id="20/8to18/8"/>
+  <route edges="22/8to20/8" id="22/8to20/8"/>
+  <route edges="4/10to6/10" id="4/10to6/10"/>
+  <route edges="4/10to4/12" id="4/10to4/12"/>
+  <route edges="4/10to4/8" id="4/10to4/8"/>
+  <route edges="6/10to8/10" id="6/10to8/10"/>
+  <route edges="6/10to4/10" id="6/10to4/10"/>
+  <route edges="6/10to6/8" id="6/10to6/8"/>
+  <route edges="8/10to10/10" id="8/10to10/10"/>
+  <route edges="8/10to8/12" id="8/10to8/12"/>
+  <route edges="8/10to6/10" id="8/10to6/10"/>
+  <route edges="10/10to10/12" id="10/10to10/12"/>
+  <route edges="10/10to8/10" id="10/10to8/10"/>
+  <route edges="10/10to10/8" id="10/10to10/8"/>
+  <route edges="4/12to8/12" id="4/12to8/12"/>
+  <route edges="4/12to4/18" id="4/12to4/18"/>
+  <route edges="4/12to4/10" id="4/12to4/10"/>
+  <route edges="8/12to10/12" id="8/12to10/12"/>
+  <route edges="8/12to8/18" id="8/12to8/18"/>
+  <route edges="8/12to4/12" id="8/12to4/12"/>
+  <route edges="8/12to8/10" id="8/12to8/10"/>
+  <route edges="10/12to14/12" id="10/12to14/12"/>
+  <route edges="10/12to8/12" id="10/12to8/12"/>
+  <route edges="10/12to10/10" id="10/12to10/10"/>
+  <route edges="14/12to18/12" id="14/12to18/12"/>
+  <route edges="14/12to10/12" id="14/12to10/12"/>
+  <route edges="14/12to14/8" id="14/12to14/8"/>
+  <route edges="18/12to20/12" id="18/12to20/12"/>
+  <route edges="18/12to18/14" id="18/12to18/14"/>
+  <route edges="18/12to14/12" id="18/12to14/12"/>
+  <route edges="18/12to18/8" id="18/12to18/8"/>
+  <route edges="20/12to22/12" id="20/12to22/12"/>
+  <route edges="20/12to20/14" id="20/12to20/14"/>
+  <route edges="20/12to18/12" id="20/12to18/12"/>
+  <route edges="20/12to20/8" id="20/12to20/8"/>
+  <route edges="22/12to20/12" id="22/12to20/12"/>
+  <route edges="10/14to18/14" id="10/14to18/14"/>
+  <route edges="10/14to10/16" id="10/14to10/16"/>
+  <route edges="18/14to20/14" id="18/14to20/14"/>
+  <route edges="18/14to18/16" id="18/14to18/16"/>
+  <route edges="18/14to10/14" id="18/14to10/14"/>
+  <route edges="18/14to18/12" id="18/14to18/12"/>
+  <route edges="20/14to22/14" id="20/14to22/14"/>
+  <route edges="20/14to20/18" id="20/14to20/18"/>
+  <route edges="20/14to18/14" id="20/14to18/14"/>
+  <route edges="20/14to20/12" id="20/14to20/12"/>
+  <route edges="22/14to20/14" id="22/14to20/14"/>
+  <route edges="10/16to12/16" id="10/16to12/16"/>
+  <route edges="10/16to10/18" id="10/16to10/18"/>
+  <route edges="10/16to10/14" id="10/16to10/14"/>
+  <route edges="12/16to18/16" id="12/16to18/16"/>
+  <route edges="12/16to12/18" id="12/16to12/18"/>
+  <route edges="12/16to10/16" id="12/16to10/16"/>
+  <route edges="18/16to18/18" id="18/16to18/18"/>
+  <route edges="18/16to12/16" id="18/16to12/16"/>
+  <route edges="18/16to18/14" id="18/16to18/14"/>
+  <route edges="4/18to8/18" id="4/18to8/18"/>
+  <route edges="4/18to4/24" id="4/18to4/24"/>
+  <route edges="4/18to4/12" id="4/18to4/12"/>
+  <route edges="8/18to10/18" id="8/18to10/18"/>
+  <route edges="8/18to8/20" id="8/18to8/20"/>
+  <route edges="8/18to4/18" id="8/18to4/18"/>
+  <route edges="8/18to8/12" id="8/18to8/12"/>
+  <route edges="10/18to12/18" id="10/18to12/18"/>
+  <route edges="10/18to8/18" id="10/18to8/18"/>
+  <route edges="10/18to10/16" id="10/18to10/16"/>
+  <route edges="12/18to14/18" id="12/18to14/18"/>
+  <route edges="12/18to10/18" id="12/18to10/18"/>
+  <route edges="12/18to12/16" id="12/18to12/16"/>
+  <route edges="14/18to18/18" id="14/18to18/18"/>
+  <route edges="14/18to14/24" id="14/18to14/24"/>
+  <route edges="14/18to12/18" id="14/18to12/18"/>
+  <route edges="18/18to20/18" id="18/18to20/18"/>
+  <route edges="18/18to18/28" id="18/18to18/28"/>
+  <route edges="18/18to14/18" id="18/18to14/18"/>
+  <route edges="18/18to18/16" id="18/18to18/16"/>
+  <route edges="20/18to18/18" id="20/18to18/18"/>
+  <route edges="20/18to20/14" id="20/18to20/14"/>
+  <route edges="6/20to8/20" id="6/20to8/20"/>
+  <route edges="6/20to6/22" id="6/20to6/22"/>
+  <route edges="8/20to8/22" id="8/20to8/22"/>
+  <route edges="8/20to6/20" id="8/20to6/20"/>
+  <route edges="8/20to8/18" id="8/20to8/18"/>
+  <route edges="6/22to8/22" id="6/22to8/22"/>
+  <route edges="6/22to6/24" id="6/22to6/24"/>
+  <route edges="6/22to6/20" id="6/22to6/20"/>
+  <route edges="8/22to8/24" id="8/22to8/24"/>
+  <route edges="8/22to6/22" id="8/22to6/22"/>
+  <route edges="8/22to8/20" id="8/22to8/20"/>
+  <route edges="4/24to6/24" id="4/24to6/24"/>
+  <route edges="4/24to4/26" id="4/24to4/26"/>
+  <route edges="4/24to4/18" id="4/24to4/18"/>
+  <route edges="6/24to8/24" id="6/24to8/24"/>
+  <route edges="6/24to6/28" id="6/24to6/28"/>
+  <route edges="6/24to4/24" id="6/24to4/24"/>
+  <route edges="6/24to6/22" id="6/24to6/22"/>
+  <route edges="8/24to14/24" id="8/24to14/24"/>
+  <route edges="8/24to8/28" id="8/24to8/28"/>
+  <route edges="8/24to6/24" id="8/24to6/24"/>
+  <route edges="8/24to8/22" id="8/24to8/22"/>
+  <route edges="14/24to16/24" id="14/24to16/24"/>
+  <route edges="14/24to8/24" id="14/24to8/24"/>
+  <route edges="14/24to14/18" id="14/24to14/18"/>
+  <route edges="16/24to16/28" id="16/24to16/28"/>
+  <route edges="16/24to14/24" id="16/24to14/24"/>
+  <route edges="4/26to4/24" id="4/26to4/24"/>
+  <route edges="4/28to6/28" id="4/28to6/28"/>
+  <route edges="6/28to8/28" id="6/28to8/28"/>
+  <route edges="6/28to4/28" id="6/28to4/28"/>
+  <route edges="6/28to6/24" id="6/28to6/24"/>
+  <route edges="8/28to16/28" id="8/28to16/28"/>
+  <route edges="8/28to8/30" id="8/28to8/30"/>
+  <route edges="8/28to6/28" id="8/28to6/28"/>
+  <route edges="8/28to8/24" id="8/28to8/24"/>
+  <route edges="16/28to18/28" id="16/28to18/28"/>
+  <route edges="16/28to8/28" id="16/28to8/28"/>
+  <route edges="16/28to16/24" id="16/28to16/24"/>
+  <route edges="18/28to18/30" id="18/28to18/30"/>
+  <route edges="18/28to16/28" id="18/28to16/28"/>
+  <route edges="18/28to18/18" id="18/28to18/18"/>
+  <route edges="8/30to8/28" id="8/30to8/28"/>
+  <route edges="18/30to18/28" id="18/30to18/28"/>
 </routes>
