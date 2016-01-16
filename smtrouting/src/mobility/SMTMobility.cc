@@ -99,6 +99,7 @@ void SMTMobility::statisticAtFinish() {
 
 void SMTMobility::processAtRouting() {
     // 选路阶段
+    // 设置车道变换模式
 }
 
 void SMTMobility::processWhenChangeRoad() {
@@ -111,36 +112,43 @@ void SMTMobility::processWhenInitializingRoad() {
 
 void SMTMobility::processWhenNextPosition() {
     // 车辆变更位置时出现(请确保判定完备,不要执行复杂度过高的操作)
+    Fanjing::StatisticsRecordTools *srt =
+            Fanjing::StatisticsRecordTools::request();
     double lanePos = getComIf()->getLanePosition(external_id);
-    if (lanePos != lastPos) {
-        double pos = lanePos - curPrimaryEdge->laneVector[0]->length;
-        // title = "external_id"+"\t"+"time"+"\t"+"road_id"+"\t"+"record_road"+"\t"+"position";
-        if (pos > -300) {
-            if (curPrimaryRoadId == "20/14to18/14") {
-                Fanjing::StatisticsRecordTools *srt =
-                        Fanjing::StatisticsRecordTools::request();
-                if (curPrimaryEdge == lastEdge) {
-                    // 如果当前道路为需要记录的主要edge则记录距离路口点负距离
+    if (curPrimaryRoadId == "20/14to18/14") {
+        if (curPrimaryEdge == lastEdge) {
+            // 如果当前道路为需要记录的主要edge则记录距离路口点负距离
+            double pos = lanePos - curPrimaryEdge->laneVector[0]->length;
+            // title = "external_id"+"\t"+"time"+"\t"+"road_id"+"\t"+"record_road"+"\t"+"position";
+            if (pos > -300) {
+                if (lanePos != lastPos) {
                     srt->changeName(recordRoadId, title) << external_id
                             << simTime().dbl() << road_id << recordRoadId << pos
                             << srt->endl;
-                } else {
-                    // 反之记录延伸辅道距离为正向离开路口点距离
-                    srt->changeName(recordRoadId, title) << external_id
-                            << simTime().dbl() << road_id << recordRoadId
-                            << lanePos << srt->endl;
                 }
             }
+        } else {
+            // 反之记录延伸辅道距离为正向离开路口点距离
+            srt->changeName(recordRoadId, title) << external_id
+                    << simTime().dbl() << road_id << recordRoadId << lanePos
+                    << srt->endl;
         }
-        lastPos = lanePos;
+    } else if (road_id == "18/14to10/14") {
+        double pos = lanePos + 30.84;
+        if (pos < 300) {
+            srt->changeName("20_14to18_14", title) << external_id
+                    << simTime().dbl() << road_id << "20_14to18_14" << pos
+                    << srt->endl;
+        }
     }
+    lastPos = lanePos;
 }
 
 string SMTMobility::convertStrToRecordId(string id) {
-    for (unsigned int strPos = 0; strPos < id.length(); ++strPos) {
+    for (unsigned int strPos = 0; strPos < id.length();) {
         unsigned int offset = id.find('/', strPos + 1);
         if (offset != string::npos) {
-            strPos += offset;
+            strPos = offset;
             id.replace(strPos, 1, "_");
         } else {
             break;
