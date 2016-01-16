@@ -75,6 +75,7 @@ void SMTMap::initialize() {
     initNetFromXML(netXML);
     // TODO optimizeNet
     optimizeNet();
+    hasInitialized = true;
     stepMsg = new cMessage("step message of SMTMap");
     scheduleAt(simTime() + 0.1, stepMsg);
 }

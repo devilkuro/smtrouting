@@ -101,6 +101,7 @@ void SMTMobility::processAtRouting() {
     // 选路阶段
     // 设置车道变换模式
     setNoOvertake();
+    std::cout<<"car "<<external_id<<" will not make overtake."<<std::endl;
 }
 
 void SMTMobility::processWhenChangeRoad() {
