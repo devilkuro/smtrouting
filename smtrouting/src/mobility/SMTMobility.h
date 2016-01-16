@@ -97,6 +97,8 @@ protected:
     virtual void processWhenNextPosition();
 
     string convertStrToRecordId(string id);
+private:
+    void setNoOvertake();
 
 };
 

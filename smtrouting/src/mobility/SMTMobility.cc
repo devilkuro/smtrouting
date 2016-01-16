@@ -100,6 +100,7 @@ void SMTMobility::statisticAtFinish() {
 void SMTMobility::processAtRouting() {
     // 选路阶段
     // 设置车道变换模式
+    setNoOvertake();
 }
 
 void SMTMobility::processWhenChangeRoad() {
@@ -164,4 +165,8 @@ string SMTMobility::convertStrToRecordId(string id) {
         }
     }
     return id;
+}
+
+void SMTMobility::setNoOvertake() {
+    getComIf()->setLaneChangeMode(external_id,SMTComInterface::LANEMODE_DISALLOW_OVERTAKE);
 }
