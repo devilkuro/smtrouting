@@ -39,7 +39,8 @@ public:
         double enterNextEdgeTime; // 进入下一条edge时间
     };
     SMTMobility() :
-            smtMap(0), hasRouted(false), hasInitialized(false) {
+            smtMap(0), hasRouted(false), hasInitialized(false), lastEdge(0), curPrimaryEdge(
+                    0), lastPrimaryEdge(0),lastPos(-1) {
     }
     virtual ~SMTMobility();
 
@@ -61,11 +62,22 @@ protected:
         }
         return smtMap;
     }
+    inline SMTComInterface* getComIf() {
+        return getMap()->getLaunchd()->getSMTComInterface();
+    }
     // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
+    string recordRoadId;
     string lastRoadId;    // 用于记录上一条道路的id
+    SMTEdge* lastEdge;
+    string curPrimaryRoadId;    // 记录上一条主要道路id
+    SMTEdge* curPrimaryEdge;
     string lastPrimaryRoadId;    // 记录上一条主要道路id
+    SMTEdge* lastPrimaryEdge;
+    double lastPos; // 用于判定是否需要进行记录
+    string title;
+
 
     // overload these function in different mobility
     // processAfterRouting
@@ -83,6 +95,8 @@ protected:
     // this function will run every 0.1 second for each car!!
     // so, do not do any complicated operations here.
     virtual void processWhenNextPosition();
+
+    string convertStrToRecordId(string id);
 
 };
 

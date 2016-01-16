@@ -35,10 +35,13 @@ void StatisticsRecordTools::outputAll(string name, string dir, std::fstream::ope
 
 void StatisticsRecordTools::setDefaultDir(string dir) {
     m_default_dir_name = dir;
+    recordWhenTerminate = true;
 }
 
 StatisticsRecordTools::~StatisticsRecordTools() {
-    outputSeparate("default.txt", "./results");
+    if (recordWhenTerminate) {
+        outputSeparate("default.txt", "./results");
+    }
     clean();
 }
 
@@ -108,6 +111,7 @@ StatisticsRecordTools& StatisticsRecordTools::changeName(string name, string tit
         StatisticsRecordUnitList* list = new StatisticsRecordUnitList();
         globalStatisticsMap[m_name] = list;
         titleMap[m_name] = title;
+        std::cout<<"StatisticsRecordTools::addTitle:"<<m_name<<std::endl;
     }
     unitData.clear();
     return *ptr_singleton;

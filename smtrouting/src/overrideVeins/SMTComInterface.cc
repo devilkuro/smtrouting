@@ -138,3 +138,4 @@ std::list<std::string> SMTComInterface::getLaneLinkedLaneIds(
 
     return res;
 }
+

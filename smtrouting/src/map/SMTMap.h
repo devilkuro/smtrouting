@@ -171,6 +171,7 @@ protected:
     // functions
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+    virtual void finish();
 
     virtual void initNetFromXML(cXMLElement* xml);
     virtual void optimizeNet();

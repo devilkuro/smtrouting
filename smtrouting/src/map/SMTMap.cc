@@ -14,6 +14,7 @@
 // 
 
 #include "SMTMap.h"
+#include "StatisticsRecordTools.h"
 
 Define_Module(SMTMap);
 
@@ -38,6 +39,7 @@ SMTRoute::~SMTRoute() {
 
 double SMTRoute::getViaLength() {
     // TODO 获取via路径长度
+    return 0;
 }
 SMTMap::~SMTMap() {
     // release edgeMap
@@ -51,7 +53,6 @@ SMTMap::~SMTMap() {
             it != laneMap.end(); it++) {
         delete (it->second);
     }
-
 }
 
 SMTLaunchd* SMTMap::getLaunchd() {
@@ -280,3 +281,9 @@ void SMTMap::verifyNetConfig() {
     std::cout << "verifying connections finished." << std::endl;
 }
 
+void SMTMap::finish() {
+    Fanjing::StatisticsRecordTools *srt = Fanjing::StatisticsRecordTools::request();
+    srt->outputSeparate("trajectory.txt","./results");
+    srt->clean();
+    std::cout<<"Map::finish"<<std::endl;
+}

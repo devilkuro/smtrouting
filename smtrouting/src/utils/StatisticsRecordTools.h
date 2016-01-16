@@ -41,12 +41,16 @@ typedef std::map<string, StatisticsRecordUnitList*> GlobalStatisticsMap;
  *  ...
  *  gs.get()<<valueN;
  *  gs.get()<<gs.endl;
+ *
+ *
  */
 
 class StatisticsRecordTools {
 public:
     typedef void* gs_eofType;
 public:
+    bool recordWhenTerminate;
+
     static StatisticsRecordTools * request();
     static void release();
 
