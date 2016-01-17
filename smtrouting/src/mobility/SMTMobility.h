@@ -99,7 +99,8 @@ protected:
     string convertStrToRecordId(string id);
 private:
     void setNoOvertake();
-
+    void changeLane(uint8_t laneIndex);
+    double getLanePosition();
 };
 
 #endif /* SMTMOBILITY_H_ */

@@ -106,6 +106,9 @@ void SMTMobility::processAtRouting() {
 
 void SMTMobility::processWhenChangeRoad() {
     // 当车辆首次进入某条道路时执行
+    if(road_id=="20/14to18/14"){
+        changeLane(1);
+    }
 }
 
 void SMTMobility::processWhenInitializingRoad() {
@@ -116,7 +119,7 @@ void SMTMobility::processWhenNextPosition() {
     // 车辆变更位置时出现(请确保判定完备,不要执行复杂度过高的操作)
     Fanjing::StatisticsRecordTools *srt =
             Fanjing::StatisticsRecordTools::request();
-    double lanePos = getComIf()->getLanePosition(external_id);
+    double lanePos = getLanePosition();
     if (curPrimaryRoadId == "20/14to18/14") {
         if (curPrimaryEdge == lastEdge) {
             // 如果当前道路为需要记录的主要edge则记录距离路口点负距离
@@ -170,4 +173,12 @@ string SMTMobility::convertStrToRecordId(string id) {
 
 void SMTMobility::setNoOvertake() {
     getComIf()->setLaneChangeMode(external_id,SMTComInterface::LANEMODE_DISALLOW_OVERTAKE);
+}
+
+void SMTMobility::changeLane(uint8_t laneIndex) {
+    getComIf()->commandChangeLane(external_id,laneIndex);
+}
+
+double SMTMobility::getLanePosition() {
+    return getComIf()->getLanePosition(external_id);
 }

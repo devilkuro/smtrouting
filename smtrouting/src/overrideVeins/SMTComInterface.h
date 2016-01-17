@@ -54,6 +54,8 @@ public:
     std::list<std::string> getLaneLinkedLaneIds(std::string laneId);
     // 设置车辆变道模式
     void setLaneChangeMode(std::string nodeId, SMTLaneChangeMode mode);
+    // 变更车辆行驶车道
+    void commandChangeLane(std::string nodeId, uint8_t laneIndex, uint32_t duration = 0);
 protected:
     Veins::TraCIConnection& smtConnection;
 };
