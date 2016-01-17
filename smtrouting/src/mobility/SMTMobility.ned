@@ -22,7 +22,9 @@ import org.car2x.veins.modules.mobility.traci.TraCIMobility;
 simple SMTMobility extends TraCIMobility
 {
     parameters:
-		@class(SMTMobility);
+        @class(SMTMobility);
         @display("i=block/cogwheel");
-        
+
+        bool isChangeAndHold = default(false);
+        double laneChangeDuration @unit("s") = default(5s);
 }

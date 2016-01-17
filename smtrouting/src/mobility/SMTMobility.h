@@ -40,7 +40,8 @@ public:
     };
     SMTMobility() :
             smtMap(0), hasRouted(false), hasInitialized(false), lastEdge(0), curPrimaryEdge(
-                    0), lastPrimaryEdge(0), lastPos(-1), selfMsg(0) {
+                    0), lastPrimaryEdge(0), lastPos(-1), laneChangeMsg(0), laneChangeDuration(
+                    5), preferredLaneIndex(0),isChangeAndHold(false) {
     }
     virtual ~SMTMobility();
 
@@ -53,6 +54,10 @@ public:
             Veins::TraCIScenarioManager::VehicleSignal signals =
                     Veins::TraCIScenarioManager::VEH_SIGNAL_UNDEF);
     virtual void handleSelfMsg(cMessage *msg);
+
+    // 交通控制API
+    void setPreferredLaneIndex(uint8_t laneIndex);
+    void changeToPreferredLane(int laneIndex = -1);
 protected:
     // 接口成员
     SMTMap* smtMap;
@@ -77,8 +82,11 @@ protected:
     string lastPrimaryRoadId;    // 记录上一条主要道路id
     SMTEdge* lastPrimaryEdge;
     double lastPos; // 用于判定是否需要进行记录
-    string title;
-    cMessage* selfMsg;
+    string title;   // 记录生成记录的标题列
+    cMessage* laneChangeMsg;  // 用于保持车道的消息
+    double laneChangeDuration;
+    uint8_t preferredLaneIndex;
+    bool isChangeAndHold;
 
     // overload these function in different mobility
     // processAfterRouting
@@ -97,11 +105,15 @@ protected:
     // so, do not do any complicated operations here.
     virtual void processWhenNextPosition();
 
-    string convertStrToRecordId(string id);
+    // 消息处理部分
+    virtual void handleLaneChangeMsg(cMessage *msg);
+
+    void startChangeLane(uint8_t laneIndex);
 private:
-    void setNoOvertake();
-    void changeLane(uint8_t laneIndex, uint32_t duration = 0);
-    double getLanePosition();
+    void cmdSetNoOvertake();
+    void cmdChangeLane(uint8_t laneIndex, uint32_t duration = 0);
+    double cmdGetLanePosition();
+    string convertStrToRecordId(string id);
 };
 
 #endif /* SMTMOBILITY_H_ */

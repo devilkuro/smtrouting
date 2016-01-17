@@ -86,13 +86,13 @@ public:
  * SMTJunction:路口junction.
  */
 class SMTJunction {
-    // not implement now
+    // TODO not implement now
 };
 /**
  * SMTTlLogic:交通灯逻辑tlLogic.
  */
 class SMTTlLogic {
-    // not implement now
+    // TODO not implement now
 };
 /**
  * SMTConnection:连接connection.

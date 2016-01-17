@@ -73,8 +73,6 @@ void SMTMap::initialize() {
     netXML = par("netXML").xmlValue();
 
     initNetFromXML(netXML);
-    // TODO optimizeNet
-    optimizeNet();
     hasInitialized = true;
     stepMsg = new cMessage("step message of SMTMap");
     scheduleAt(simTime() + 0.1, stepMsg);
@@ -86,6 +84,8 @@ void SMTMap::handleMessage(cMessage *msg) {
             if (debug) {
                 verifyNetConfig();
             }
+            cancelAndDelete(stepMsg);
+            stepMsg = NULL;
         } else {
             scheduleAt(simTime() + 0.1, stepMsg);
         }
@@ -106,6 +106,8 @@ void SMTMap::initNetFromXML(cXMLElement* xml) {
         addConFromConXML(conXML);
         conXML = conXML->getNextSiblingWithTag("connection");
     }
+    // TODO optimizeNet
+    optimizeNet();
 }
 
 void SMTMap::optimizeNet() {
