@@ -38,15 +38,15 @@ public:
         LANEMODE_FORCE_DRIVE_ON_RIGHT = 0x02 << 6,
         LANEMODE_EXT_TRACI_IGNORE_OTHERS = 0x00 << 8,
         LANEMODE_EXT_TRACI_AVOID_COLLISIONS = 0x01 << 8,
-        LANEMODE_EXT_TRACI_BY_SPEED = 0x10 << 8,
-        LANEMODE_EXT_TRACI_NATURAL = 0x11 << 8,
+        LANEMODE_EXT_TRACI_BY_SPEED = 0x03 << 8,
+        LANEMODE_EXT_TRACI_NATURAL = 0x04 << 8,
         LANEMODE_ALLOW_ALL = LANEMODE_ALLOW_STRATEGIC
                 | LANEMODE_ALLOW_COOPERATIVE | LANEMODE_ALLOW_SPEED_GAIN
                 | LANEMODE_ALLOW_DRIVE_ON_RIGHT,
         LANEMODE_DISALLOW_ALL = LANEMODE_NO_STRATEGIC | LANEMODE_NO_COOPERATIVE
                 | LANEMODE_NO_SPEED_GAIN | LANEMODE_NO_DRIVE_ON_RIGHT,
-        LANEMODE_DISALLOW_OVERTAKE = LANEMODE_FORCE_STRATEGIC
-                | LANEMODE_FORCE_COOPERATIVE | LANEMODE_NO_SPEED_GAIN
+        LANEMODE_DISALLOW_OVERTAKE = LANEMODE_ALLOW_STRATEGIC
+                | LANEMODE_ALLOW_COOPERATIVE | LANEMODE_NO_SPEED_GAIN
                 | LANEMODE_NO_DRIVE_ON_RIGHT
                 | LANEMODE_EXT_TRACI_BY_SPEED
     };
@@ -55,7 +55,7 @@ public:
     // 设置车辆变道模式
     void setLaneChangeMode(std::string nodeId, SMTLaneChangeMode mode);
     // 变更车辆行驶车道
-    void commandChangeLane(std::string nodeId, uint8_t laneIndex, uint32_t duration = 0);
+    void changeLane(std::string nodeId, uint8_t laneIndex, uint32_t duration = 0);
 protected:
     Veins::TraCIConnection& smtConnection;
 };

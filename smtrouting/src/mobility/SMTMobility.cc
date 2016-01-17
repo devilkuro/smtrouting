@@ -195,7 +195,7 @@ void SMTMobility::setNoOvertake() {
 }
 
 void SMTMobility::changeLane(uint8_t laneIndex, uint32_t duration) {
-    getComIf()->commandChangeLane(external_id, laneIndex, duration);
+    getComIf()->changeLane(external_id, laneIndex, duration);
 }
 
 double SMTMobility::getLanePosition() {

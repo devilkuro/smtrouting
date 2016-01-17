@@ -147,7 +147,7 @@ void SMTComInterface::setLaneChangeMode(std::string nodeId, SMTLaneChangeMode mo
     ASSERT(buf.eof());
 }
 
-void SMTComInterface::commandChangeLane(std::string nodeId, uint8_t laneIndex,
+void SMTComInterface::changeLane(std::string nodeId, uint8_t laneIndex,
         uint32_t duration) {
     uint8_t variableId = CMD_CHANGELANE;
     uint8_t variableType = TYPE_COMPOUND;
