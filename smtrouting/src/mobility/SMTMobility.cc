@@ -37,6 +37,8 @@ void SMTMobility::finish() {
 
 void SMTMobility::preInitialize(std::string external_id, const Coord& position,
         std::string road_id, double speed, double angle) {
+    Enter_Method_Silent
+    ();
     Veins::TraCIMobility::preInitialize(external_id, position, road_id, speed,
             angle);
 }
@@ -44,6 +46,8 @@ void SMTMobility::preInitialize(std::string external_id, const Coord& position,
 void SMTMobility::nextPosition(const Coord& position, std::string road_id,
         double speed, double angle,
         Veins::TraCIScenarioManager::VehicleSignal signals) {
+    Enter_Method_Silent
+    ();
     Veins::TraCIMobility::nextPosition(position, road_id, speed, angle,
             signals);
     if (!hasRouted) {
@@ -89,6 +93,16 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
     processWhenNextPosition();
 }
 
+void SMTMobility::handleSelfMsg(cMessage* msg) {
+    if (string(msg->getName()) == "changeLaneTo1") {
+        if (commandGetLaneIndex() != 1) {
+            changeLane(1,10);
+        }
+    }
+    cancelAndDelete(msg);
+    msg = NULL;
+}
+
 void SMTMobility::processAfterRouting() {
     // 选路之后每个周期都会执行(请确保判定完备,不要执行复杂度过高的操作)
 }
@@ -101,13 +115,17 @@ void SMTMobility::processAtRouting() {
     // 选路阶段
     // 设置车道变换模式
     setNoOvertake();
-    std::cout<<"car "<<external_id<<" will not make overtake."<<std::endl;
+    if (debug) {
+        std::cout << "car " << external_id << " will not make overtake."
+                << std::endl;
+    }
 }
 
 void SMTMobility::processWhenChangeRoad() {
     // 当车辆首次进入某条道路时执行
-    if(road_id=="20/14to18/14"){
-        changeLane(1);
+    if (road_id == "20/14to18/14") {
+        selfMsg = new cMessage("changeLaneTo1");
+        scheduleAt(simTime() + intrand(5), selfMsg);
     }
 }
 
@@ -172,11 +190,12 @@ string SMTMobility::convertStrToRecordId(string id) {
 }
 
 void SMTMobility::setNoOvertake() {
-    getComIf()->setLaneChangeMode(external_id,SMTComInterface::LANEMODE_DISALLOW_OVERTAKE);
+    getComIf()->setLaneChangeMode(external_id,
+            SMTComInterface::LANEMODE_DISALLOW_OVERTAKE);
 }
 
-void SMTMobility::changeLane(uint8_t laneIndex) {
-    getComIf()->commandChangeLane(external_id,laneIndex);
+void SMTMobility::changeLane(uint8_t laneIndex, uint32_t duration) {
+    getComIf()->commandChangeLane(external_id, laneIndex, duration);
 }
 
 double SMTMobility::getLanePosition() {

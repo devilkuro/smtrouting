@@ -40,7 +40,7 @@ public:
     };
     SMTMobility() :
             smtMap(0), hasRouted(false), hasInitialized(false), lastEdge(0), curPrimaryEdge(
-                    0), lastPrimaryEdge(0),lastPos(-1) {
+                    0), lastPrimaryEdge(0), lastPos(-1), selfMsg(0) {
     }
     virtual ~SMTMobility();
 
@@ -52,6 +52,7 @@ public:
             double speed = -1, double angle = -1,
             Veins::TraCIScenarioManager::VehicleSignal signals =
                     Veins::TraCIScenarioManager::VEH_SIGNAL_UNDEF);
+    virtual void handleSelfMsg(cMessage *msg);
 protected:
     // 接口成员
     SMTMap* smtMap;
@@ -77,7 +78,7 @@ protected:
     SMTEdge* lastPrimaryEdge;
     double lastPos; // 用于判定是否需要进行记录
     string title;
-
+    cMessage* selfMsg;
 
     // overload these function in different mobility
     // processAfterRouting
@@ -99,7 +100,7 @@ protected:
     string convertStrToRecordId(string id);
 private:
     void setNoOvertake();
-    void changeLane(uint8_t laneIndex);
+    void changeLane(uint8_t laneIndex, uint32_t duration = 0);
     double getLanePosition();
 };
 
