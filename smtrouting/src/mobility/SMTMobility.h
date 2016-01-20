@@ -108,7 +108,7 @@ protected:
     // 消息处理部分
     virtual void handleLaneChangeMsg(cMessage *msg);
 
-    void startChangeLane(uint8_t laneIndex);
+    void startChangeLane(uint8_t laneIndex, double delay = 0);
 private:
     void cmdSetNoOvertake();
     void cmdChangeLane(uint8_t laneIndex, uint32_t duration = 0);

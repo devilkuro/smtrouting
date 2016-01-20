@@ -130,7 +130,7 @@ void SMTMobility::processWhenChangeRoad() {
         laneChangeMsg = NULL;
     }
     if (road_id == "20/14to18/14") {
-        startChangeLane(1);
+        startChangeLane(1,laneChangeDuration);
     }
 }
 
@@ -183,9 +183,9 @@ void SMTMobility::changeToPreferredLane(int laneIndex) {
     startChangeLane(preferredLaneIndex);
 }
 
-void SMTMobility::startChangeLane(uint8_t laneIndex) {
+void SMTMobility::startChangeLane(uint8_t laneIndex, double delay) {
     laneChangeMsg = new cMessage("changeLane", laneIndex);
-    scheduleAt(simTime() + updateInterval, laneChangeMsg);
+    scheduleAt(simTime() + updateInterval + delay, laneChangeMsg);
 }
 
 string SMTMobility::convertStrToRecordId(string id) {
