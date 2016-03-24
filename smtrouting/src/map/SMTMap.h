@@ -34,7 +34,8 @@ using std::set;
 class SMTEdge;
 class SMTLane;
 class SMTJunction;
-class SMTTlLogic;
+class SMTTLLogic;
+class SMTPhase;
 class SMTConnection;
 class SMTRoute;
 /**
@@ -91,8 +92,20 @@ class SMTJunction {
 /**
  * SMTTlLogic:交通灯逻辑tlLogic.
  */
-class SMTTlLogic {
+class SMTTLLogic {
     // TODO not implement now
+public:
+    SMTTLLogic():id(""),type(""),programID(""),offset(0.0){
+    }
+    string id;
+    string type;
+    string programID;
+    double offset;
+    vector<SMTPhase*> phases;
+};
+
+class SMTPhase{
+
 };
 /**
  * SMTConnection:连接connection.
