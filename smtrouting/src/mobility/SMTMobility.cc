@@ -130,7 +130,7 @@ void SMTMobility::processWhenChangeRoad() {
         laneChangeMsg = NULL;
     }
     if (road_id == "20/14to18/14") {
-        startChangeLane(1,laneChangeDuration);
+        startChangeLane(1, laneChangeDuration);
     }
 }
 
@@ -154,6 +154,10 @@ void SMTMobility::processWhenNextPosition() {
                             << simTime().dbl() << road_id << recordRoadId << pos
                             << srt->endl;
                 }
+            } else if (pos < -1500) {
+                srt->changeName(recordRoadId, title) << external_id
+                        << simTime().dbl() << road_id << recordRoadId << pos
+                        << srt->endl;
             }
         } else {
             // 反之记录延伸辅道距离为正向离开路口点距离
