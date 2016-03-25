@@ -33,24 +33,33 @@ public:
     };
 public:
     SMTPhaseSegment() :
-            offset(0), preState("") {
+            head(0), tail(0), period(0), preState("") {
         segIt = segment.begin();
     }
     virtual ~SMTPhaseSegment();
 
 public:
     list<State> segment;
-    double offset;
+    double head;
+    double tail;
+    double period;
     list<State>::iterator segIt;
     string preState;
 
     void setState(double start, double end, string value);
     void resetState(list<double> segLens, list<string> values, double offset);
-    void setOffset(double offset);
     bool moveCertainStateAHead(string value);
 
 public:
     void debugPrint();
+
+protected:
+    double getHead();
+    double getTail();
+    double getPeriod();
+    void updateHeadTailPeriod();
+
+    void debugMoreThanOneNode();
 };
 
 #endif /* SMTPHASESEGMENT_H_ */
