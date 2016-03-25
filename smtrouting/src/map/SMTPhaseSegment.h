@@ -18,6 +18,7 @@
 
 #include<list>
 #include<string>
+#include<iostream>
 
 using std::list;
 using std::string;
@@ -25,13 +26,14 @@ using std::string;
 // 用来管理SMTPhase的时间片
 class SMTPhaseSegment {
 public:
-    class State{
+    class State {
     public:
         double time;
         string value;
     };
 public:
-    SMTPhaseSegment():offset(0),preState("") {
+    SMTPhaseSegment() :
+            offset(0), preState("") {
         segIt = segment.begin();
     }
     virtual ~SMTPhaseSegment();
@@ -42,10 +44,13 @@ public:
     list<State>::iterator segIt;
     string preState;
 
-    void addState(double start, double end, string value);
-    void setStateList(double start, list<double> segLens, list<string> values);
+    void setState(double start, double end, string value);
+    void resetState(list<double> segLens, list<string> values, double offset);
     void setOffset(double offset);
-    void moveCertainStateAHead(string value);
+    bool moveCertainStateAHead(string value);
+
+public:
+    void debugPrint();
 };
 
 #endif /* SMTPHASESEGMENT_H_ */
