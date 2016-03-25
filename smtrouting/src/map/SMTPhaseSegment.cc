@@ -16,7 +16,6 @@
 #include "SMTPhaseSegment.h"
 
 SMTPhaseSegment::~SMTPhaseSegment() {
-    // TODO Auto-generated destructor stub
 }
 
 void SMTPhaseSegment::setState(double start, double end, string value) {
@@ -101,20 +100,20 @@ void SMTPhaseSegment::setState(double start, double end, string value) {
 }
 
 void SMTPhaseSegment::resetState(list<double> segLens, list<string> values,
-        double offset) {
+        double start) {
     if (segLens.size() != values.size()) {
         std::cout << "unmatched segLens and values." << std::endl;
     }
     // 重置状态线段
     segment.clear();
-    double start = offset;
+    double begin = start;
     list<double>::iterator lenIt = segLens.begin();
     list<string>::iterator valIt = values.begin();
     // 依此设置各状态段落
     while (lenIt != segLens.end() && valIt != values.end()) {
-        double end = start + *lenIt;
-        setState(start, end, *valIt);
-        start = end;
+        double end = begin + *lenIt;
+        setState(begin, end, *valIt);
+        begin = end;
         lenIt++;
         valIt++;
     }

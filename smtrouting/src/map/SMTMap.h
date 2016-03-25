@@ -36,6 +36,7 @@ class SMTLane;
 class SMTJunction;
 class SMTTLLogic;
 class SMTPhase;
+class SMTSegment;
 class SMTConnection;
 class SMTRoute;
 /**
@@ -87,25 +88,50 @@ public:
  * SMTJunction:路口junction.
  */
 class SMTJunction {
-    // TODO not implement now
+    // TODO not finished now
+    // seems useless.
+    string id; // The id of the junction; please note, that a traffic light definition must use the same ID when controlling this intersection.
+    double x; // The x-coordinate of the intersection
+    double y; // The y-coordinate of the intersection
+    list<string> incLanes; // The ids of the lanes that end at the intersection; sorted by direction, clockwise, with direction up = 0
+    list<string> intLanes; // The IDs of the lanes within the intersection
+    // shape is ignored
+
+    // SMT attributes
 };
 /**
  * SMTTlLogic:交通灯逻辑tlLogic.
  */
 class SMTTLLogic {
-    // TODO not implement now
+    // TODO not finished now
 public:
-    SMTTLLogic():id(""),type(""),programID(""),offset(0.0){
+    SMTTLLogic() :
+            offset(0.0) {
     }
     string id;
     string type;
     string programID;
     double offset;
-    vector<SMTPhase*> phases;
+    vector<SMTPhase> phases;
 };
 
-class SMTPhase{
+/**
+ * SMTPhase:交通灯相位定义.
+ */
+class SMTPhase {
+    // TODO not finished now
+    int duration; // time (int),The duration of the phase
+    string state; // list of signal states,The traffic light states for this phase
+    // minDur,time (int),The minimum duration of the phase (optional), defaults to duration
+    // maxDur,time (int),The maximum duration of the phase (optional), defaults to duration
+    // minDur and maxDur are ignored.
+};
 
+/**
+ * SMTSegment:连接connection.
+ */
+class SMTSegment {
+    // TODO not finished now
 };
 /**
  * SMTConnection:连接connection.
@@ -123,7 +149,7 @@ public:
     int fromLane; // The lane of the incoming edge at which the connection begins
     int toLane; // The lane of the outgoing edge at which the connection ends
     string via; // The id of the lane to use to pass this connection across the junction
-    // tl is ignored    // The id of the traffic light that controls this connection; the attribute is missing if the connection is not controlled by a traffic light
+    string tl; // The id of the traffic light that controls this connection; the attribute is missing if the connection is not controlled by a traffic light
     int linkIndex; // The index of the signal responsible for the connection within the traffic light; the attribute is missing if the connection is not controlled by a traffic light
     string dir; // The direction of the connection. "s" = straight, "t" = turn, "l" = left, "r" = right, "L" = partially left, R = partially right, "invalid" = no direction
     // state is ignored // The state of the connection. "-" = dead end, "=" = equal, "m" = minor link, "M" = major link, traffic light only: "O" = controller off, "o" = yellow flashing, "y" = yellow minor link, "Y" = yellow major link, "r" = red, "g" = green minor, "G" green major
@@ -134,6 +160,7 @@ public:
     SMTLane* fromSMTLane;
     SMTLane* toSMTLane;
     SMTLane* viaSMTLane;
+    SMTTLLogic* tlSMTTL;
 };
 
 /**
