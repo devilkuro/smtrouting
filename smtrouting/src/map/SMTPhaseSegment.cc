@@ -20,6 +20,9 @@ SMTPhaseSegment::~SMTPhaseSegment() {
 }
 
 void SMTPhaseSegment::setState(double start, double end, string value) {
+    if(end<=start){
+        std::cout<<"Error: end time mush bigger than start time."<<std::endl;
+    }
     // 设置segment的某一段为指定value
     // 合并与前方状态一致的节点
     // 寻找起始位置
@@ -120,6 +123,64 @@ void SMTPhaseSegment::resetState(list<double> segLens, list<string> values,
 }
 
 bool SMTPhaseSegment::moveCertainStateAHead(string value) {
+    // 将特定value移动至最前方
+    // mCSAHead-b: a->b->c ==>> b->c->a
+    // 算法分为两步:
+    // 1. 截取b前方队列
+    // 2. 将截取的队列插入末位状态
+    // 队列不能为空
+    if(segment.begin()==segment.end()){
+        std::cout<<"Error: Cannot move state in empty segment"<<std::endl;
+        return false;
+    }
+    list<State> t;
+    // 记录结尾状态时间,用于更新截取的队列
+    list<State>::iterator endIt = segment.end();
+    endIt--;
+    double end = endIt->time;
+    // 获得结尾状态,用于判定节点是否需要合并
+    if(endIt = segment.begin()){
+        std::cout<<"Error: Segment must have more than one node"<<std::endl;
+        return false;
+    }
+    endIt--;
+    string lastState = endIt->value;
+    segIt = segment.begin();
+    // 记录开始状态时间,用于更新截取的队列
+    double start = segIt->time;
+    double period = end - start;
+    while(segIt!=segment.end()){
+        // 截取节点,直到状态为value的节点
+        if(segIt->value!=value){
+            t.push_back(*segIt);
+            segIt = segment.erase(segIt);
+        }else{
+            // 更新移动后线段的开始时间
+            start = segIt->time;
+            // 更新t列表时间状态
+            double offset = end - start;
+            for(list<State>::iterator it = t.begin();it!=t.end();++it){
+                it->time += offset;
+            }
+            // 若结尾状态与t列表开头状态一致,则进行合并,删除t第一个节点
+            if(t.begin()->value == lastState){
+                t.pop_front();
+            }
+            // 合并列表,并修改最后节点位置
+            segment.insert(endIt,t.begin(),t.end());
+            endIt->time+=offset;
+        }
+    }
+    if(segIt == segment.end()){
+        segment.swap(t);
+        std::cout<<"Error: Cannot move the state not in the segment"<<std::endl;
+    }
+    // 重设segIt与preState
+    // 若segment包含状态为value的节点,则segIt指向节点segment.begin()
+    // 反之,指向end().因此,此处重设为begin,并对应修改preState
+    segIt = segment.begin();
+    preState = "x";
+    // TODO 需要测试
 }
 
 void SMTPhaseSegment::debugPrint() {
