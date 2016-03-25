@@ -89,6 +89,7 @@ public:
  */
 class SMTJunction {
     // TODO not finished now
+public:
     // seems useless.
     string id; // The id of the junction; please note, that a traffic light definition must use the same ID when controlling this intersection.
     double x; // The x-coordinate of the intersection
@@ -120,6 +121,7 @@ public:
  */
 class SMTPhase {
     // TODO not finished now
+public:
     int duration; // time (int),The duration of the phase
     string state; // list of signal states,The traffic light states for this phase
     // minDur,time (int),The minimum duration of the phase (optional), defaults to duration
@@ -132,6 +134,7 @@ class SMTPhase {
  */
 class SMTSegment {
     // TODO not finished now
+public:
 };
 /**
  * SMTConnection:连接connection.
