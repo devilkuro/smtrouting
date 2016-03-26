@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef SMTSEGMENT_H_
-#define SMTSEGMENT_H_
+#ifndef __MAP_SMTSEGMENT_H_
+#define __MAP_SMTSEGMENT_H_
 
 #include "SMTPhaseSegment.h"
 
@@ -37,5 +37,5 @@ public:
 
 };
 
-#endif /* SMTSEGMENT_H_ */
+#endif /* __MAP_SMTSEGMENT_H_ */
 

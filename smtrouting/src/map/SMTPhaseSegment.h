@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef SMTPHASESEGMENT_H_
-#define SMTPHASESEGMENT_H_
+#ifndef __MAP_SMTPHASESEGMENT_H_
+#define __MAP_SMTPHASESEGMENT_H_
 
 #include<list>
 #include<string>
@@ -62,4 +62,4 @@ protected:
     void debugMoreThanOneNode();
 };
 
-#endif /* SMTPHASESEGMENT_H_ */
+#endif /* __MAP_SMTPHASESEGMENT_H_ */

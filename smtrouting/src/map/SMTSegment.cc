@@ -22,7 +22,7 @@ SMTSegment::~SMTSegment() {
 bool SMTSegment::setSegment(const list<double>& durList,
         const list<string>& states, double offset) {
     // FIXME 需要验证offset的用法
-    content.resetState(durList, states, 0);
+    content.resetState(durList, states, offset);
     if (content.states.size() == 2) {
         // 若只有一种状态
         if (content.states.front().value == "G") {
@@ -41,7 +41,8 @@ bool SMTSegment::setSegment(const list<double>& durList,
             // 通过将其他状态(此处使用'r')移至最前方即可完成
             if (!content.moveCertainStateAHead("r")) {
                 // 当状态不只一种时必须存在状态'r'
-                std::cout << "Must have 'r' state when more than one state"
+                std::cout
+                        << "Must have 'r' state when there are more than one state"
                         << std::endl;
                 return false;
             }
@@ -53,8 +54,8 @@ bool SMTSegment::setSegment(const list<double>& durList,
             Tg = -1;
             Ty = -1;
             Tr = -1;
-            for (list<SMTPhaseSegment::State>::iterator it = content.states.begin();
-                    it != content.states.end(); ++it) {
+            for (list<SMTPhaseSegment::State>::iterator it =
+                    content.states.begin(); it != content.states.end(); ++it) {
                 if (T0 == -1) {
                     if (it->value == "G") {
                         T0 = it->time;
@@ -103,8 +104,7 @@ bool SMTSegment::setSegment(const list<double>& durList,
             // 检测时间长度是否符合state状态
             if (content.head != T0 || Tg + Ty + Tr != content.period
                     || content.head + content.period != content.tail) {
-                std::cout << "The time durations are unmatched"
-                        << std::endl;
+                std::cout << "The time durations are unmatched" << std::endl;
                 return false;
             }
         } else {

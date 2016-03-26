@@ -101,6 +101,12 @@ void SMTMap::initNetFromXML(cXMLElement* xml) {
         addEdgeFromEdgeXML(edgeXML);
         edgeXML = edgeXML->getNextSiblingWithTag("edge");
     }
+    // import traffic lights
+    cXMLElement* tlXML = xml->getFirstChildWithTag("tlLogic");
+    while(tlXML){
+        addTLFromTLXML(tlXML);
+        tlXML = tlXML->getNextSiblingWithTag("tlLogic");
+    }
     // import connections
     cXMLElement* conXML = xml->getFirstChildWithTag("connection");
     while (conXML) {
@@ -188,6 +194,7 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     con->fromLane = strtol(attrMap["fromLane"].c_str(), 0, 0);
     con->toLane = strtol(attrMap["toLane"].c_str(), 0, 0);
     con->via = attrMap["via"];
+    con->tl = attrMap["tl"];
     con->linkIndex = strtol(attrMap["linkIndex"].c_str(), 0, 0);
     con->dir = attrMap["dir"];
     // SMT 属性
@@ -221,6 +228,30 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
         con->fromSMTEdge->conVector.push_back(con);
         con->fromSMTLane->conVector.push_back(con);
         con->fromSMTLane->nextVector.push_back(con->toSMTLane);
+    }
+}
+
+void SMTMap::addTLFromTLXML(cXMLElement* xml) {
+    SMTTLLogic* tl = new SMTTLLogic();
+    cXMLAttributeMap attrMap = xml->getAttributes();
+    tl->id = attrMap["id"];
+    tl->type = attrMap["type"];
+    tl->programID = attrMap["programID"];
+    tl->offset = atoi(attrMap["offset"].c_str());
+    if(tl->type == "static"){
+        // set phases in this tl
+        cXMLElement* phaseXML = xml->getFirstChildWithTag("phase");
+        while(phaseXML){
+            cXMLAttributeMap phaseAttrMap = phaseXML->getAttributes();
+            // 添加phases
+            tl->phases.push_back(SMTPhase());
+            tl->phases.back().duration = atoi(phaseAttrMap["duration"].c_str());
+            tl->phases.back().state = phaseAttrMap["state"];
+            phaseXML = phaseXML->getNextSiblingWithTag("phase");
+        }
+        // TODO 修改segments部分
+    }else{
+        std::cout<<"cannot handle non-static traffic light"<<std::endl;
     }
 }
 
@@ -293,3 +324,9 @@ void SMTMap::finish() {
     std::cout << "Map::finish" << std::endl;
 }
 
+SMTTLLogic::~SMTTLLogic() {
+    // TODO
+}
+
+SMTPhase::~SMTPhase() {
+}

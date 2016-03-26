@@ -24,7 +24,7 @@
 #include <set>
 #include "SMTLaunchd.h"
 #include "SMTComInterface.h"
-#include "SMTPhaseSegment.h"
+#include "SMTSegment.h"
 
 using std::string;
 using std::vector;
@@ -109,6 +109,7 @@ public:
     SMTTLLogic() :
             offset(0.0) {
     }
+    virtual ~SMTTLLogic();
     string id; // The id of the traffic light
     string type; // The type of the traffic light
     string programID; // The id of the traffic light program
@@ -125,6 +126,10 @@ public:
 class SMTPhase {
     // TODO not finished now
 public:
+    SMTPhase() :
+            offset(0.0) {
+    }
+    virtual ~SMTPhase();
     int duration; // time (int),The duration of the phase
     string state; // list of signal states,The traffic light states for this phase
     // minDur,time (int),The minimum duration of the phase (optional), defaults to duration
@@ -151,7 +156,14 @@ public:
     string tl; // The id of the traffic light that controls this connection; the attribute is missing if the connection is not controlled by a traffic light
     int linkIndex; // The index of the signal responsible for the connection within the traffic light; the attribute is missing if the connection is not controlled by a traffic light
     string dir; // The direction of the connection. "s" = straight, "t" = turn, "l" = left, "r" = right, "L" = partially left, R = partially right, "invalid" = no direction
-    // state is ignored // The state of the connection. "-" = dead end, "=" = equal, "m" = minor link, "M" = major link, traffic light only: "O" = controller off, "o" = yellow flashing, "y" = yellow minor link, "Y" = yellow major link, "r" = red, "g" = green minor, "G" green major
+    // state is ignored
+    // - The state of the connection.
+    // - "-" = dead end, "=" = equal,
+    // - "m" = minor link, "M" = major link,
+    // - traffic light only:
+    // - "O" = controller off, "o" = yellow flashing,
+    // - "y" = yellow minor link, "Y" = yellow major link,
+    // - "r" = red, "g" = green minor, "G" green major
 
     // SMT attributes
     SMTEdge* fromSMTEdge;
@@ -206,6 +218,7 @@ protected:
 
     map<string, SMTEdge*> edgeMap;
     map<string, SMTLane*> laneMap;
+    map<string, SMTTLLogic*> tlMap;
 
     // functions
     virtual void initialize();
@@ -216,6 +229,7 @@ protected:
     virtual void optimizeNet();
     virtual void initVechileTypeFromXML(cXMLElement* xml);
     void addEdgeFromEdgeXML(cXMLElement* xml);
+    void addTLFromTLXML(cXMLElement* xml);
     void addConFromConXML(cXMLElement* xml);
     void verifyNetConfig();
 };
