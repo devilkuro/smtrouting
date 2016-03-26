@@ -63,7 +63,8 @@ SMTLaunchd* SMTMap::getLaunchd() {
 }
 
 SMTEdge* SMTMap::getSMTEdge(string id) {
-    ASSERT2(edgeMap.find(id)!=edgeMap.end(),"try to get SMTEdge from an unknown id.");
+    ASSERT2(edgeMap.find(id) != edgeMap.end(),
+            "try to get SMTEdge from an unknown id.");
     return edgeMap[id];
 }
 
@@ -285,21 +286,10 @@ void SMTMap::verifyNetConfig() {
 }
 
 void SMTMap::finish() {
-    Fanjing::StatisticsRecordTools *srt = Fanjing::StatisticsRecordTools::request();
-    srt->outputSeparate("trajectory.txt","./results");
+    Fanjing::StatisticsRecordTools *srt =
+            Fanjing::StatisticsRecordTools::request();
+    srt->outputSeparate("trajectory.txt", "./results");
     srt->clean();
-    std::cout<<"Map::finish"<<std::endl;
+    std::cout << "Map::finish" << std::endl;
 }
 
-bool SMTSegment::setSegment(const list<double>& durList,
-        const list<string>& states,double offset) {
-    // FIXME 需要验证offset的用法
-    segment.resetState(durList,states,0);
-    if(segment.segment.front().value!="G"){
-        segment.moveCertainStateAHead("G");
-    }else{
-        segment.moveCertainStateAHead("r");
-        segment.moveCertainStateAHead("G");
-        // TODO
-    }
-}

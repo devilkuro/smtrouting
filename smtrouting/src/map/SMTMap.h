@@ -37,7 +37,6 @@ class SMTLane;
 class SMTJunction;
 class SMTTLLogic;
 class SMTPhase;
-class SMTSegment;
 class SMTConnection;
 class SMTRoute;
 /**
@@ -133,20 +132,6 @@ public:
     // minDur and maxDur are ignored.
 };
 
-/**
- * SMTSegment:连接connection.
- */
-class SMTSegment {
-    // TODO not finished now
-public:
-    SMTPhaseSegment segment;
-    double T0; // the start time of the green light
-    double Tg; // the duration of green light
-    double Ty; // the duration of yellow light
-    double Tr; // the duration of red light
-
-    bool setSegment(const list<double> &durList, const list<string> &states, double offset);
-};
 /**
  * SMTConnection:连接connection.
  */

@@ -26,18 +26,18 @@ void SMTPhaseSegment::setState(double start, double end, string value) {
     // 设置segment的某一段为指定value
     // 合并与前方状态一致的节点
     // 寻找起始位置
-    if (segIt == segment.end() || segIt->time > start) {
-        segIt = segment.begin();
+    if (segIt == states.end() || segIt->time > start) {
+        segIt = states.begin();
         preState = "x";
     }
     // 跳过小于start时间点的节点
-    while (segIt != segment.end() && segIt->time < start) {
+    while (segIt != states.end() && segIt->time < start) {
         preState = segIt->value;
         segIt++;
     }
     // 修改start节点
     string originState = preState; // 用于记录end时间后原始的状态
-    if (segIt != segment.end() && segIt->time == start) {
+    if (segIt != states.end() && segIt->time == start) {
         // 时间相等进行修改
         // 记录原始后续状态(理论上原始后续状态肯定与前方状态不同)
         // (因为相同的节点应该被删除)
@@ -52,7 +52,7 @@ void SMTPhaseSegment::setState(double start, double end, string value) {
         } else {
             // 若修改后的状态与start之前状态一致,则删除该节点
             // 此时preState与originState均未改变
-            segIt = segment.erase(segIt);
+            segIt = states.erase(segIt);
         }
     } else {
         // 如果segIt为end()或者大于start的节点,且之前状态与value不一致
@@ -61,7 +61,7 @@ void SMTPhaseSegment::setState(double start, double end, string value) {
             State state;
             state.time = start;
             state.value = value;
-            segment.insert(segIt, state);
+            states.insert(segIt, state);
             // 记录原始后续状态
             originState = preState;
             // 同步迭代器与preState状态,
@@ -69,19 +69,19 @@ void SMTPhaseSegment::setState(double start, double end, string value) {
         }
     }
     // 删除所有start之后,end之前的状态
-    while (segIt != segment.end() && segIt->time < end) {
+    while (segIt != states.end() && segIt->time < end) {
         // 保存后续状态
         originState = segIt->value;
-        segIt = segment.erase(segIt);
+        segIt = states.erase(segIt);
     }
     // 修改end节点
-    if (segIt != segment.end() && segIt->time == end) {
+    if (segIt != states.end() && segIt->time == end) {
         // 若存在时间为end的节点
         // end后的状态与value状态一致,则删除该节点
         // 反之不做修改
         if (preState == segIt->value) {
             // 此时preState未改变
-            segIt = segment.erase(segIt);
+            segIt = states.erase(segIt);
         }
     } else {
         // 若segIt为end()或大于end的节点,且end前后状态不同
@@ -90,7 +90,7 @@ void SMTPhaseSegment::setState(double start, double end, string value) {
             State state;
             state.time = end;
             state.value = originState;
-            segment.insert(segIt, state);
+            states.insert(segIt, state);
             // 为便于连续修改segment状态,迭代器返回end时刻
             segIt--;
             // 返回后preState状态未改变
@@ -105,7 +105,8 @@ void SMTPhaseSegment::resetState(list<double> segLens, list<string> values,
         std::cout << "unmatched segLens and values." << std::endl;
     }
     // 重置状态线段
-    segment.clear();
+    states.clear();
+    segIt = states.begin();
     double begin = start;
     list<double>::iterator lenIt = segLens.begin();
     list<string>::iterator valIt = values.begin();
@@ -126,53 +127,53 @@ bool SMTPhaseSegment::moveCertainStateAHead(string value) {
     // 1. 截取b前方队列
     // 2. 将截取的队列插入末位状态
     // 队列不能为空
-    if (segment.begin() == segment.end()) {
+    if (states.begin() == states.end()) {
         std::cout << "Error: Cannot move state in empty segment" << std::endl;
         return false;
     }
     list<State> t;
     // 记录结尾状态时间,用于更新截取的队列
-    list<State>::iterator endIt = segment.end();
+    list<State>::iterator endIt = states.end();
     --endIt;
     double end = endIt->time;
     // 获得结尾状态,用于判定节点是否需要合并
-    if (endIt == segment.begin()) {
+    if (endIt == states.begin()) {
         debugMoreThanOneNode();
         return false;
     }
     --endIt;
     string lastState = endIt->value;
     ++endIt;
-    segIt = segment.begin();
+    segIt = states.begin();
     // 记录开始状态时间,用于更新截取的队列
     double start = segIt->time;
     double period = end - start;
-    while (segIt != segment.end()) {
+    while (segIt != states.end()) {
         // 截取节点,直到状态为value的节点
         if (segIt->value != value) {
             t.push_back(*segIt);
-            segIt = segment.erase(segIt);
+            segIt = states.erase(segIt);
         } else {
             // 更新移动后线段的开始时间
             start = segIt->time;
             // 更新t列表时间状态
-            double offset = period - end + start;
             for (list<State>::iterator it = t.begin(); it != t.end(); ++it) {
-                it->time += offset;
+                it->time += period;
             }
             // 若结尾状态与t列表开头状态一致,则进行合并,删除t第一个节点
             if (t.begin()->value == lastState) {
                 t.pop_front();
             }
             // 合并列表,并修改最后节点位置
-            segment.insert(endIt, t.begin(), t.end());
+            double offset = period - end + start;
+            states.insert(endIt, t.begin(), t.end());
             endIt->time += offset;
             break;
         }
     }
-    if (segIt == segment.end()) {
-        segment.swap(t);
-        segIt = segment.begin();
+    if (segIt == states.end()) {
+        states.swap(t);
+        segIt = states.begin();
         preState = "x";
         std::cout << "Error: Cannot move the state not in the segment"
                 << std::endl;
@@ -181,7 +182,7 @@ bool SMTPhaseSegment::moveCertainStateAHead(string value) {
     // 重设segIt与preState
     // 若segment包含状态为value的节点,则segIt指向节点segment.begin()
     // 反之,指向end()?.因此,此处重设为begin,并对应修改preState
-    segIt = segment.begin();
+    segIt = states.begin();
     preState = "x";
     updateHeadTailPeriod();
     return true;
@@ -191,10 +192,10 @@ void SMTPhaseSegment::debugPrint() {
     std::cout << std::endl << "debug: print the segment content." << std::endl;
     std::cout << "head:" << head << " " << "tail:" << tail << " " << "period:"
             << period << std::endl;
-    for (list<State>::iterator it = segment.begin(); it != segment.end();) {
+    for (list<State>::iterator it = states.begin(); it != states.end();) {
         std::cout << it->time << ":" << it->value;
         ++it;
-        if (it != segment.end()) {
+        if (it != states.end()) {
             std::cout << ", ";
         }
     }
@@ -202,27 +203,27 @@ void SMTPhaseSegment::debugPrint() {
 }
 
 double SMTPhaseSegment::getHead() {
-    if (segment.size() < 2) {
+    if (states.size() < 2) {
         debugMoreThanOneNode();
         return -1;
     }
-    return segment.front().time;
+    return states.front().time;
 }
 
 double SMTPhaseSegment::getTail() {
-    if (segment.size() < 2) {
+    if (states.size() < 2) {
         debugMoreThanOneNode();
         return -1;
     }
-    return segment.back().time;
+    return states.back().time;
 }
 
 double SMTPhaseSegment::getPeriod() {
-    if (segment.size() < 2) {
+    if (states.size() < 2) {
         debugMoreThanOneNode();
         return -1;
     }
-    return segment.back().time - segment.front().time;
+    return states.back().time - states.front().time;
 }
 
 void SMTPhaseSegment::updateHeadTailPeriod() {

@@ -34,12 +34,12 @@ public:
 public:
     SMTPhaseSegment() :
             head(0), tail(0), period(0), preState("") {
-        segIt = segment.begin();
+        segIt = states.begin();
     }
     virtual ~SMTPhaseSegment();
 
 public:
-    list<State> segment;
+    list<State> states;
     double head;
     double tail;
     double period;
