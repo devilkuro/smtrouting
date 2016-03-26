@@ -24,6 +24,7 @@
 #include <set>
 #include "SMTLaunchd.h"
 #include "SMTComInterface.h"
+#include "SMTPhaseSegment.h"
 
 using std::string;
 using std::vector;
@@ -109,11 +110,14 @@ public:
     SMTTLLogic() :
             offset(0.0) {
     }
-    string id;
-    string type;
-    string programID;
-    double offset;
-    vector<SMTPhase> phases;
+    string id; // The id of the traffic light
+    string type; // The type of the traffic light
+    string programID; // The id of the traffic light program
+    int offset; // The initial time offset of the program
+    vector<SMTPhase> phases; // the phase list
+
+    // SMT attributes
+    vector<SMTSegment> segments; // the phase segments ordered by link index
 };
 
 /**
@@ -135,6 +139,13 @@ public:
 class SMTSegment {
     // TODO not finished now
 public:
+    SMTPhaseSegment segment;
+    double T0; // the start time of the green light
+    double Tg; // the duration of green light
+    double Ty; // the duration of yellow light
+    double Tr; // the duration of red light
+
+    bool setSegment(const list<double> &durList, const list<string> &states, double offset);
 };
 /**
  * SMTConnection:连接connection.

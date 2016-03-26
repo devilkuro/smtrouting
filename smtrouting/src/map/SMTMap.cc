@@ -290,3 +290,16 @@ void SMTMap::finish() {
     srt->clean();
     std::cout<<"Map::finish"<<std::endl;
 }
+
+bool SMTSegment::setSegment(const list<double>& durList,
+        const list<string>& states,double offset) {
+    // FIXME 需要验证offset的用法
+    segment.resetState(durList,states,0);
+    if(segment.segment.front().value!="G"){
+        segment.moveCertainStateAHead("G");
+    }else{
+        segment.moveCertainStateAHead("r");
+        segment.moveCertainStateAHead("G");
+        // TODO
+    }
+}
