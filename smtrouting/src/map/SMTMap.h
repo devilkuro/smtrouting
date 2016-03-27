@@ -126,8 +126,7 @@ public:
 class SMTPhase {
     // TODO not finished now
 public:
-    SMTPhase() :
-            offset(0.0) {
+    SMTPhase(): duration(0) {
     }
     virtual ~SMTPhase();
     int duration; // time (int),The duration of the phase
@@ -144,7 +143,7 @@ class SMTConnection {
 public:
     SMTConnection() :
             fromLane(0), toLane(0), linkIndex(0), fromSMTEdge(0), toSMTEdge(0), fromSMTLane(
-                    0), toSMTLane(0), viaSMTLane(0) {
+                    0), toSMTLane(0), viaSMTLane(0), tlSMTTL(0) {
     }
     virtual ~SMTConnection();
     // xml attributes

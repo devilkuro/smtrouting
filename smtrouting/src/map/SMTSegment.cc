@@ -23,6 +23,10 @@ bool SMTSegment::setSegment(const list<double>& durList,
         const list<string>& states, double offset) {
     // FIXME 需要验证offset的用法
     content.resetState(durList, states, offset);
+    return updateTimeInfo();
+}
+
+bool SMTSegment::updateTimeInfo() {
     if (content.states.size() == 2) {
         // 若只有一种状态
         if (content.states.front().value == "G") {
@@ -36,7 +40,14 @@ bool SMTSegment::setSegment(const list<double>& durList,
             return false;
         }
     } else {
-        if (states.front() == "G" && states.back() == "G") {
+        // 获取开始于结束的状态
+        list<SMTPhaseSegment::State>::iterator uIt = content.states.begin();
+        string front = uIt->value;
+        uIt = content.states.end();
+        --uIt;
+        --uIt;
+        string back = uIt->value;
+        if (front == "G" && back == "G") {
             // 若前后都是绿色,且状态不只一种,则需要合并状态G
             // 通过将其他状态(此处使用'r')移至最前方即可完成
             if (!content.moveCertainStateAHead("r")) {

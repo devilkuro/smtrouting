@@ -103,7 +103,7 @@ void SMTMap::initNetFromXML(cXMLElement* xml) {
     }
     // import traffic lights
     cXMLElement* tlXML = xml->getFirstChildWithTag("tlLogic");
-    while(tlXML){
+    while (tlXML) {
         addTLFromTLXML(tlXML);
         tlXML = tlXML->getNextSiblingWithTag("tlLogic");
     }
@@ -184,6 +184,56 @@ void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
     }
 }
 
+void SMTMap::addTLFromTLXML(cXMLElement* xml) {
+    SMTTLLogic* tl = new SMTTLLogic();
+    cXMLAttributeMap attrMap = xml->getAttributes();
+    tl->id = attrMap["id"];
+    tl->type = attrMap["type"];
+    tl->programID = attrMap["programID"];
+    tl->offset = atoi(attrMap["offset"].c_str());
+    if (tl->type == "static") {
+        // set phases in this tl
+        cXMLElement* phaseXML = xml->getFirstChildWithTag("phase");
+        unsigned int n = 0;
+        while (phaseXML) {
+            cXMLAttributeMap phaseAttrMap = phaseXML->getAttributes();
+            if (n == 0) {
+                n = phaseAttrMap["state"].size();
+            } else {
+                if (n != phaseAttrMap["state"].size()) {
+                    std::cout
+                            << "Error@SMTMap::addTLFromTLXML-unstable state size"
+                            << std::endl;
+                }
+            }
+            // 添加phases
+            tl->phases.push_back(SMTPhase());
+            tl->phases.back().duration = atoi(phaseAttrMap["duration"].c_str());
+            tl->phases.back().state = phaseAttrMap["state"];
+            phaseXML = phaseXML->getNextSiblingWithTag("phase");
+        }
+        tl->segments.assign(n, SMTSegment());
+        // 设置phase状态队列
+        vector<list<double> > durList(n);
+        vector<list<string> > valList(n);
+        for (unsigned int i = 0; i < tl->phases.size(); ++i) {
+            for (unsigned int j = 0; j < n; ++j) {
+                durList[j].push_back(tl->phases[i].duration);
+                valList[j].push_back(tl->phases[i].state.substr(j, 1));
+            }
+        }
+        // 设置segments信息
+        for (unsigned int i = 0; i < n; ++i) {
+            tl->segments[i].setSegment(durList[i], valList[i], tl->offset);
+        }
+        // 记录tl信息至tlMap
+        tlMap[tl->id] = tl;
+    } else {
+        std::cout << "Warning@SMTMap::addTLFromTLXML-non-static traffic light"
+                << std::endl;
+    }
+}
+
 void SMTMap::addConFromConXML(cXMLElement* xml) {
     // 读取并添加connection
     // 读取属性
@@ -202,12 +252,17 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     con->fromSMTEdge = edgeMap[con->from];
     ASSERT2(edgeMap.find(con->to) != edgeMap.end(), "unknown to edge.");
     con->toSMTEdge = edgeMap[con->to];
-    con->fromSMTLane = edgeMap[con->from]->laneVector[con->fromLane];
-    con->toSMTLane = edgeMap[con->to]->laneVector[con->toLane];
-    if (laneMap.find(con->via) != laneMap.end()) {
+    // via,tl 为可选属性
+    if (con->via != "") {
+        ASSERT2(laneMap.find(con->via) != laneMap.end(), "unknown tl.");
         con->viaSMTLane = laneMap[con->via];
     }
-
+    if (con->tl != "") {
+        ASSERT2(tlMap.find(con->tl) != tlMap.end(), "unknown tl.");
+        con->tlSMTTL = tlMap[con->tl];
+    }
+    con->fromSMTLane = edgeMap[con->from]->laneVector[con->fromLane];
+    con->toSMTLane = edgeMap[con->to]->laneVector[con->toLane];
     // 处理关联
     if (debug) {
         std::cout << "add connection between '" << con->from << "' and '"
@@ -231,34 +286,11 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     }
 }
 
-void SMTMap::addTLFromTLXML(cXMLElement* xml) {
-    SMTTLLogic* tl = new SMTTLLogic();
-    cXMLAttributeMap attrMap = xml->getAttributes();
-    tl->id = attrMap["id"];
-    tl->type = attrMap["type"];
-    tl->programID = attrMap["programID"];
-    tl->offset = atoi(attrMap["offset"].c_str());
-    if(tl->type == "static"){
-        // set phases in this tl
-        cXMLElement* phaseXML = xml->getFirstChildWithTag("phase");
-        while(phaseXML){
-            cXMLAttributeMap phaseAttrMap = phaseXML->getAttributes();
-            // 添加phases
-            tl->phases.push_back(SMTPhase());
-            tl->phases.back().duration = atoi(phaseAttrMap["duration"].c_str());
-            tl->phases.back().state = phaseAttrMap["state"];
-            phaseXML = phaseXML->getNextSiblingWithTag("phase");
-        }
-        // TODO 修改segments部分
-    }else{
-        std::cout<<"cannot handle non-static traffic light"<<std::endl;
-    }
-}
-
 void SMTMap::verifyNetConfig() {
     SMTComInterface* comIfc = getLaunchd()->getSMTComInterface();
 
     // verify the edges and lanes.
+    std::cout << "verifying lanes and edges ..." << std::endl;
     list<string> laneList = comIfc->getLaneIds();
     if (laneList.size() != laneMap.size()) {
         std::cout << "lane number is mismatch." << std::endl;
@@ -287,7 +319,8 @@ void SMTMap::verifyNetConfig() {
         }
     }
     std::cout << "verifying lanes and edges finished." << std::endl;
-    // vrtify the connections
+    // verify the connections
+    std::cout << "verifying connections ..." << std::endl;
     for (list<string>::iterator it = laneList.begin(); it != laneList.end();
             it++) {
         list<string> laneLinkedLanes = comIfc->getLaneLinkedLaneIds(*it);
@@ -314,6 +347,22 @@ void SMTMap::verifyNetConfig() {
         }
     }
     std::cout << "verifying connections finished." << std::endl;
+    // verify the tl (by print them)
+    std::cout << "printing tls ..." << std::endl;
+    for (map<string, SMTLane*>::iterator it = laneMap.begin();
+            it != laneMap.end(); ++it) {
+        for (unsigned int i = 0; i < it->second->conVector.size(); ++i) {
+            SMTConnection* con = it->second->conVector[i];
+            if (con->tl != "") {
+                SMTSegment seg = con->tlSMTTL->segments[con->linkIndex];
+                std::cout << "{from:" << con->fromSMTLane->id << ",to:"
+                        << con->toSMTLane->id << ",via:" << con->viaSMTLane->id
+                        << "}" << "-{T0,Tg,Ty,Tr}:{" << seg.T0 << "," << seg.Tg
+                        << "," << seg.Ty << "," << seg.Tr << "}" << std::endl;
+            }
+        }
+    }
+    std::cout << "printing tls finished." << std::endl;
 }
 
 void SMTMap::finish() {

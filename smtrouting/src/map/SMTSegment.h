@@ -34,7 +34,7 @@ public:
     double Tr; // the duration of red light
 
     bool setSegment(const list<double> &durList, const list<string> &states, double offset);
-
+    bool updateTimeInfo();
 };
 
 #endif /* __MAP_SMTSEGMENT_H_ */
