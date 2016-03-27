@@ -1,5 +1,6 @@
 /out/
 /src/Makefile
+/src/smtrouting
 /simulations/results/
 *.exe
 Makefile
