@@ -13,29 +13,9 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __MAP_SMTSEGMENT_H_
-#define __MAP_SMTSEGMENT_H_
+#include "SMTConnection.h"
 
-#include "SMTPhaseSegment.h"
-
-/**
- * SMTSegment:某connection的通行状态.
- */
-class SMTSegment {
-public:
-    SMTSegment():t0(0),tg(0),ty(0),tr(0) {
-    }
-    virtual ~SMTSegment();
-
-    SMTPhaseSegment content;
-    double t0; // the start time of the green light
-    double tg; // the duration of green light
-    double ty; // the duration of yellow light
-    double tr; // the duration of red light
-
-    bool setSegment(const list<double> &durList, const list<string> &states, double offset);
-    bool updateTimeInfo();
-};
-
-#endif /* __MAP_SMTSEGMENT_H_ */
+SMTConnection::~SMTConnection() {
+    // do nothing
+}
 

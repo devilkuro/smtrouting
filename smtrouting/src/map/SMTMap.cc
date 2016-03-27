@@ -29,10 +29,6 @@ SMTLane::~SMTLane() {
     // TODO 释放资源
 }
 
-SMTConnection::~SMTConnection() {
-    // TODO 释放资源
-}
-
 SMTRoute::~SMTRoute() {
     // TODO 释放资源
 }
@@ -260,6 +256,12 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     if (con->tl != "") {
         ASSERT2(tlMap.find(con->tl) != tlMap.end(), "unknown tl.");
         con->tlSMTTL = tlMap[con->tl];
+        // 转存控制信号时间信息
+        SMTSegment seg = con->tlSMTTL->segments[con->linkIndex];
+        con->t0 = seg.t0;
+        con->tg = seg.tg;
+        con->ty = seg.ty;
+        con->tr = seg.tr;
     }
     con->fromSMTLane = edgeMap[con->from]->laneVector[con->fromLane];
     con->toSMTLane = edgeMap[con->to]->laneVector[con->toLane];
@@ -357,8 +359,8 @@ void SMTMap::verifyNetConfig() {
                 SMTSegment seg = con->tlSMTTL->segments[con->linkIndex];
                 std::cout << "{from:" << con->fromSMTLane->id << ",to:"
                         << con->toSMTLane->id << ",via:" << con->viaSMTLane->id
-                        << "}" << "-{T0,Tg,Ty,Tr}:{" << seg.T0 << "," << seg.Tg
-                        << "," << seg.Ty << "," << seg.Tr << "}" << std::endl;
+                        << "}" << "-{T0,Tg,Ty,Tr}:{" << seg.t0 << "," << seg.tg
+                        << "," << seg.ty << "," << seg.tr << "}" << std::endl;
             }
         }
     }

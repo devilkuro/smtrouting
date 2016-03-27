@@ -25,6 +25,7 @@
 #include "SMTLaunchd.h"
 #include "SMTComInterface.h"
 #include "SMTSegment.h"
+#include "SMTConnection.h"
 
 using std::string;
 using std::vector;
@@ -37,7 +38,6 @@ class SMTLane;
 class SMTJunction;
 class SMTTLLogic;
 class SMTPhase;
-class SMTConnection;
 class SMTRoute;
 /**
  * SMTEdge:道路edge.
@@ -136,42 +136,7 @@ public:
     // minDur and maxDur are ignored.
 };
 
-/**
- * SMTConnection:连接connection.
- */
-class SMTConnection {
-public:
-    SMTConnection() :
-            fromLane(0), toLane(0), linkIndex(0), fromSMTEdge(0), toSMTEdge(0), fromSMTLane(
-                    0), toSMTLane(0), viaSMTLane(0), tlSMTTL(0) {
-    }
-    virtual ~SMTConnection();
-    // xml attributes
-    string from;   // The ID of the incoming edge at which the connection begins
-    string to;  // The ID of the outgoing edge at which the connection ends
-    int fromLane; // The lane of the incoming edge at which the connection begins
-    int toLane; // The lane of the outgoing edge at which the connection ends
-    string via; // The id of the lane to use to pass this connection across the junction
-    string tl; // The id of the traffic light that controls this connection; the attribute is missing if the connection is not controlled by a traffic light
-    int linkIndex; // The index of the signal responsible for the connection within the traffic light; the attribute is missing if the connection is not controlled by a traffic light
-    string dir; // The direction of the connection. "s" = straight, "t" = turn, "l" = left, "r" = right, "L" = partially left, R = partially right, "invalid" = no direction
-    // state is ignored
-    // - The state of the connection.
-    // - "-" = dead end, "=" = equal,
-    // - "m" = minor link, "M" = major link,
-    // - traffic light only:
-    // - "O" = controller off, "o" = yellow flashing,
-    // - "y" = yellow minor link, "Y" = yellow major link,
-    // - "r" = red, "g" = green minor, "G" green major
 
-    // SMT attributes
-    SMTEdge* fromSMTEdge;
-    SMTEdge* toSMTEdge;
-    SMTLane* fromSMTLane;
-    SMTLane* toSMTLane;
-    SMTLane* viaSMTLane;
-    SMTTLLogic* tlSMTTL;
-};
 
 /**
  * SMTRoute:edge到edge的路径.
