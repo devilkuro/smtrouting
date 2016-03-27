@@ -51,11 +51,12 @@ bool SMTSegment::updateTimeInfo() {
             // 若前后都是绿色,且状态不只一种,则需要合并状态G
             // 通过将其他状态(此处使用'r')移至最前方即可完成
             if (!content.moveCertainStateAHead("r")) {
-                // 当状态不只一种时必须存在状态'r'
-                std::cout
-                        << "Must have 'r' state when there are more than one state"
-                        << std::endl;
-                return false;
+                if (!content.moveCertainStateAHead("y")) {
+                    std::cout << "Unknown issue in SMTSegment::setSegment():"
+                            << "more than one state but no 'r' or 'y'"
+                            << std::endl;
+                    return false;
+                }
             }
         }
         content.moveCertainStateAHead("G");
@@ -91,7 +92,10 @@ bool SMTSegment::updateTimeInfo() {
                 } else if (Ty == -1) {
                     if (it->value == "r") {
                         Ty = it->time - T0 - Tg;
-                    } else {
+                    } else if(it->value=="x"){
+                        Ty = it->time - T0 - Tg;
+                        Tr = 0;
+                    }else {
                         std::cout
                                 << "Unknown issue in SMTSegment::setSegment():"
                                 << "Ty==-1" << std::endl;
