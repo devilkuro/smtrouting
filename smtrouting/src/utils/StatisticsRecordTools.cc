@@ -239,7 +239,7 @@ string StatisticsRecordTools::getValidFileName(string name) {
 
 string StatisticsRecordTools::getFileName(string name) {
     unsigned int pos = name.find_last_of('.');
-    if(pos != name.npos && invalidPos < name.length()){
+    if(pos != name.npos && pos < name.length()){
         if(pos != 0){
             return name.substr(0, pos);
         }else{
@@ -252,7 +252,7 @@ string StatisticsRecordTools::getFileName(string name) {
 
 string StatisticsRecordTools::getSuffix(string name) {
     unsigned int pos = name.find_last_of('.');
-    if(pos != name.npos && invalidPos < name.length()){
+    if(pos != name.npos && pos < name.length()){
         if(pos != 0){
             return name.substr(pos);
         }else{
