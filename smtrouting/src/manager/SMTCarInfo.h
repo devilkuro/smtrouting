@@ -14,8 +14,6 @@
 #include "tinyxml2.h"
 #include "StringHelper.h"
 
-namespace Fanjing {
-
 /*
  *
  */
@@ -65,5 +63,4 @@ private:
     static map<string, SMTCarInfo> vTypeMap;
 };
 
-} /* namespace Fanjing */
 #endif /* SMTCARINFO_H_ */

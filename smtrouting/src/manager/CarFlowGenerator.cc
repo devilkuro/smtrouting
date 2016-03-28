@@ -15,7 +15,6 @@
 
 #include "CarFlowGenerator.h"
 
-namespace Fanjing {
 CarFlowGenerator::CarFlowGenerator() {
     doc = NULL;
     root = NULL;
@@ -105,7 +104,7 @@ bool CarFlowGenerator::addODCar(string id, string origin, string destination,
     e->SetAttribute("origin", origin.c_str());
     e->SetAttribute("destination", destination.c_str());
     e->SetAttribute("time",
-            StringHelper::dbl2str(time, precisionOfTime).c_str());
+            Fanjing::StringHelper::dbl2str(time, precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }
@@ -133,7 +132,7 @@ bool CarFlowGenerator::addLoopCar(string id, list<string> loop, double time,
     e->SetAttribute("type", "SMTCARINFO_ROUTETYPE_LOOP");
     e->SetAttribute("loop", route.c_str());
     e->SetAttribute("time",
-            StringHelper::dbl2str(time, precisionOfTime).c_str());
+            Fanjing::StringHelper::dbl2str(time, precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }
@@ -380,5 +379,4 @@ double CarFlowGenerator::getDepartTimeOfCar(XMLElement* e) {
     return 0;
 }
 
-} /* namespace Fanjing */
 

@@ -22,7 +22,6 @@
 #include "SMTCarInfo.h"
 #include "StringHelper.h"
 
-namespace Fanjing {
 
 using namespace std;
 using namespace tinyxml2;
@@ -88,5 +87,4 @@ protected:
 
 };
 
-} /* namespace Fanjing */
 #endif /* CARFLOWGENERATOR_H_ */

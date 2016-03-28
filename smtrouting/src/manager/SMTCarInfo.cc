@@ -7,7 +7,6 @@
 
 #include "SMTCarInfo.h"
 
-namespace Fanjing {
 string SMTCarInfo::path = "";
 XMLDocument* SMTCarInfo::doc = NULL;
 map<string, SMTCarInfo> SMTCarInfo::vTypeMap;
@@ -105,15 +104,14 @@ string SMTCarInfo::toString() {
     str += "origin :" + origin + ", ";
     str += "destination :" + destination + ", ";
     str += "loop :" + loop + ", ";
-    str += "time :" + StringHelper::dbl2str(time) + ", ";
+    str += "time :" + Fanjing::StringHelper::dbl2str(time) + ", ";
     str += "vtype :" + vtype + ", ";
-    str += "accel :" + StringHelper::dbl2str(accel) + ", ";
-    str += "decel :" + StringHelper::dbl2str(decel) + ", ";
-    str += "sigma :" + StringHelper::dbl2str(sigma) + ", ";
-    str += "minGap :" + StringHelper::dbl2str(minGap) + ", ";
-    str += "maxSpeed :" + StringHelper::dbl2str(maxSpeed) + ", ";
+    str += "accel :" + Fanjing::StringHelper::dbl2str(accel) + ", ";
+    str += "decel :" + Fanjing::StringHelper::dbl2str(decel) + ", ";
+    str += "sigma :" + Fanjing::StringHelper::dbl2str(sigma) + ", ";
+    str += "minGap :" + Fanjing::StringHelper::dbl2str(minGap) + ", ";
+    str += "maxSpeed :" + Fanjing::StringHelper::dbl2str(maxSpeed) + ", ";
     str += "color :" + color + ", ";
     return str;
 }
 
-} /* namespace Fanjing */
