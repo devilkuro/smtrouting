@@ -139,7 +139,8 @@ std::list<std::string> SMTComInterface::getLaneLinkedLaneIds(
     return res;
 }
 
-void SMTComInterface::setLaneChangeMode(std::string nodeId, SMTLaneChangeMode mode) {
+void SMTComInterface::setLaneChangeMode(std::string nodeId,
+        SMTLaneChangeMode mode) {
     uint8_t variableId = VAR_LANECHANGE_MODE;
     uint8_t variableType = TYPE_INTEGER;
     TraCIBuffer buf = smtConnection.query(CMD_SET_VEHICLE_VARIABLE,
@@ -156,7 +157,8 @@ void SMTComInterface::changeLane(std::string nodeId, uint8_t laneIndex,
 
     uint32_t num = 2;
     TraCIBuffer buf = TraCIBuffer();
-    buf << variableId << nodeId << variableType << num << ByteType << laneIndex << IntType << duration;
+    buf << variableId << nodeId << variableType << num << ByteType << laneIndex
+            << IntType << duration;
     TraCIBuffer buf0 = smtConnection.query(CMD_SET_VEHICLE_VARIABLE, buf);
     ASSERT(buf0.eof());
 }

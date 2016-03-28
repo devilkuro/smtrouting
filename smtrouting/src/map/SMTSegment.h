@@ -23,7 +23,8 @@
  */
 class SMTSegment {
 public:
-    SMTSegment():t0(0),tg(0),ty(0),tr(0) {
+    SMTSegment() :
+            t0(0), tg(0), ty(0), tr(0) {
     }
     virtual ~SMTSegment();
 
@@ -33,7 +34,8 @@ public:
     double ty; // the duration of yellow light
     double tr; // the duration of red light
 
-    bool setSegment(const list<double> &durList, const list<string> &states, double offset);
+    bool setSegment(const list<double> &durList, const list<string> &states,
+            double offset);
     bool updateTimeInfo();
 };
 

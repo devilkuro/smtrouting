@@ -18,12 +18,11 @@
 
 Define_Module(SMTLaunchd);
 
-
 SMTLaunchd::~SMTLaunchd() {
 }
 
 cXMLElement* SMTLaunchd::getLaunchdConfig() {
-    if (launchConfig==NULL) {
+    if (launchConfig == NULL) {
         launchConfig = par("launchConfig").xmlValue();
     }
     return launchConfig;
@@ -31,7 +30,7 @@ cXMLElement* SMTLaunchd::getLaunchdConfig() {
 
 SMTComInterface* SMTLaunchd::getSMTComInterface() {
     if (!smtComIfc) {
-        if(connection){
+        if (connection) {
             smtComIfc = new SMTComInterface(*connection);
         }
     }

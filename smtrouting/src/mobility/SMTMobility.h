@@ -41,7 +41,7 @@ public:
     SMTMobility() :
             smtMap(0), hasRouted(false), hasInitialized(false), lastEdge(0), curPrimaryEdge(
                     0), lastPrimaryEdge(0), lastPos(-1), laneChangeMsg(0), laneChangeDuration(
-                    5), preferredLaneIndex(0),isChangeAndHold(false) {
+                    5), preferredLaneIndex(0), isChangeAndHold(false) {
     }
     virtual ~SMTMobility();
 

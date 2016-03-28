@@ -126,7 +126,8 @@ public:
 class SMTPhase {
     // TODO not finished now
 public:
-    SMTPhase(): duration(0) {
+    SMTPhase() :
+            duration(0) {
     }
     virtual ~SMTPhase();
     int duration; // time (int),The duration of the phase
@@ -135,8 +136,6 @@ public:
     // maxDur,time (int),The maximum duration of the phase (optional), defaults to duration
     // minDur and maxDur are ignored.
 };
-
-
 
 /**
  * SMTRoute:edge到edge的路径.

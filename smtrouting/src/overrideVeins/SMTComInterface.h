@@ -47,15 +47,15 @@ public:
                 | LANEMODE_NO_SPEED_GAIN | LANEMODE_NO_DRIVE_ON_RIGHT,
         LANEMODE_DISALLOW_OVERTAKE = LANEMODE_ALLOW_STRATEGIC
                 | LANEMODE_ALLOW_COOPERATIVE | LANEMODE_NO_SPEED_GAIN
-                | LANEMODE_NO_DRIVE_ON_RIGHT
-                | LANEMODE_EXT_TRACI_BY_SPEED
+                | LANEMODE_NO_DRIVE_ON_RIGHT | LANEMODE_EXT_TRACI_BY_SPEED
     };
     // 获取Lane连接的下一跳lane列表
     std::list<std::string> getLaneLinkedLaneIds(std::string laneId);
     // 设置车辆变道模式
     void setLaneChangeMode(std::string nodeId, SMTLaneChangeMode mode);
     // 变更车辆行驶车道
-    void changeLane(std::string nodeId, uint8_t laneIndex, uint32_t duration = 0);
+    void changeLane(std::string nodeId, uint8_t laneIndex,
+            uint32_t duration = 0);
 protected:
     Veins::TraCIConnection& smtConnection;
 };

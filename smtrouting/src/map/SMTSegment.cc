@@ -92,10 +92,10 @@ bool SMTSegment::updateTimeInfo() {
                 } else if (ty == -1) {
                     if (it->value == "r") {
                         ty = it->time - t0 - tg;
-                    } else if(it->value=="x"){
+                    } else if (it->value == "x") {
                         ty = it->time - t0 - tg;
                         tr = 0;
-                    }else {
+                    } else {
                         std::cout
                                 << "Unknown issue in SMTSegment::setSegment():"
                                 << "Ty==-1" << std::endl;
