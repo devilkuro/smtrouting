@@ -37,6 +37,7 @@ double SMTRoute::getViaLength() {
     // TODO 获取via路径长度
     return 0;
 }
+
 SMTMap::~SMTMap() {
     // release edgeMap
     // 释放SMTEdge的同时会释放相关的SMTConnection内存

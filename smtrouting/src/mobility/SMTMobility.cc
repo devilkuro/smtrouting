@@ -195,7 +195,7 @@ void SMTMobility::startChangeLane(uint8_t laneIndex, double delay) {
 string SMTMobility::convertStrToRecordId(string id) {
     for (unsigned int strPos = 0; strPos < id.length();) {
         unsigned int offset = id.find('/', strPos + 1);
-        if (offset != string::npos) {
+        if (offset != id.npos && offset < id.length()) {
             strPos = offset;
             id.replace(strPos, 1, "_");
         } else {
@@ -204,7 +204,7 @@ string SMTMobility::convertStrToRecordId(string id) {
     }
     for (unsigned int strPos = 0; strPos < id.length(); ++strPos) {
         unsigned int offset = id.find(':', strPos + 1);
-        if (offset != string::npos) {
+        if (offset != id.npos && offset < id.length()) {
             strPos += offset;
             id.replace(strPos, 1, "x");
         } else {
