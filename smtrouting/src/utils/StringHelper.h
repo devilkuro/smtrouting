@@ -25,6 +25,7 @@ public:
     static double char2dbl(char* s);
     static string int2str(int i);
     static string dbl2str(double d, int precision = -1);
+    static string convertStrToFileName(string str);
 };
 
 } /* namespace Fanjing */

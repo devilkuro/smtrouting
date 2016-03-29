@@ -86,7 +86,7 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
         } else {
             curPrimaryRoadId = road_id;
             curPrimaryEdge = edge;
-            recordRoadId = convertStrToRecordId(road_id);
+            // recordRoadId = convertStrToRecordId(road_id);
         }
         lastRoadId = road_id;
         lastEdge = edge;
@@ -116,22 +116,11 @@ void SMTMobility::processAtRouting() {
     // 选路阶段
     // 设置车道变换模式
     cmdSetNoOvertake();
-    if (debug) {
-        std::cout << "car " << external_id << " will not make overtake."
-                << std::endl;
-    }
 }
 
 void SMTMobility::processWhenChangeRoad() {
     // 当车辆首次进入某条道路时执行
-    // 取消之前设置的laneChange消息
-    if (laneChangeMsg != NULL) {
-        cancelAndDelete(laneChangeMsg);
-        laneChangeMsg = NULL;
-    }
-    if (road_id == "20/14to18/14") {
-        startChangeLane(1, laneChangeDuration);
-    }
+    // TODO 进行Lane控制算法
 }
 
 void SMTMobility::processWhenInitializingRoad() {
@@ -140,40 +129,7 @@ void SMTMobility::processWhenInitializingRoad() {
 
 void SMTMobility::processWhenNextPosition() {
     // 车辆变更位置时出现(请确保判定完备,不要执行复杂度过高的操作)
-    Fanjing::StatisticsRecordTools *srt =
-            Fanjing::StatisticsRecordTools::request();
-    double lanePos = cmdGetLanePosition();
-    if (curPrimaryRoadId == "20/14to18/14") {
-        if (curPrimaryEdge == lastEdge) {
-            // 如果当前道路为需要记录的主要edge则记录距离路口点负距离
-            double pos = lanePos - curPrimaryEdge->laneVector[0]->length;
-            // title = "external_id"+"\t"+"time"+"\t"+"road_id"+"\t"+"record_road"+"\t"+"position";
-            if (pos > -500) {
-                if (lanePos != lastPos) {
-                    srt->changeName(recordRoadId, title) << external_id
-                            << simTime().dbl() << road_id << recordRoadId << pos
-                            << srt->endl;
-                }
-            } else if (pos < -1500) {
-                srt->changeName(recordRoadId, title) << external_id
-                        << simTime().dbl() << road_id << recordRoadId << pos
-                        << srt->endl;
-            }
-        } else {
-            // 反之记录延伸辅道距离为正向离开路口点距离
-            srt->changeName(recordRoadId, title) << external_id
-                    << simTime().dbl() << road_id << recordRoadId << lanePos
-                    << srt->endl;
-        }
-    } else if (road_id == "18/14to10/14") {
-        double pos = lanePos + 30.84;
-        if (pos < 100) {
-            srt->changeName("20_14to18_14", title) << external_id
-                    << simTime().dbl() << road_id << "20_14to18_14" << pos
-                    << srt->endl;
-        }
-    }
-    lastPos = lanePos;
+
 }
 
 void SMTMobility::setPreferredLaneIndex(uint8_t laneIndex) {
@@ -188,35 +144,17 @@ void SMTMobility::changeToPreferredLane(int laneIndex) {
 }
 
 void SMTMobility::startChangeLane(uint8_t laneIndex, double delay) {
-    laneChangeMsg = new cMessage("changeLane", laneIndex);
+    laneChangeMsg = new cMessage(road_id.c_str(), laneIndex);
     scheduleAt(simTime() + updateInterval + delay, laneChangeMsg);
-}
-
-string SMTMobility::convertStrToRecordId(string id) {
-    for (unsigned int strPos = 0; strPos < id.length();) {
-        unsigned int offset = id.find('/', strPos + 1);
-        if (offset != id.npos && offset < id.length()) {
-            strPos = offset;
-            id.replace(strPos, 1, "_");
-        } else {
-            break;
-        }
-    }
-    for (unsigned int strPos = 0; strPos < id.length(); ++strPos) {
-        unsigned int offset = id.find(':', strPos + 1);
-        if (offset != id.npos && offset < id.length()) {
-            strPos += offset;
-            id.replace(strPos, 1, "x");
-        } else {
-            break;
-        }
-    }
-    return id;
 }
 
 void SMTMobility::cmdSetNoOvertake() {
     getComIf()->setLaneChangeMode(external_id,
             SMTComInterface::LANEMODE_DISALLOW_OVERTAKE);
+    if (debug) {
+        std::cout << "car " << external_id << " will not make overtake."
+                << std::endl;
+    }
 }
 
 void SMTMobility::cmdChangeLane(uint8_t laneIndex, uint32_t duration) {
@@ -226,9 +164,11 @@ void SMTMobility::cmdChangeLane(uint8_t laneIndex, uint32_t duration) {
 void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
     uint8_t curLaneIndex = commandGetLaneIndex();
     uint8_t targetLaneIndex = laneChangeMsg->getKind();
+    string msgName = laneChangeMsg->getName();
     if (msg == laneChangeMsg) {
-        if (isChangeAndHold || curLaneIndex != targetLaneIndex) {
-            // 如果需要保持车道或者车道更换为成功则继续尝试
+        if (msgName == road_id
+                && (isChangeAndHold || curLaneIndex != targetLaneIndex)) {
+            // 当道路没有改变时,如果需要保持车道或者车道更换为成功则继续尝试
             if (curLaneIndex != targetLaneIndex) {
                 // 仅在不在目标车道时进行更改车道的尝试
                 cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
@@ -237,11 +177,14 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
             scheduleAt(simTime() + laneChangeDuration + updateInterval,
                     laneChangeMsg);
         } else {
+            // 若道路变化,或已成功变道且不需保持车道则不在继续改变车道
+            // FIXME 以下内容需要更改为持续变更车道
             // cancel and delete the message if lane changed successfully.
             cancelAndDelete(laneChangeMsg);
             laneChangeMsg = NULL;
         }
     } else {
+        std::cout<<"handleLaneChangeMsg can only handle laneChangeMsg."<<std::endl;
         cancelAndDelete(msg);
     }
 }

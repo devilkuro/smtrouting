@@ -58,5 +58,25 @@ string StringHelper::dbl2str(double d, int precision) {
     return s;
 }
 
+string StringHelper::convertStrToFileName(string str) {
+    // '/','\','*','?','<','>',':','|',',','"'
+    string invalidChar = "/\\*?<>:|,\"";
+    string strChar = "_";
+    for (unsigned int i = 0; i < invalidChar.length(); ++i) {
+        for (unsigned int strPos = 0; strPos < str.length();) {
+            // ...strPos,+1,+2...
+            std::size_t offset = str.find(invalidChar.at(i), strPos);
+            if (offset != string::npos && offset < str.length()) {
+                string re = strChar + int2str(i);
+                str.replace(offset, 1, re);
+                strPos = offset + re.length();
+            } else {
+                break;
+            }
+        }
+    }
+    return str;
+}
+
 } /* namespace Fanjing */
 

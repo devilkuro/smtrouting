@@ -14,6 +14,8 @@
 // 
 
 #include "StatisticsRecordTools.h"
+#include "StringHelper.h"
+
 namespace Fanjing {
 StatisticsRecordTools* StatisticsRecordTools::ptr_singleton = NULL;
 StatisticsRecordTools::gs_eofType StatisticsRecordTools::endl = NULL;
@@ -197,7 +199,7 @@ void StatisticsRecordTools::outputSeparate(string name, string dir,
         if (field == "" || it->first == field) {
             std::fstream fs;
             string path;
-            string sname = getFileName(name) + "-" + getValidFileName(it->first)
+            string sname = getFileName(name) + "-" + StringHelper::convertStrToFileName(it->first)
                     + getSuffix(name);
             if (dir != "") {
                 path = dir + "/" + sname;
@@ -236,20 +238,6 @@ string StatisticsRecordTools::getTitleFromName(string name) {
     if (n_first != name.npos && n_first == n_last
             && n_first < name.length() - 1) {
         return name.substr(n_first + 1);
-    }
-    return "";
-}
-string StatisticsRecordTools::getValidFileName(string name) {
-    // get the longest valid file name from string.
-    string invalidChar = "/\\*?<>:|,\"";
-    unsigned int invalidPos = name.length();
-    for (unsigned int i = 0; i < invalidChar.length(); ++i) {
-        unsigned int pos = name.find(invalidChar.at(i));
-        invalidPos = invalidPos < pos ? invalidPos : pos;
-    }
-    if (invalidPos != name.npos && invalidPos != 0
-            && invalidPos < name.length()) {
-        return name.substr(0, invalidPos);
     }
     return "";
 }

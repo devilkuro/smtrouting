@@ -113,7 +113,6 @@ private:
     void cmdSetNoOvertake();
     void cmdChangeLane(uint8_t laneIndex, uint32_t duration = 0);
     double cmdGetLanePosition();
-    string convertStrToRecordId(string id);
 };
 
 #endif /* SMTMOBILITY_H_ */

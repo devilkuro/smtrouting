@@ -90,7 +90,6 @@ private:
     StatisticsRecordTools();
     virtual ~StatisticsRecordTools();
 
-    string getValidFileName(string name);
     string getFileName(string name);
     string getSuffix(string name);
     string getTitleFromName(string name);
