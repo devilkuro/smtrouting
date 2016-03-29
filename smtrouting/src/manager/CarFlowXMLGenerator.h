@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CARFLOWGENERATOR_H_
-#define CARFLOWGENERATOR_H_
+#ifndef CARFLOWXMLGENERATOR_H_
+#define CARFLOWXMLGENERATOR_H_
 #include <string>
 #include <list>
 #include <iostream>
@@ -26,10 +26,10 @@
 using namespace std;
 using namespace tinyxml2;
 
-class CarFlowGenerator {
+class CarFlowXMLGenerator {
 public:
-    CarFlowGenerator();
-    virtual ~CarFlowGenerator();
+    CarFlowXMLGenerator();
+    virtual ~CarFlowXMLGenerator();
 
     bool addODCar(string id, string origin, string destination, double time,
             string vtype);
@@ -87,4 +87,4 @@ protected:
 
 };
 
-#endif /* CARFLOWGENERATOR_H_ */
+#endif /* CARFLOWXMLGENERATOR_H_ */
