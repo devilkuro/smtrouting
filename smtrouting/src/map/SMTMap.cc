@@ -366,6 +366,7 @@ void SMTMap::verifyNetConfig() {
         }
     }
     std::cout << "printing tls finished." << std::endl;
+    endSimulation();
 }
 
 void SMTMap::finish() {
