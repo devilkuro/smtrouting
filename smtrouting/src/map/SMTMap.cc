@@ -29,11 +29,11 @@ SMTLane::~SMTLane() {
     // TODO 释放资源
 }
 
-SMTRoute::~SMTRoute() {
+SMTVia::~SMTVia() {
     // TODO 释放资源
 }
 
-double SMTRoute::getViaLength() {
+double SMTVia::getViaLength() {
     // TODO 获取via路径长度
     return 0;
 }
@@ -160,7 +160,6 @@ void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
                 std::cout << "add lane '" << lane->id << "' to map."
                         << std::endl;
             }
-
         }
         laneXML = laneXML->getNextSiblingWithTag("lane");
     }

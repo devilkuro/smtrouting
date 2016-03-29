@@ -38,7 +38,7 @@ class SMTLane;
 class SMTJunction;
 class SMTTLLogic;
 class SMTPhase;
-class SMTRoute;
+class SMTVia;
 /**
  * SMTEdge:道路edge.
  */
@@ -61,7 +61,7 @@ public:
     vector<SMTConnection*> conVector;   // vector of related connections
 
     // optimized attributes
-    map<SMTEdge*, vector<SMTRoute*> > routeVecMap;
+    map<SMTEdge*, vector<SMTVia*> > viaVecMap;
 };
 /**
  * SMTLane:车道lane.
@@ -138,19 +138,23 @@ public:
 };
 
 /**
- * SMTRoute:edge到edge的路径.
+ * SMTVia:edge到邻接edge的路径.
  */
-class SMTRoute {
+class SMTVia {
 public:
-    SMTRoute() {
+    SMTVia() {
     }
-    virtual ~SMTRoute();
+    virtual ~SMTVia();
 
     list<SMTEdge*> via;    // 路径包含的edge列表(目的街道为终点)
     SMTEdge* start;
     SMTEdge* target;
     double getViaLength();  // 返回via路径的长度
 };
+/**
+ * SMTRoute:edge到edge的路径.
+ */
+
 /**
  * SMTMap:地图系统,负责管理地图拓扑结构.
  */

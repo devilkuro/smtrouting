@@ -76,7 +76,7 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
             processWhenChangeRoad();
         }
         // in nextPosition the car has been on the road,
-        // then updata the last_road_id and enterTime
+        // then update the last_road_id and enterTime
         SMTEdge* edge = getMap()->getSMTEdge(road_id);
         if (edge->isInternal) {
             if (!lastEdge->isInternal) {
