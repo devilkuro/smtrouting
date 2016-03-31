@@ -15,6 +15,8 @@
 
 #include "SMTCarManager.h"
 
+Define_Module(SMTCarManager);
+
 SMTCarManager::~SMTCarManager() {
 
 }

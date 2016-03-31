@@ -13,32 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __SMTCARMANAGER_H_
-#define __SMTCARMANAGER_H_
+package smt.manager;
 
-#include <omnetpp.h>
-#include "SMTMap.h"
-
-class SMTCarManager: public cSimpleModule {
-public:
-    SMTCarManager() :
-            pMap(0) {
-    }
-    virtual ~SMTCarManager();
-
-public:
-
-protected:
-    SMTMap* pMap;
-
-    // members
-    string carPrefix;
-
-
-    // functions
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-    virtual void finish();
-};
-
-#endif /* __SMTCARMANAGER_H_ */
+//
+// TODO auto-generated type
+//
+simple SMTCarManager
+{
+    parameters:
+        @class(SMTCarManager);
+        @display("i=block/network2");
+        @labels("SMTCarManager");
+        
+        string XMLPrefix = default("smt");
+}
