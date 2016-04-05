@@ -26,14 +26,14 @@ public:
     }
     virtual ~SMTCarManager();
 
-public:
-
 protected:
     SMTMap* pMap;
 
     // members
     string carPrefix;
-
+    string XMLPrefix;
+    string rouXMLFileName;
+    string carFlowFileName;
 
     // functions
     virtual void initialize();

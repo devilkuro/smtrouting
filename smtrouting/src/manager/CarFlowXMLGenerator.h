@@ -84,7 +84,6 @@ protected:
     list<string> getLoopOfLoopCar(XMLElement* e);
     string getCarTypeOFCar(XMLElement* e);
     double getDepartTimeOfCar(XMLElement* e);
-
 };
 
 #endif /* CARFLOWXMLGENERATOR_H_ */

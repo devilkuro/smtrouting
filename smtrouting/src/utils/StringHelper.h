@@ -8,6 +8,7 @@
 #ifndef STRINGHELPER_H_
 #define STRINGHELPER_H_
 #include <sstream>
+#include <list>
 namespace Fanjing {
 
 /*
@@ -26,6 +27,10 @@ public:
     static string int2str(int i);
     static string dbl2str(double d, int precision = -1);
     static string convertStrToFileName(string str);
+    static list<string> splitStringToWordsList(const string &str,
+            const string &separator = " ");
+    static string switchRoadListToRoute(const list<string> &roadlist,
+            const string &separator = " ");
 };
 
 } /* namespace Fanjing */

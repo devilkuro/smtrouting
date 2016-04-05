@@ -13,18 +13,28 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package smt.manager;
+#include "SMTBaseRouting.h"
 
-//
-// TODO auto-generated type
-//
-simple SMTCarManager
-{
-    parameters:
-        @class(SMTCarManager);
-        @display("i=block/network2");
-        @labels("SMTCarManager");
-        
-        string XMLPrefix = default("smt");
-        string rouXMLFileName = default("smt.rou.xml");
+Define_Module(SMTBaseRouting);
+
+SMTBaseRouting::~SMTBaseRouting() {
+    // TODO Auto-generated destructor stub
+
+}
+
+void SMTBaseRouting::initialize() {
+}
+
+void SMTBaseRouting::handleMessage(cMessage* msg) {
+}
+
+void SMTBaseRouting::finish() {
+}
+
+list<SMTEdge*> SMTBaseRouting::getShortestRoute(SMTEdge* origin,
+        SMTEdge* destination) {
+    list<SMTEdge*> rou;
+
+    // TODO 添加选路过程
+    return rou;
 }

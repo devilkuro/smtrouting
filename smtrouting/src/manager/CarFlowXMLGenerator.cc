@@ -66,7 +66,7 @@ bool CarFlowXMLGenerator::loadXML(string path) {
 }
 
 list<string> CarFlowXMLGenerator::switchRouteToRoadList(string route) {
-    return splitStringToWordsList(route);
+    return Fanjing::StringHelper::splitStringToWordsList(route);
 }
 
 string CarFlowXMLGenerator::switchRoadListToRoute(list<string> roadlist) {

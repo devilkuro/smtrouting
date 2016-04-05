@@ -78,5 +78,43 @@ string StringHelper::convertStrToFileName(string str) {
     return str;
 }
 
+list<string> StringHelper::splitStringToWordsList(const string &str,
+        const string &separator) {
+    list<string> dest;
+    string substring;
+    string::size_type start = 0, index;
+
+    do {
+        index = str.find_first_of(separator, start);
+        if (index != string::npos) {
+            substring = str.substr(start, index - start);
+            dest.push_back(substring);
+            start = str.find_first_not_of(separator, index);
+            if (start == string::npos) {
+                return dest;
+            }
+        }
+    } while (index != string::npos);
+
+    //the last token
+    substring = str.substr(start);
+    dest.push_back(substring);
+    return dest;
+}
+
+string StringHelper::switchRoadListToRoute(const list<string>& roadlist,
+        const string& separator) {
+    string route = "";
+    for (list<string>::const_iterator it = roadlist.begin();
+            it != roadlist.end();) {
+        route += *it;
+        it++;
+        if (it != roadlist.end()) {
+            route += separator;
+        }
+    }
+    return route;
+}
+
 } /* namespace Fanjing */
 

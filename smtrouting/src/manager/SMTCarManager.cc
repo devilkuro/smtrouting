@@ -18,7 +18,6 @@
 Define_Module(SMTCarManager);
 
 SMTCarManager::~SMTCarManager() {
-
 }
 
 void SMTCarManager::initialize() {

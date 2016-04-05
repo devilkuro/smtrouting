@@ -13,18 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package smt.manager;
+package smt.routing;
 
 //
-// TODO auto-generated type
+// TODO auto-generated module
 //
-simple SMTCarManager
+simple SMTBaseRouting
 {
-    parameters:
-        @class(SMTCarManager);
-        @display("i=block/network2");
-        @labels("SMTCarManager");
-        
-        string XMLPrefix = default("smt");
-        string rouXMLFileName = default("smt.rou.xml");
 }
