@@ -365,7 +365,22 @@ void SMTMap::verifyNetConfig() {
         }
     }
     std::cout << "printing tls finished." << std::endl;
-    endSimulation();
+    // verify the connections from edge to edge (by print them)
+    std::cout << "printing connections from edge to edge ..." << std::endl;
+    for (map<string, SMTEdge*>::iterator it = edgeMap.begin();
+            it != edgeMap.end(); ++it) {
+        if (!it->second->isInternal) {
+            // ViaPath打印
+            it->second->printViaPath();
+        }
+        if (it->second->isInternal) {
+            // ViaPath打印
+            it->second->printViaPath();
+        }
+    }
+    if (par("endAfterVerified").boolValue()) {
+        endSimulation();
+    }
 }
 
 void SMTMap::finish() {
@@ -381,4 +396,55 @@ SMTTLLogic::~SMTTLLogic() {
 }
 
 SMTPhase::~SMTPhase() {
+}
+
+void SMTEdge::printViaPath(const int ttl, const SMTEdge* toEdge,
+        const string &prefix, const string &suffix) {
+    // 打印Via路径
+    // 使用ttl防止循环内联道路
+    if (ttl > 5) {
+        std::cout << "may have loop." << std::endl;
+        return;
+    }
+    // 若无连接则为死路
+    if (conVector.size() == 0) {
+        std::cout << prefix + id + " dead end " + suffix << std::endl;
+        return;
+    }
+    for (unsigned int i = 0; i < conVector.size(); ++i) {
+        // 若有中间edge,则打印中间edge
+        if (conVector[i]->via == "") {
+            // 如果连接向内部节点则遍历所有可能出口,并继续寻找直至找到主要道路
+            // 反之则打印结果
+            if (conVector[i]->toSMTEdge->isInternal) {
+                conVector[i]->toSMTEdge->printViaPath(ttl + 1, toEdge,
+                        prefix + id + "->", suffix);
+            } else {
+                if (toEdge == NULL || toEdge == conVector[i]->toSMTEdge) {
+                    std::cout << prefix << id << "->"
+                            << conVector[i]->toSMTEdge->id << suffix
+                            << std::endl;
+                } else {
+                    std::cout << prefix + "unmatched end." + suffix
+                            << std::endl;
+                }
+            }
+        } else {
+            if (toEdge == NULL && !conVector[i]->toSMTEdge->isInternal) {
+                if (!isInternal) {
+                    conVector[i]->viaSMTLane->edge->printViaPath(ttl + 1,
+                            conVector[i]->toSMTEdge,
+                            prefix + "from '" + id + "' to '" + conVector[i]->to
+                                    + "' - " + id + "->[", "]" + suffix);
+                } else {
+                    conVector[i]->viaSMTLane->edge->printViaPath(ttl + 1,
+                            conVector[i]->toSMTEdge, prefix + id + "->[",
+                            "]" + suffix);
+                }
+            } else {
+                conVector[i]->viaSMTLane->edge->printViaPath(ttl + 1, toEdge,
+                        prefix + id + "->[", "]" + suffix);
+            }
+        }
+    }
 }

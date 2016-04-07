@@ -19,7 +19,18 @@
 #include <csimplemodule.h>
 #include "SMTMap.h"
 
+using std::list;
+using std::multimap;
+using std::map;
+
 class SMTBaseRouting: public cSimpleModule {
+public:
+    // 内部class, ROUTE:用于记录选择的路径
+    class Route{
+    public:
+        list<SMTEdge*> edges;
+        double cost;
+    };
 public:
     SMTBaseRouting() {
         // TODO Auto-generated constructor stub

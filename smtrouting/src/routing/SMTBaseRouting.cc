@@ -33,6 +33,8 @@ void SMTBaseRouting::finish() {
 
 list<SMTEdge*> SMTBaseRouting::getShortestRoute(SMTEdge* origin,
         SMTEdge* destination) {
+    // 最短路径使用迪杰斯特拉算法
+    multimap<double, Route> costMap;
     list<SMTEdge*> rou;
 
     // TODO 添加选路过程

@@ -62,6 +62,10 @@ public:
 
     // optimized attributes
     map<SMTEdge*, vector<SMTVia*> > viaVecMap;
+
+    // functions for verifying
+    void printViaPath(const int ttl = 0, const SMTEdge* toEdge = NULL,
+            const string &prefix = "", const string &suffix = "");
 };
 /**
  * SMTLane:车道lane.
@@ -183,6 +187,7 @@ protected:
     cXMLElement* netXML;
     cMessage* stepMsg;
 
+    // restore, needs to be destroyed when destory
     map<string, SMTEdge*> edgeMap;
     map<string, SMTLane*> laneMap;
     map<string, SMTTLLogic*> tlMap;

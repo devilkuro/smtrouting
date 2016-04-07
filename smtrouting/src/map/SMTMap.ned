@@ -25,6 +25,7 @@ simple SMTMap
         @display("i=block/network2");
         @labels("SMTMap");
         
+        bool endAfterVerified = default(true);
         bool debug = default(false);
         xml netXML = default(xmldoc("smt.net.xml"));
         xml rouXML = default(xmldoc("smt.rou.xml"));
