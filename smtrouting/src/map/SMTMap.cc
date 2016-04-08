@@ -33,9 +33,30 @@ SMTVia::~SMTVia() {
     // TODO 释放资源
 }
 
+double SMTEdge::length() {
+    if (_len < 0) {
+        _len = 0;
+        for (unsigned int i = 0; i < laneVector.size(); ++i) {
+            _len += laneVector[i]->length;
+            if (laneVector[i]->length != laneVector[0]->length) {
+                std::cout << "unmatched lane length." << std::endl;
+            }
+        }
+        _len = _len / laneVector.size();
+    }
+    return _len;
+}
+
 double SMTVia::getViaLength() {
     // TODO 获取via路径长度
-    return 0;
+    if (length == -1) {
+        length = 0;
+        for (list<SMTEdge*>::iterator it = vias.begin(); it != vias.end();
+                ++it) {
+            length += (*it)->length();
+        }
+    }
+    return length;
 }
 
 SMTMap::~SMTMap() {
@@ -110,16 +131,12 @@ void SMTMap::initNetFromXML(cXMLElement* xml) {
         addConFromConXML(conXML);
         conXML = conXML->getNextSiblingWithTag("connection");
     }
-    // TODO optimizeNet
     optimizeNet();
 }
 
 void SMTMap::optimizeNet() {
     // TODO 优化网络,生成易于寻路的参数
-}
 
-void SMTMap::initVechileTypeFromXML(cXMLElement* xml) {
-    // TODO 导入车辆类型
 }
 
 void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
@@ -434,7 +451,7 @@ void SMTEdge::printViaPath(const int ttl, const SMTEdge* toEdge,
                 if (!isInternal) {
                     conVector[i]->viaSMTLane->edge->printViaPath(ttl + 1,
                             conVector[i]->toSMTEdge,
-                            prefix + "from '" + id + "' to '" + conVector[i]->to
+                            prefix + "'" + id + "'->'" + conVector[i]->to
                                     + "' - " + id + "->[", "]" + suffix);
                 } else {
                     conVector[i]->viaSMTLane->edge->printViaPath(ttl + 1,

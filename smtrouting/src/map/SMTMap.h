@@ -45,7 +45,7 @@ class SMTVia;
 class SMTEdge {
 public:
     SMTEdge() :
-            priority(-1), isInternal(false) {
+            priority(-1), isInternal(false),_len(-1) {
     }
     virtual ~SMTEdge();
     // xml attributes
@@ -62,10 +62,13 @@ public:
 
     // optimized attributes
     map<SMTEdge*, vector<SMTVia*> > viaVecMap;
+    double length();
 
     // functions for verifying
     void printViaPath(const int ttl = 0, const SMTEdge* toEdge = NULL,
             const string &prefix = "", const string &suffix = "");
+protected:
+    double _len;
 };
 /**
  * SMTLane:车道lane.
@@ -92,7 +95,7 @@ public:
  * SMTJunction:路口junction.
  */
 class SMTJunction {
-    // TODO not finished now
+    // useless now
 public:
     // seems useless.
     string id; // The id of the junction; please note, that a traffic light definition must use the same ID when controlling this intersection.
@@ -108,7 +111,6 @@ public:
  * SMTTlLogic:交通灯逻辑tlLogic.
  */
 class SMTTLLogic {
-    // TODO not finished now
 public:
     SMTTLLogic() :
             offset(0.0) {
@@ -128,7 +130,6 @@ public:
  * SMTPhase:交通灯相位定义.
  */
 class SMTPhase {
-    // TODO not finished now
 public:
     SMTPhase() :
             duration(0) {
@@ -146,13 +147,15 @@ public:
  */
 class SMTVia {
 public:
-    SMTVia() {
+    SMTVia() :
+            start(NULL), target(NULL), length(-1) {
     }
     virtual ~SMTVia();
 
-    list<SMTEdge*> via;    // 路径包含的edge列表(目的街道为终点)
+    list<SMTEdge*> vias;    // 路径包含的edge列表(目的街道为终点)
     SMTEdge* start;
     SMTEdge* target;
+    double length;
     double getViaLength();  // 返回via路径的长度
 };
 /**
@@ -199,7 +202,6 @@ protected:
 
     virtual void initNetFromXML(cXMLElement* xml);
     virtual void optimizeNet();
-    virtual void initVechileTypeFromXML(cXMLElement* xml);
     void addEdgeFromEdgeXML(cXMLElement* xml);
     void addTLFromTLXML(cXMLElement* xml);
     void addConFromConXML(cXMLElement* xml);
