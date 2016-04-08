@@ -18,18 +18,35 @@
 
 #include <csimplemodule.h>
 #include "SMTMap.h"
+#include <set>
 
 using std::list;
 using std::multimap;
 using std::map;
+using std::set;
 
 class SMTBaseRouting: public cSimpleModule {
 public:
-    // 内部class, ROUTE:用于记录选择的路径
-    class Route{
+    // 内部class
+    // ROUTE:用于记录选择的路径
+    class Route {
+        Route() :
+                cost(0) {
+        }
     public:
-        list<SMTEdge*> edges;
         double cost;
+        list<SMTEdge*> edges;
+    };
+    // WEIGHTEDGE: 用于dijkstra‘s algorithm
+    class WeightEdge {
+        WeightEdge() :
+                w(-1), previous(NULL), edge(NULL) {
+
+        }
+    public:
+        double w;
+        SMTEdge* previous;
+        SMTEdge* edge;
     };
 public:
     SMTBaseRouting() {
@@ -38,6 +55,13 @@ public:
     virtual ~SMTBaseRouting();
 
 protected:
+    // members for dijkstra's algorithm
+    // weightEdgeMap用于存储所有WeightEdge便于回收内存
+    map<SMTEdge*, WeightEdge*> weightEdgeMap;
+    multimap<double, WeightEdge*> processMap;
+    map<SMTEdge*, double> onSet;
+    map<SMTEdge*, double> unSet;
+
     // functions
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
@@ -45,7 +69,8 @@ protected:
 
     // routing functions
     // TODO 添加基本的寻路方法
-    virtual list<SMTEdge*> getShortestRoute(SMTEdge* origin, SMTEdge* destination);
+    virtual list<SMTEdge*> getShortestRoute(SMTEdge* origin,
+            SMTEdge* destination);
 };
 
 #endif /* __SMTBASEROUTING_H_ */

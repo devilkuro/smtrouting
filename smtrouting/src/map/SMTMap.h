@@ -64,6 +64,9 @@ public:
     map<SMTEdge*, vector<SMTVia*> > viaVecMap;
     double length();
 
+    // functions for optimizing
+    void fillViaMap();
+
     // functions for verifying
     void printViaPath(const int ttl = 0, const SMTEdge* toEdge = NULL,
             const string &prefix = "", const string &suffix = "");
@@ -150,9 +153,10 @@ public:
     SMTVia() :
             start(NULL), target(NULL), length(-1) {
     }
+    SMTVia(SMTEdge* edge, unsigned int conIndex);
     virtual ~SMTVia();
 
-    list<SMTEdge*> vias;    // 路径包含的edge列表(目的街道为终点)
+    list<SMTLane*> vias;    // 路径包含的edge列表(目的街道为终点)
     SMTEdge* start;
     SMTEdge* target;
     double length;
@@ -160,6 +164,7 @@ public:
 };
 /**
  * SMTRoute:edge到edge的路径.
+ * move to SMTRouting
  */
 
 /**
@@ -190,10 +195,13 @@ protected:
     cXMLElement* netXML;
     cMessage* stepMsg;
 
-    // restore, needs to be destroyed when destory
+    // store, needs to be destroyed when destroy
     map<string, SMTEdge*> edgeMap;
     map<string, SMTLane*> laneMap;
     map<string, SMTTLLogic*> tlMap;
+
+    // optimized
+    set<SMTEdge*> primaryEdgeSet;
 
     // functions
     virtual void initialize();
@@ -202,7 +210,8 @@ protected:
 
     virtual void initNetFromXML(cXMLElement* xml);
     virtual void optimizeNet();
-    void addEdgeFromEdgeXML(cXMLElement* xml);
+    // return true if primary edge
+    bool addEdgeFromEdgeXML(cXMLElement* xml);
     void addTLFromTLXML(cXMLElement* xml);
     void addConFromConXML(cXMLElement* xml);
     void verifyNetConfig();

@@ -47,13 +47,47 @@ double SMTEdge::length() {
     return _len;
 }
 
+SMTVia::SMTVia(SMTEdge* edge, unsigned int conIndex) {
+    if (conIndex >= edge->conVector.size()) {
+        std::cout << "connection index out of bounds" << std::endl;
+        return;
+    }
+    start = edge;
+    target = edge->conVector[conIndex]->toSMTEdge;
+    SMTConnection* con = edge->conVector[conIndex];
+    while (con->viaSMTLane != NULL) {
+        vias.push_back(con->viaSMTLane);
+        // find next corresponding connection
+        SMTEdge* toSMTEdge = con->toSMTEdge;
+        if (toSMTEdge != target) {
+            std::cout << "unmatched target in SMTVia constructor" << std::endl;
+        }
+        int toLane = con->toLane;
+        unsigned int i = 0;
+        // FIXME 需要整理思路
+        for (; i < con->viaSMTLane->conVector.size(); ++i) {
+            if (con->viaSMTLane->conVector[i]->toSMTEdge == toSMTEdge
+                    && con->viaSMTLane->conVector[i]->toLane == toLane) {
+                break;
+            }
+        }
+        vias.push_back(con->viaSMTLane);
+        if (i < con->viaSMTLane->conVector.size()) {
+            con = con->viaSMTLane->conVector[i];
+        } else {
+            std::cout << "cannot find corresponding connection" << std::endl;
+            return;
+        }
+    }
+}
+
 double SMTVia::getViaLength() {
     // TODO 获取via路径长度
     if (length == -1) {
         length = 0;
-        for (list<SMTEdge*>::iterator it = vias.begin(); it != vias.end();
+        for (list<SMTLane*>::iterator it = vias.begin(); it != vias.end();
                 ++it) {
-            length += (*it)->length();
+            length += (*it)->length;
         }
     }
     return length;
@@ -114,11 +148,18 @@ void SMTMap::handleMessage(cMessage *msg) {
 void SMTMap::initNetFromXML(cXMLElement* xml) {
     // TODO 导入道路与连接
     // import edges and lanes
+    int edgeNum = 0;
+    int primaryEdgeNum = 0;
     cXMLElement* edgeXML = xml->getFirstChildWithTag("edge");
     while (edgeXML) {
-        addEdgeFromEdgeXML(edgeXML);
+        if (addEdgeFromEdgeXML(edgeXML)) {
+            ++primaryEdgeNum;
+        }
+        ++edgeNum;
         edgeXML = edgeXML->getNextSiblingWithTag("edge");
     }
+    std::cout << "edge number:" << edgeNum << std::endl;
+    std::cout << "primary edge number:" << primaryEdgeNum << std::endl;
     // import traffic lights
     cXMLElement* tlXML = xml->getFirstChildWithTag("tlLogic");
     while (tlXML) {
@@ -136,10 +177,25 @@ void SMTMap::initNetFromXML(cXMLElement* xml) {
 
 void SMTMap::optimizeNet() {
     // TODO 优化网络,生成易于寻路的参数
-
+    // 获取primary edge 集合
+    for (map<string, SMTEdge*>::iterator it = edgeMap.begin();
+            it != edgeMap.end(); ++it) {
+        if (!it->second->isInternal) {
+            if (primaryEdgeSet.find(it->second) == primaryEdgeSet.end()) {
+                primaryEdgeSet.insert(it->second);
+            } else {
+                std::cout << "redundant edge" << std::endl;
+            }
+        }
+    }
+    // 为primary edge填充viaVecMap
+    for (set<SMTEdge*>::iterator it = primaryEdgeSet.begin();
+            it != primaryEdgeSet.end(); ++it) {
+        // TODO 调用edge的fillViaMap方法
+    }
 }
 
-void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
+bool SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
     // 读取并添加edge和lane
     SMTEdge* edge = new SMTEdge();
     cXMLAttributeMap attrMap = xml->getAttributes();
@@ -195,6 +251,7 @@ void SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
                 << std::endl;
         delete edge;
     }
+    return !edge->isInternal;
 }
 
 void SMTMap::addTLFromTLXML(cXMLElement* xml) {
@@ -413,6 +470,12 @@ SMTTLLogic::~SMTTLLogic() {
 }
 
 SMTPhase::~SMTPhase() {
+}
+
+void SMTEdge::fillViaMap() {
+    for (unsigned int i = 0; i < conVector.size(); ++i) {
+        // TODO fill via map
+    }
 }
 
 void SMTEdge::printViaPath(const int ttl, const SMTEdge* toEdge,
