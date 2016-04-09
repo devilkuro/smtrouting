@@ -45,7 +45,7 @@ class SMTVia;
 class SMTEdge {
 public:
     SMTEdge() :
-            priority(-1), isInternal(false),_len(-1) {
+            priority(-1), isInternal(false), _len(-1) {
     }
     virtual ~SMTEdge();
     // xml attributes
@@ -58,9 +58,11 @@ public:
     // SMT attributes
     bool isInternal;    // 标识是否为internal edge
     vector<SMTLane*> laneVector;    // vector of related lanes
+    // @release! needs to be released
     vector<SMTConnection*> conVector;   // vector of related connections
 
     // optimized attributes
+    // @release! needs to be released
     map<SMTEdge*, vector<SMTVia*> > viaVecMap;
     double length();
 
@@ -79,7 +81,7 @@ protected:
 class SMTLane {
 public:
     SMTLane() :
-            index(0), speed(0), length(0), edge(NULL) {
+            index(-1), speed(0), length(0), edge(NULL) {
     }
     virtual ~SMTLane();
     // xml attributes
@@ -151,16 +153,19 @@ public:
 class SMTVia {
 public:
     SMTVia() :
-            start(NULL), target(NULL), length(-1) {
+            start(NULL), fromLane(-1), target(NULL), toLane(-1), length(-1) {
     }
     SMTVia(SMTEdge* edge, unsigned int conIndex);
     virtual ~SMTVia();
 
     list<SMTLane*> vias;    // 路径包含的edge列表(目的街道为终点)
     SMTEdge* start;
+    int fromLane;
     SMTEdge* target;
+    int toLane;
     double length;
     double getViaLength();  // 返回via路径的长度
+    void initVia(SMTEdge* edge, unsigned int conIndex);
 };
 /**
  * SMTRoute:edge到edge的路径.
@@ -184,7 +189,11 @@ public:
     }
 
     // Map topology API
-    SMTEdge* getSMTEdge(string id);
+    SMTEdge* getSMTEdgeById(string id);
+    SMTEdge* getReverseEdge(SMTEdge* edge);
+    static string getReverseEdgeName(const string &id);
+    static string getStartEdgeName(const string &id);
+    static string getEndEdgeName(const string &id);
 
 protected:
     // parameters
@@ -201,7 +210,11 @@ protected:
     map<string, SMTTLLogic*> tlMap;
 
     // optimized
-    set<SMTEdge*> primaryEdgeSet;
+    set<SMTEdge*> primaryEdgeSet;   // 主要道路集合
+    // 用于随机选择起止点
+    vector<SMTEdge*> innerPrimaryEdges; // 内部互联道路
+    vector<SMTEdge*> outPrimaryEdges;   // 地图出口道路
+    vector<SMTEdge*> inPrimaryEdges;    // 地图入口道路
 
     // functions
     virtual void initialize();

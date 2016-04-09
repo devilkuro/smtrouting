@@ -19,18 +19,25 @@
 Define_Module(SMTMap);
 
 SMTEdge::~SMTEdge() {
-    // TODO 释放资源
+    // release connections
     for (unsigned int i = 0; i < conVector.size(); i++) {
         delete (conVector[i]);
+    }
+    // release vias
+    for (map<SMTEdge*, vector<SMTVia*> >::iterator it = viaVecMap.begin();
+            it != viaVecMap.end(); ++it) {
+        for (unsigned int i = 0; i < it->second.size(); ++i) {
+            delete (it->second[i]);
+        }
     }
 }
 
 SMTLane::~SMTLane() {
-    // TODO 释放资源
+    // do nothing
 }
 
 SMTVia::~SMTVia() {
-    // TODO 释放资源
+    // do nothing
 }
 
 double SMTEdge::length() {
@@ -48,41 +55,10 @@ double SMTEdge::length() {
 }
 
 SMTVia::SMTVia(SMTEdge* edge, unsigned int conIndex) {
-    if (conIndex >= edge->conVector.size()) {
-        std::cout << "connection index out of bounds" << std::endl;
-        return;
-    }
-    start = edge;
-    target = edge->conVector[conIndex]->toSMTEdge;
-    SMTConnection* con = edge->conVector[conIndex];
-    while (con->viaSMTLane != NULL) {
-        vias.push_back(con->viaSMTLane);
-        // find next corresponding connection
-        SMTEdge* toSMTEdge = con->toSMTEdge;
-        if (toSMTEdge != target) {
-            std::cout << "unmatched target in SMTVia constructor" << std::endl;
-        }
-        int toLane = con->toLane;
-        unsigned int i = 0;
-        // FIXME 需要整理思路
-        for (; i < con->viaSMTLane->conVector.size(); ++i) {
-            if (con->viaSMTLane->conVector[i]->toSMTEdge == toSMTEdge
-                    && con->viaSMTLane->conVector[i]->toLane == toLane) {
-                break;
-            }
-        }
-        vias.push_back(con->viaSMTLane);
-        if (i < con->viaSMTLane->conVector.size()) {
-            con = con->viaSMTLane->conVector[i];
-        } else {
-            std::cout << "cannot find corresponding connection" << std::endl;
-            return;
-        }
-    }
+    initVia(edge, conIndex);
 }
 
 double SMTVia::getViaLength() {
-    // TODO 获取via路径长度
     if (length == -1) {
         length = 0;
         for (list<SMTLane*>::iterator it = vias.begin(); it != vias.end();
@@ -114,7 +90,7 @@ SMTLaunchd* SMTMap::getLaunchd() {
     return launchd;
 }
 
-SMTEdge* SMTMap::getSMTEdge(string id) {
+SMTEdge* SMTMap::getSMTEdgeById(string id) {
     ASSERT2(edgeMap.find(id) != edgeMap.end(),
             "try to get SMTEdge from an unknown id.");
     return edgeMap[id];
@@ -146,7 +122,7 @@ void SMTMap::handleMessage(cMessage *msg) {
 }
 
 void SMTMap::initNetFromXML(cXMLElement* xml) {
-    // TODO 导入道路与连接
+    // 导入道路与连接并优化地图网络用于寻路
     // import edges and lanes
     int edgeNum = 0;
     int primaryEdgeNum = 0;
@@ -180,6 +156,8 @@ void SMTMap::optimizeNet() {
     // 获取primary edge 集合
     for (map<string, SMTEdge*>::iterator it = edgeMap.begin();
             it != edgeMap.end(); ++it) {
+        // 为edge填充viaMap(实际只有primary edge会使用)
+        it->second->fillViaMap();
         if (!it->second->isInternal) {
             if (primaryEdgeSet.find(it->second) == primaryEdgeSet.end()) {
                 primaryEdgeSet.insert(it->second);
@@ -188,11 +166,9 @@ void SMTMap::optimizeNet() {
             }
         }
     }
-    // 为primary edge填充viaVecMap
-    for (set<SMTEdge*>::iterator it = primaryEdgeSet.begin();
-            it != primaryEdgeSet.end(); ++it) {
-        // TODO 调用edge的fillViaMap方法
-    }
+    // 分析地图拓扑,找出需要标注的地图变量
+    // 1. 若道路出口仅有掉头,则其为outEdge,对应掉头道路为inEdge
+    // 2. 其他道路为内部道路
 }
 
 bool SMTMap::addEdgeFromEdgeXML(cXMLElement* xml) {
@@ -352,7 +328,8 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     }
     if (hasConnected) {
         std::cout
-                << "Warning@SMTMap::insertEdgeFromEdgeXML-duplicated connection"
+                << "Warning@SMTMap::insertEdgeFromEdgeXML-duplicated connection:"
+                << con->fromSMTLane->id << "->" << con->toSMTLane->id
                 << std::endl;
         delete (con);
     } else {
@@ -362,10 +339,51 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     }
 }
 
+SMTEdge* SMTMap::getReverseEdge(SMTEdge* edge) {
+    string reverseEdgeName = getReverseEdgeName(edge->id);
+    if (edgeMap.find(reverseEdgeName) == edgeMap.end()) {
+        std::cout << "Warning@SMTMap::getReverseEdge-no reverse edge of '"
+                << edge->id << "'" << std::endl;
+    }
+    return edgeMap[reverseEdgeName];
+}
+
+string SMTMap::getReverseEdgeName(const string& id) {
+    return getEndEdgeName(id) + "to" + getStartEdgeName(id);
+}
+
+string SMTMap::getStartEdgeName(const string& id) {
+    string result = "";
+    string to = "to";
+    string::size_type i = id.find(to);
+    if (i < id.length() && i != string::npos) {
+        result = id.substr(0, id.find(to));
+    }
+    return result;
+}
+
+string SMTMap::getEndEdgeName(const string& id) {
+    string result = "";
+    string to = "to";
+    string::size_type i = id.find(to);
+    if (i < id.length() && i != string::npos) {
+        // '_'用于判定Lane,实际edge不会包含该字符无意义
+        string::size_type j = id.find("_");
+        if (j < id.length() && j != string::npos) {
+            std::cout << "Warning@SMTMap::getReverseEdgeName-abnormal edge name"
+                    << std::endl;
+            result = id.substr(i + to.length(), j - i - 1);
+        } else {
+            result = id.substr(i + to.length());
+        }
+    }
+    return result;
+}
+
 void SMTMap::verifyNetConfig() {
     SMTComInterface* comIfc = getLaunchd()->getSMTComInterface();
 
-    // verify the edges and lanes.
+// verify the edges and lanes.
     std::cout << "verifying lanes and edges ..." << std::endl;
     list<string> laneList = comIfc->getLaneIds();
     if (laneList.size() != laneMap.size()) {
@@ -395,7 +413,7 @@ void SMTMap::verifyNetConfig() {
         }
     }
     std::cout << "verifying lanes and edges finished." << std::endl;
-    // verify the connections
+// verify the connections
     std::cout << "verifying connections ..." << std::endl;
     for (list<string>::iterator it = laneList.begin(); it != laneList.end();
             it++) {
@@ -423,7 +441,7 @@ void SMTMap::verifyNetConfig() {
         }
     }
     std::cout << "verifying connections finished." << std::endl;
-    // verify the tl (by print them)
+// verify the tl (by print them)
     std::cout << "printing tls ..." << std::endl;
     for (map<string, SMTLane*>::iterator it = laneMap.begin();
             it != laneMap.end(); ++it) {
@@ -439,7 +457,7 @@ void SMTMap::verifyNetConfig() {
         }
     }
     std::cout << "printing tls finished." << std::endl;
-    // verify the connections from edge to edge (by print them)
+// verify the connections from edge to edge (by print them)
     std::cout << "printing connections from edge to edge ..." << std::endl;
     for (map<string, SMTEdge*>::iterator it = edgeMap.begin();
             it != edgeMap.end(); ++it) {
@@ -466,27 +484,31 @@ void SMTMap::finish() {
 }
 
 SMTTLLogic::~SMTTLLogic() {
-    // TODO
+// do nothing
 }
 
 SMTPhase::~SMTPhase() {
+// do nothing
 }
 
 void SMTEdge::fillViaMap() {
     for (unsigned int i = 0; i < conVector.size(); ++i) {
-        // TODO fill via map
+        if (conVector[i]->toSMTEdge != NULL) {
+            viaVecMap[conVector[i]->toSMTEdge].push_back(
+                    new SMTVia(conVector[i]->toSMTEdge, conVector[i]->toLane));
+        }
     }
 }
 
 void SMTEdge::printViaPath(const int ttl, const SMTEdge* toEdge,
         const string &prefix, const string &suffix) {
-    // 打印Via路径
-    // 使用ttl防止循环内联道路
+// 打印Via路径
+// 使用ttl防止循环内联道路
     if (ttl > 5) {
         std::cout << "may have loop." << std::endl;
         return;
     }
-    // 若无连接则为死路
+// 若无连接则为死路
     if (conVector.size() == 0) {
         std::cout << prefix + id + " dead end " + suffix << std::endl;
         return;
@@ -525,6 +547,48 @@ void SMTEdge::printViaPath(const int ttl, const SMTEdge* toEdge,
                 conVector[i]->viaSMTLane->edge->printViaPath(ttl + 1, toEdge,
                         prefix + id + "->[", "]" + suffix);
             }
+        }
+    }
+}
+
+void SMTVia::initVia(SMTEdge* edge, unsigned int conIndex) {
+    if (conIndex >= edge->conVector.size()) {
+        std::cout << "connection index out of bounds" << std::endl;
+        return;
+    }
+    SMTConnection* con = edge->conVector[conIndex];
+    vias.clear();
+    start = edge;
+    fromLane = con->fromLane;
+    target = con->toSMTEdge;
+    toLane = con->toLane;
+    while (con->viaSMTLane != NULL) {
+        vias.push_back(con->viaSMTLane);
+        // find next corresponding connection
+        SMTEdge* t_toEdge = con->toSMTEdge;
+        int t_toLane = con->toLane;
+        if (t_toEdge->laneVector[t_toLane] != target->laneVector[toLane]) {
+            // 一般情况下via中toEdge-toLane应当与target-toLane一致.
+            std::cout << "unmatched target in SMTVia constructor:"
+                    << t_toEdge->laneVector[t_toLane]->id << " - "
+                    << target->laneVector[toLane]->id << std::endl;
+        }
+        unsigned int i = 0;
+        // 检索via中对应toEdge的connection索引
+        for (; i < con->viaSMTLane->conVector.size(); ++i) {
+            // 需要找到via中与connection中一致的
+            SMTConnection* conInVia = con->viaSMTLane->conVector[i];
+            if (conInVia->toSMTEdge->laneVector[conInVia->toLane]
+                    == t_toEdge->laneVector[t_toLane]) {
+                break;
+            }
+        }
+        if (i < con->viaSMTLane->conVector.size()) {
+            vias.push_back(con->viaSMTLane);
+            con = con->viaSMTLane->conVector[i];
+        } else {
+            std::cout << "cannot find corresponding connection" << std::endl;
+            return;
         }
     }
 }
