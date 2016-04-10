@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CARFLOWXMLGENERATOR_H_
-#define CARFLOWXMLGENERATOR_H_
+#ifndef __CARFLOWXMLHELPER_H_
+#define __CARFLOWXMLHELPER_H_
 #include <string>
 #include <list>
 #include <iostream>
@@ -26,10 +26,10 @@
 using namespace std;
 using namespace tinyxml2;
 
-class CarFlowXMLGenerator {
+class CarFlowXMLHelper {
 public:
-    CarFlowXMLGenerator();
-    virtual ~CarFlowXMLGenerator();
+    CarFlowXMLHelper();
+    virtual ~CarFlowXMLHelper();
 
     bool addODCar(string id, string origin, string destination, double time,
             string vtype);
@@ -54,8 +54,8 @@ public:
     list<string> switchRouteToRoadList(string route);
     string switchRoadListToRoute(list<string> roadlist);
 
-    bool setXMLPath(string path);
-    bool loadXML(string path);
+    int setXMLPath(string path);
+    int loadXML(string path);
     void clear(bool save = false);
     void save(string path = "");
 
@@ -64,9 +64,10 @@ public:
 protected:
     XMLElement* root;
     XMLDocument* doc;
-    string carXMLPath;
-    bool notSaved;
-
+    // 用于存放xml路径,此路径为默认保存路径
+    string carXMLPath; // path of the xml file, default saving path
+    bool notSaved;  // true, if modified but not saved
+    // 记录当前车辆节点,用于快速遍历
     XMLElement* curCarElement;
 
     int precisionOfTime;
@@ -84,6 +85,8 @@ protected:
     list<string> getLoopOfLoopCar(XMLElement* e);
     string getCarTypeOFCar(XMLElement* e);
     double getDepartTimeOfCar(XMLElement* e);
+    void initXML();
+    void setRoot();
 };
 
-#endif /* CARFLOWXMLGENERATOR_H_ */
+#endif /* __CARFLOWXMLHELPER_H_ */

@@ -13,9 +13,9 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "CarFlowXMLGenerator.h"
+#include "CarFlowXMLHelper.h"
 
-CarFlowXMLGenerator::CarFlowXMLGenerator() {
+CarFlowXMLHelper::CarFlowXMLHelper() {
     doc = NULL;
     root = NULL;
     curCarElement = NULL;
@@ -24,52 +24,53 @@ CarFlowXMLGenerator::CarFlowXMLGenerator() {
     precisionOfTime = 1;
 }
 
-CarFlowXMLGenerator::~CarFlowXMLGenerator() {
+CarFlowXMLHelper::~CarFlowXMLHelper() {
     finish();
 }
 
 // use to change path
-bool CarFlowXMLGenerator::setXMLPath(string path) {
+int CarFlowXMLHelper::setXMLPath(string path) {
     if (doc == NULL) {
-        return loadXML(path);;
+        return loadXML(path);
     }
     this->carXMLPath = path;
     notSaved = true;
-    return true;
+    return 0;
 }
 
 // load xml file
-bool CarFlowXMLGenerator::loadXML(string path) {
-    if (this->carXMLPath == "") {
-        this->carXMLPath = path;
+int CarFlowXMLHelper::loadXML(string path) {
+    // result: bit set
+    int result = 0;
+    // 设置xml path
+    if (this->carXMLPath != "" && doc != NULL) {
+        // 如果之前已经读取文件则进行备份
+        if (notSaved) {
+            save(carXMLPath + "_bak");
+            result += 2;
+        }
     }
+    this->carXMLPath = path;
     if (doc == NULL) {
         doc = new XMLDocument();
     }
     XMLError e = doc->LoadFile(path.c_str());
     if (e == XML_ERROR_FILE_NOT_FOUND) {
-        XMLDeclaration* dec = doc->NewDeclaration();
-        doc->LinkEndChild(dec);
-        root = doc->NewElement("Cars");
-        doc->LinkEndChild(root);
-        notSaved = true;
-        return false;
+        initXML();
+        result += 1;
     } else {
-        root = doc->FirstChildElement("Cars");
-        if (root == NULL) {
-            root = doc->NewElement("Cars");
-            doc->LinkEndChild(root);
-            notSaved = true;
-        }
-        return true;
+        setRoot();
+        // load xml successfully
+        result += 0;
     }
+    return result;
 }
 
-list<string> CarFlowXMLGenerator::switchRouteToRoadList(string route) {
+list<string> CarFlowXMLHelper::switchRouteToRoadList(string route) {
     return Fanjing::StringHelper::splitStringToWordsList(route);
 }
 
-string CarFlowXMLGenerator::switchRoadListToRoute(list<string> roadlist) {
+string CarFlowXMLHelper::switchRoadListToRoute(list<string> roadlist) {
     string route = "";
     for (list<string>::const_iterator it = roadlist.begin();
             it != roadlist.end();) {
@@ -81,7 +82,7 @@ string CarFlowXMLGenerator::switchRoadListToRoute(list<string> roadlist) {
     }
     return route;
 }
-bool CarFlowXMLGenerator::addODCar(string id, string origin, string destination,
+bool CarFlowXMLHelper::addODCar(string id, string origin, string destination,
         double time, string vtype) {
     notSaved = true;
     bool beNewCar = false;
@@ -109,7 +110,7 @@ bool CarFlowXMLGenerator::addODCar(string id, string origin, string destination,
     return beNewCar;
 }
 
-bool CarFlowXMLGenerator::addLoopCar(string id, list<string> loop, double time,
+bool CarFlowXMLHelper::addLoopCar(string id, list<string> loop, double time,
         string vtype) {
     notSaved = true;
     bool beNewCar = false;
@@ -137,22 +138,22 @@ bool CarFlowXMLGenerator::addLoopCar(string id, list<string> loop, double time,
     return beNewCar;
 }
 
-string CarFlowXMLGenerator::getOriginOfODCar(string id) {
+string CarFlowXMLHelper::getOriginOfODCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getOriginOfODCar(e);
 }
 
-string CarFlowXMLGenerator::getDestinationOfODCar(string id) {
+string CarFlowXMLHelper::getDestinationOfODCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getDestinationOfODCar(e);
 }
 
-list<string> CarFlowXMLGenerator::getLoopOfLoopCar(string id) {
+list<string> CarFlowXMLHelper::getLoopOfLoopCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getLoopOfLoopCar(e);
 }
 
-XMLElement* CarFlowXMLGenerator::seekCarByAttribute(string name, string value) {
+XMLElement* CarFlowXMLHelper::seekCarByAttribute(string name, string value) {
     XMLElement* e = root->FirstChildElement("car");
     while (e) {
         if (NULL != e->Attribute(name.c_str(), value.c_str())) {
@@ -163,7 +164,7 @@ XMLElement* CarFlowXMLGenerator::seekCarByAttribute(string name, string value) {
     return NULL;
 }
 
-list<string> CarFlowXMLGenerator::splitStringToWordsList(string str) {
+list<string> CarFlowXMLHelper::splitStringToWordsList(string str) {
     const string separator = " ";
     list<string> dest;
     string substring;
@@ -187,22 +188,22 @@ list<string> CarFlowXMLGenerator::splitStringToWordsList(string str) {
     return dest;
 }
 
-string CarFlowXMLGenerator::getRouteTypeOfCar(string id) {
+string CarFlowXMLHelper::getRouteTypeOfCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getRouteTypeOfCar(e);
 }
 
-string CarFlowXMLGenerator::getCarTypeOFCar(string id) {
+string CarFlowXMLHelper::getCarTypeOFCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getCarTypeOFCar(e);
 }
 
-double CarFlowXMLGenerator::getDepartTimeOfCar(string id) {
+double CarFlowXMLHelper::getDepartTimeOfCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getDepartTimeOfCar(e);
 }
 
-list<string> CarFlowXMLGenerator::getAllCars() {
+list<string> CarFlowXMLHelper::getAllCars() {
     list<string> idList;
     XMLElement* e = root->FirstChildElement("car");
     while (e) {
@@ -214,15 +215,15 @@ list<string> CarFlowXMLGenerator::getAllCars() {
     return idList;
 }
 
-void CarFlowXMLGenerator::clear(bool save) {
-    doc->Clear();
+void CarFlowXMLHelper::clear(bool save) {
+    initXML();
     if (save) {
         this->save();
         loadXML(carXMLPath);
     }
 }
 
-void CarFlowXMLGenerator::save(string path) {
+void CarFlowXMLHelper::save(string path) {
     if (doc == NULL) {
         loadXML(path);
     }
@@ -234,12 +235,12 @@ void CarFlowXMLGenerator::save(string path) {
     notSaved = false;
 }
 
-SMTCarInfo CarFlowXMLGenerator::getCar(string id) {
+SMTCarInfo CarFlowXMLHelper::getCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getCar(e);
 }
 
-void CarFlowXMLGenerator::finish() {
+void CarFlowXMLHelper::finish() {
     if (notSaved) {
         save();
     }
@@ -250,18 +251,18 @@ void CarFlowXMLGenerator::finish() {
     }
 }
 
-void CarFlowXMLGenerator::setPrecisionOfTime(int precision) {
+void CarFlowXMLHelper::setPrecisionOfTime(int precision) {
     this->precisionOfTime = precision;
 }
 
-string CarFlowXMLGenerator::getRouteTypeOfCar(XMLElement* e) {
+string CarFlowXMLHelper::getRouteTypeOfCar(XMLElement* e) {
     if (e != NULL) {
         return e->Attribute("type") == NULL ? "" : e->Attribute("type");
     }
     return "";
 }
 
-string CarFlowXMLGenerator::getOriginOfODCar(XMLElement* e) {
+string CarFlowXMLHelper::getOriginOfODCar(XMLElement* e) {
     if (e != NULL) {
         if (e->Attribute("type", "SMTCARINFO_ROUTETYPE_OD")) {
             if (e->Attribute("origin")) {
@@ -272,7 +273,7 @@ string CarFlowXMLGenerator::getOriginOfODCar(XMLElement* e) {
     return "";
 }
 
-string CarFlowXMLGenerator::getDestinationOfODCar(XMLElement* e) {
+string CarFlowXMLHelper::getDestinationOfODCar(XMLElement* e) {
     if (e != NULL) {
         if (e->Attribute("type", "SMTCARINFO_ROUTETYPE_OD")) {
             if (e->Attribute("destination")) {
@@ -283,7 +284,7 @@ string CarFlowXMLGenerator::getDestinationOfODCar(XMLElement* e) {
     return "";
 }
 
-list<string> CarFlowXMLGenerator::getLoopOfLoopCar(XMLElement* e) {
+list<string> CarFlowXMLHelper::getLoopOfLoopCar(XMLElement* e) {
     list<string> result;
     if (e != NULL) {
         if (e->Attribute("type", "SMTCARINFO_ROUTETYPE_LOOP")) {
@@ -300,14 +301,14 @@ list<string> CarFlowXMLGenerator::getLoopOfLoopCar(XMLElement* e) {
     return result;
 }
 
-string CarFlowXMLGenerator::getCarTypeOFCar(XMLElement* e) {
+string CarFlowXMLHelper::getCarTypeOFCar(XMLElement* e) {
     if (e != NULL) {
         return e->Attribute("vtype") == NULL ? "" : e->Attribute("vtype");
     }
     return "";
 }
 
-SMTCarInfo CarFlowXMLGenerator::getCar(XMLElement* e) {
+SMTCarInfo CarFlowXMLHelper::getCar(XMLElement* e) {
     SMTCarInfo car;
     if (e != NULL) {
         string vtype = getCarTypeOFCar(e);
@@ -334,7 +335,7 @@ SMTCarInfo CarFlowXMLGenerator::getCar(XMLElement* e) {
     return car;
 }
 
-SMTCarInfo CarFlowXMLGenerator::getFirstCar() {
+SMTCarInfo CarFlowXMLHelper::getFirstCar() {
     SMTCarInfo car;
     if (root != NULL) {
         curCarElement = root->FirstChildElement("car");
@@ -343,40 +344,58 @@ SMTCarInfo CarFlowXMLGenerator::getFirstCar() {
     return car;
 }
 
-void CarFlowXMLGenerator::setCurrentCar(string id) {
+void CarFlowXMLHelper::setCurrentCar(string id) {
     curCarElement = seekCarByAttribute("id", id);
 }
 
-SMTCarInfo CarFlowXMLGenerator::getCurrentCar() {
+SMTCarInfo CarFlowXMLHelper::getCurrentCar() {
     return getCar(curCarElement);
 }
 
-SMTCarInfo CarFlowXMLGenerator::getNextCar() {
+SMTCarInfo CarFlowXMLHelper::getNextCar() {
     if (curCarElement != NULL) {
         curCarElement = curCarElement->NextSiblingElement("car");
     }
     return getCurrentCar();
 }
 
-SMTCarInfo CarFlowXMLGenerator::getPreviousCar() {
+SMTCarInfo CarFlowXMLHelper::getPreviousCar() {
     if (curCarElement != NULL) {
         curCarElement = curCarElement->PreviousSiblingElement("car");
     }
     return getCurrentCar();
 }
 
-string CarFlowXMLGenerator::getIdOfCar(XMLElement* e) {
+string CarFlowXMLHelper::getIdOfCar(XMLElement* e) {
     if (e != NULL) {
         return e->Attribute("id") == NULL ? "" : e->Attribute("id");
     }
     return "";
 }
 
-double CarFlowXMLGenerator::getDepartTimeOfCar(XMLElement* e) {
+double CarFlowXMLHelper::getDepartTimeOfCar(XMLElement* e) {
     if (e != NULL) {
         return e->Attribute("time") == NULL ? 0 : e->DoubleAttribute("time");
     }
     return 0;
 }
 
+void CarFlowXMLHelper::initXML() {
+    doc->Clear();
+    XMLDeclaration* dec = doc->NewDeclaration();
+    doc->LinkEndChild(dec);
+    root = doc->NewElement("Cars");
+    doc->LinkEndChild(root);
+    notSaved = true;
+}
 
+void CarFlowXMLHelper::setRoot() {
+    if (doc != NULL) {
+        root = doc->FirstChildElement("Cars");
+        if (root == NULL) {
+            root = doc->NewElement("Cars");
+            doc->LinkEndChild(root);
+            notSaved = true;
+        }
+    }
+}
