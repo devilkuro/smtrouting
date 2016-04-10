@@ -165,6 +165,8 @@ public:
     int toLane;
     double length;
     double getViaLength();  // 返回via路径的长度
+protected:
+    void calcViaLength();
     void initVia(SMTEdge* edge, unsigned int conIndex);
 };
 /**
@@ -195,6 +197,11 @@ public:
     static string getStartEdgeName(const string &id);
     static string getEndEdgeName(const string &id);
 
+    // public members
+    // 用于随机选择起止点
+    vector<SMTEdge*> innerPrimaryEdges; // 内部互联道路
+    vector<SMTEdge*> outPrimaryEdges;   // 地图出口道路
+    vector<SMTEdge*> enterPrimaryEdges;    // 地图入口道路
 protected:
     // parameters
     bool debug;
@@ -211,10 +218,7 @@ protected:
 
     // optimized
     set<SMTEdge*> primaryEdgeSet;   // 主要道路集合
-    // 用于随机选择起止点
-    vector<SMTEdge*> innerPrimaryEdges; // 内部互联道路
-    vector<SMTEdge*> outPrimaryEdges;   // 地图出口道路
-    vector<SMTEdge*> inPrimaryEdges;    // 地图入口道路
+
 
     // functions
     virtual void initialize();
