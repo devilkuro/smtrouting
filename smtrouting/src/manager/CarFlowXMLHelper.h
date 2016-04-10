@@ -54,9 +54,12 @@ public:
     list<string> switchRouteToRoadList(string route);
     string switchRoadListToRoute(list<string> roadlist);
 
+    // path should have '.xml' as suffix
     int setXMLPath(string path);
+    // path should have '.xml' as suffix
     int loadXML(string path);
     void clear(bool save = false);
+    // path should have '.xml' as suffix
     void save(string path = "");
 
     // other
@@ -85,8 +88,8 @@ protected:
     list<string> getLoopOfLoopCar(XMLElement* e);
     string getCarTypeOFCar(XMLElement* e);
     double getDepartTimeOfCar(XMLElement* e);
-    void initXML();
-    void setRoot();
+    int initXML();
+    int setRoot();
 };
 
 #endif /* __CARFLOWXMLHELPER_H_ */

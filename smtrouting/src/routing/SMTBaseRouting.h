@@ -39,9 +39,8 @@ public:
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
-        WeightEdge() :
-                w(-1), previous(NULL), edge(NULL) {
-
+        WeightEdge(SMTEdge* e) :
+                w(-1), previous(NULL), edge(e) {
         }
     public:
         double w;
@@ -49,28 +48,40 @@ public:
         SMTEdge* edge;
     };
 public:
-    SMTBaseRouting() {
-        // TODO Auto-generated constructor stub
+    SMTBaseRouting() :
+            _pMap(NULL) {
     }
     virtual ~SMTBaseRouting();
+
+    SMTMap* getMap();
+
+    // routing functions
+    // TODO 添加基本的寻路方法
+    virtual list<SMTEdge*> getShortestRoute(SMTEdge* origin,
+            SMTEdge* destination);
 
 protected:
     // members for dijkstra's algorithm
     // weightEdgeMap用于存储所有WeightEdge便于回收内存
     map<SMTEdge*, WeightEdge*> weightEdgeMap;
     multimap<double, WeightEdge*> processMap;
-    map<SMTEdge*, double> onSet;
-    map<SMTEdge*, double> unSet;
+    map<SMTEdge*, WeightEdge*> unSet;    // the untouched edges
+    map<SMTEdge*, WeightEdge*> outSet;   // the finished edges
 
     // functions
-    virtual void initialize();
+    virtual int numInitStages() const;
+    virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
 
-    // routing functions
-    // TODO 添加基本的寻路方法
-    virtual list<SMTEdge*> getShortestRoute(SMTEdge* origin,
-            SMTEdge* destination);
+    // protected members
+    SMTMap* _pMap;
+
+private:
+    // dijkstra's algorithm related
+    void initDijkstra();
+    void changeDijkstraWeight(SMTEdge* from, SMTEdge* to, double w);
+    void processDijkstraLoop();
 };
 
 #endif /* __SMTBASEROUTING_H_ */

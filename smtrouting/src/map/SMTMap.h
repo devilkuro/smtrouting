@@ -198,6 +198,7 @@ public:
     static string getEndEdgeName(const string &id);
 
     // public members
+    set<SMTEdge*> primaryEdgeSet;   // 主要道路集合
     // 用于随机选择起止点
     vector<SMTEdge*> innerPrimaryEdges; // 内部互联道路
     vector<SMTEdge*> outPrimaryEdges;   // 地图出口道路
@@ -217,11 +218,10 @@ protected:
     map<string, SMTTLLogic*> tlMap;
 
     // optimized
-    set<SMTEdge*> primaryEdgeSet;   // 主要道路集合
 
 
     // functions
-    virtual void initialize();
+    virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
 

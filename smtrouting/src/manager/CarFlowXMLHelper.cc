@@ -47,7 +47,7 @@ int CarFlowXMLHelper::loadXML(string path) {
         // 如果之前已经读取文件则进行备份
         if (notSaved) {
             save(carXMLPath + "_bak");
-            result += 2;
+            result += 4;
         }
     }
     this->carXMLPath = path;
@@ -57,11 +57,10 @@ int CarFlowXMLHelper::loadXML(string path) {
     XMLError e = doc->LoadFile(path.c_str());
     if (e == XML_ERROR_FILE_NOT_FOUND) {
         initXML();
-        result += 1;
+        result += 2;
     } else {
-        setRoot();
-        // load xml successfully
-        result += 0;
+        // load root element
+        result += setRoot();
     }
     return result;
 }
@@ -380,22 +379,29 @@ double CarFlowXMLHelper::getDepartTimeOfCar(XMLElement* e) {
     return 0;
 }
 
-void CarFlowXMLHelper::initXML() {
-    doc->Clear();
-    XMLDeclaration* dec = doc->NewDeclaration();
-    doc->LinkEndChild(dec);
-    root = doc->NewElement("Cars");
-    doc->LinkEndChild(root);
-    notSaved = true;
+int CarFlowXMLHelper::initXML() {
+    if (doc != NULL) {
+        doc->Clear();
+        XMLDeclaration* dec = doc->NewDeclaration();
+        doc->LinkEndChild(dec);
+        root = doc->NewElement("Cars");
+        doc->LinkEndChild(root);
+        notSaved = true;
+        return 0;
+    }
+    return -1;
 }
 
-void CarFlowXMLHelper::setRoot() {
+int CarFlowXMLHelper::setRoot() {
     if (doc != NULL) {
         root = doc->FirstChildElement("Cars");
         if (root == NULL) {
             root = doc->NewElement("Cars");
             doc->LinkEndChild(root);
             notSaved = true;
+            return 1;
         }
+        return 0;
     }
+    return -1;
 }

@@ -94,15 +94,17 @@ SMTEdge* SMTMap::getSMTEdgeById(string id) {
     return edgeMap[id];
 }
 
-void SMTMap::initialize() {
-    debug = hasPar("debug") ? par("debug") : false;
-    rouXML = par("rouXML").xmlValue();
-    netXML = par("netXML").xmlValue();
+void SMTMap::initialize(int stage) {
+    if (stage == 0) {
+        debug = hasPar("debug") ? par("debug") : false;
+        rouXML = par("rouXML").xmlValue();
+        netXML = par("netXML").xmlValue();
 
-    initNetFromXML(netXML);
-    hasInitialized = true;
-    stepMsg = new cMessage("step message of SMTMap");
-    scheduleAt(simTime() + 0.1, stepMsg);
+        initNetFromXML(netXML);
+        hasInitialized = true;
+        stepMsg = new cMessage("step message of SMTMap");
+        scheduleAt(simTime() + 0.1, stepMsg);
+    }
 }
 
 void SMTMap::handleMessage(cMessage *msg) {

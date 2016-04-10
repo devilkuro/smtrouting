@@ -18,17 +18,41 @@
 Define_Module(SMTBaseRouting);
 
 SMTBaseRouting::~SMTBaseRouting() {
-    // TODO Auto-generated destructor stub
-
+    // 回收 dijkstra's algorithm 算法部分
+    for (map<SMTEdge*, WeightEdge*>::iterator it = weightEdgeMap.begin();
+            it != weightEdgeMap.end(); ++it) {
+        delete (it->second);
+    }
 }
 
-void SMTBaseRouting::initialize() {
+int SMTBaseRouting::numInitStages() const {
+    return 2;
+}
+
+void SMTBaseRouting::initialize(int stage) {
+    if (stage == 1) {
+        // needs to init weightEdgeMap here
+        // to make sure Map has initialized before
+        // set numInitStages=2 and init weightEdgeMap at stage 1
+        // set weightEdgeMap for dijkstra's algorithm
+        for (set<SMTEdge*>::iterator it = getMap()->primaryEdgeSet.begin();
+                it != getMap()->primaryEdgeSet.end(); ++it) {
+            weightEdgeMap[*it] = new WeightEdge(*it);
+        }
+    }
 }
 
 void SMTBaseRouting::handleMessage(cMessage* msg) {
 }
 
 void SMTBaseRouting::finish() {
+}
+
+SMTMap* SMTBaseRouting::getMap() {
+    if (_pMap == NULL) {
+        _pMap = SMTMapAccess().get();
+    }
+    return _pMap;
 }
 
 list<SMTEdge*> SMTBaseRouting::getShortestRoute(SMTEdge* origin,
@@ -39,4 +63,53 @@ list<SMTEdge*> SMTBaseRouting::getShortestRoute(SMTEdge* origin,
 
     // TODO 添加选路过程
     return rou;
+}
+
+void SMTBaseRouting::initDijkstra() {
+    // 1. reset weightEdge
+    for (map<SMTEdge*, WeightEdge*>::iterator it = weightEdgeMap.begin();
+            it != weightEdgeMap.end(); ++it) {
+        it->second->previous = NULL;
+        it->second->w = -1;
+    }
+    // 2. init unSet, outSet, processMap
+    unSet = weightEdgeMap;
+    outSet.clear();
+    processMap.clear();
+}
+
+void SMTBaseRouting::changeDijkstraWeight(SMTEdge* from, SMTEdge* to,
+        double w) {
+    WeightEdge * wEdge;
+    map<SMTEdge*, WeightEdge*>::iterator it_to = weightEdgeMap.find(to);
+    if (it_to != weightEdgeMap.end()) {
+        wEdge = it_to->second;
+    }
+    if (wEdge->w != -1 && wEdge->w <= w) {
+        // do not change wEdge if the old weight is smaller
+        return;
+    }
+    if (wEdge->w > w) {
+        // remove wEdge from processMap
+        for (multimap<double, WeightEdge*>::iterator it = processMap.find(
+                wEdge->w); it->first == wEdge->w; ++it) {
+            if (it->second == wEdge) {
+                processMap.erase(it);
+                break;
+            }
+        }
+    }
+    if (wEdge->w == -1) {
+        // if wEdge->w == -1, it is an untouched edge.
+        // move it out of unSet before modify processMap
+        unSet.erase(wEdge->edge);
+    }
+    wEdge->previous = from;
+    wEdge->w = w;
+    processMap.insert(std::make_pair(w, wEdge));
+}
+
+void SMTBaseRouting::processDijkstraLoop() {
+    // get WeightEdge with smallest w, and change its neighbors.
+    // TODO
 }
