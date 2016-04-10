@@ -30,19 +30,21 @@ public:
     // 内部class
     // ROUTE:用于记录选择的路径
     class Route {
+    public:
         Route() :
                 cost(0) {
         }
-    public:
+
         double cost;
         list<SMTEdge*> edges;
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
+    public:
         WeightEdge(SMTEdge* e) :
                 w(-1), previous(NULL), edge(e) {
         }
-    public:
+
         double w;
         SMTEdge* previous;
         SMTEdge* edge;
