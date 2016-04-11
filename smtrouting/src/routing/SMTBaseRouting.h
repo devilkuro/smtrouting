@@ -46,7 +46,7 @@ public:
         }
 
         double w;
-        SMTEdge* previous;
+        WeightEdge* previous;
         SMTEdge* edge;
     };
 public:
@@ -67,8 +67,10 @@ protected:
     // weightEdgeMap用于存储所有WeightEdge便于回收内存
     map<SMTEdge*, WeightEdge*> weightEdgeMap;
     multimap<double, WeightEdge*> processMap;
-    map<SMTEdge*, WeightEdge*> unSet;    // the untouched edges
-    map<SMTEdge*, WeightEdge*> outSet;   // the finished edges
+    // the untouched edges, maybe useless
+    // map<SMTEdge*, WeightEdge*> unSet;
+    // the finished edges, maybe useless
+    // map<SMTEdge*, WeightEdge*> outSet;
 
     // functions
     virtual int numInitStages() const;
@@ -76,14 +78,21 @@ protected:
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
 
+    virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &route);
+    // TODO add independent weight modify function
+
     // protected members
     SMTMap* _pMap;
 
 private:
     // dijkstra's algorithm related
-    void initDijkstra();
-    void changeDijkstraWeight(SMTEdge* from, SMTEdge* to, double w);
-    void processDijkstraLoop();
+    void initDijkstra(SMTEdge* origin);
+    void changeDijkstraWeight(WeightEdge* from, WeightEdge* to, double w);
+    int processDijkstraLoop(SMTEdge* destination);
+    SMTEdge* processDijkstralNode(SMTEdge* destination);
+    virtual void processDijkstralNeighbors(WeightEdge* wEdge);
+    void getDijkstralResult(SMTEdge* destination, list<SMTEdge*> &route);
 };
 
 #endif /* __SMTBASEROUTING_H_ */
