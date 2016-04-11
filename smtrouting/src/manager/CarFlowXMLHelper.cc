@@ -82,57 +82,45 @@ string CarFlowXMLHelper::switchRoadListToRoute(list<string> roadlist) {
     return route;
 }
 bool CarFlowXMLHelper::addODCar(string id, string origin, string destination,
-        double time, string vtype) {
+        double departTime, string vtype) {
     notSaved = true;
     bool beNewCar = false;
     XMLElement* e = seekCarByAttribute("id", id);
     if (e) {
         // the id is already here.
-        if (!e->Attribute("type", "SMTCARINFO_ROUTETYPE_OD")) {
-            root->DeleteChild(e);
-            e = doc->NewElement("car");
-            root->LinkEndChild(e);
-        }
-    } else {
-        // a new id
-        e = doc->NewElement("car");
-        root->LinkEndChild(e);
-        beNewCar = true;
+        root->DeleteChild(e);
+        beNewCar = false;
     }
+    e = doc->NewElement("car");
+    root->LinkEndChild(e);
     e->SetAttribute("id", id.c_str());
     e->SetAttribute("type", "SMTCARINFO_ROUTETYPE_OD");
     e->SetAttribute("origin", origin.c_str());
     e->SetAttribute("destination", destination.c_str());
     e->SetAttribute("time",
-            Fanjing::StringHelper::dbl2str(time, precisionOfTime).c_str());
+            Fanjing::StringHelper::dbl2str(departTime, precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }
 
-bool CarFlowXMLHelper::addLoopCar(string id, list<string> loop, double time,
-        string vtype) {
+bool CarFlowXMLHelper::addLoopCar(string id, list<string> loop,
+        double departTime, string vtype) {
     notSaved = true;
-    bool beNewCar = false;
+    bool beNewCar = true;
     string route = switchRoadListToRoute(loop);
     XMLElement* e = seekCarByAttribute("id", id);
     if (e) {
         // the id is already here.
-        if (!e->Attribute("type", "SMTCARINFO_ROUTETYPE_LOOP")) {
-            root->DeleteChild(e);
-            e = doc->NewElement("car");
-            root->LinkEndChild(e);
-        }
-    } else {
-        // a new id
-        e = doc->NewElement("car");
-        root->LinkEndChild(e);
-        beNewCar = true;
+        root->DeleteChild(e);
+        beNewCar = false;
     }
+    e = doc->NewElement("car");
+    root->LinkEndChild(e);
     e->SetAttribute("id", id.c_str());
     e->SetAttribute("type", "SMTCARINFO_ROUTETYPE_LOOP");
     e->SetAttribute("loop", route.c_str());
     e->SetAttribute("time",
-            Fanjing::StringHelper::dbl2str(time, precisionOfTime).c_str());
+            Fanjing::StringHelper::dbl2str(departTime, precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }

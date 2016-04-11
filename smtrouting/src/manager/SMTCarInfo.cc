@@ -9,7 +9,7 @@
 
 string SMTCarInfo::path = "";
 XMLDocument* SMTCarInfo::doc = NULL;
-map<string, SMTCarInfo> SMTCarInfo::vTypeMap;
+map<string, SMTCarInfo> SMTCarInfo::defaultVTypeMap;
 SMTCarInfo::SMTCarInfo() {
     id = "";
     type = SMTCARINFO_ROUTETYPE_LAST_TYPE;
@@ -35,7 +35,7 @@ SMTCarInfo::~SMTCarInfo() {
 
 void SMTCarInfo::loadVehicleTypeXML(string path) {
     if (doc != NULL) {
-        vTypeMap.clear();
+        defaultVTypeMap.clear();
     } else {
         doc = new XMLDocument();
     }
@@ -55,7 +55,7 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
                     car.minGap = e->DoubleAttribute("minGap");
                     car.maxSpeed = e->DoubleAttribute("maxSpeed");
                     car.color = e->Attribute("color");
-                    vTypeMap[e->Attribute("id")] = car;
+                    defaultVTypeMap[e->Attribute("id")] = car;
                 }
                 e = e->NextSiblingElement("vType");
             }
@@ -65,15 +65,15 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
 }
 
 SMTCarInfo SMTCarInfo::getDefaultVeicleTypeInfo(string vTypeId) {
-    if (vTypeMap.find(vTypeId) != vTypeMap.end()) {
-        return vTypeMap[vTypeId];
+    if (defaultVTypeMap.find(vTypeId) != defaultVTypeMap.end()) {
+        return defaultVTypeMap[vTypeId];
     }
     return SMTCarInfo();
 }
 
 bool SMTCarInfo::hasInitialized() {
     // FIXME this is a simple method
-    return vTypeMap.size() > 0;
+    return defaultVTypeMap.size() > 0;
 }
 
 void SMTCarInfo::release() {
@@ -85,8 +85,8 @@ void SMTCarInfo::release() {
 
 list<string> SMTCarInfo::getDefaultVeicleTypeList() {
     list<string> result;
-    for (map<string, SMTCarInfo>::iterator it = vTypeMap.begin();
-            it != vTypeMap.end(); it++) {
+    for (map<string, SMTCarInfo>::iterator it = defaultVTypeMap.begin();
+            it != defaultVTypeMap.end(); it++) {
         result.push_back(it->first);
     }
     return result;

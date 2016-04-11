@@ -60,7 +60,7 @@ public:
 private:
     static string path;
     static XMLDocument* doc;
-    static map<string, SMTCarInfo> vTypeMap;
+    static map<string, SMTCarInfo> defaultVTypeMap;
 };
 
 #endif /* SMTCARINFO_H_ */

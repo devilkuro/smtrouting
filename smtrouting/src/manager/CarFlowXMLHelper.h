@@ -31,9 +31,9 @@ public:
     CarFlowXMLHelper();
     virtual ~CarFlowXMLHelper();
 
-    bool addODCar(string id, string origin, string destination, double time,
+    bool addODCar(string id, string origin, string destination, double departTime,
             string vtype);
-    bool addLoopCar(string id, list<string> loop, double time, string vtype);
+    bool addLoopCar(string id, list<string> loop, double departTime, string vtype);
 
     list<string> getAllCars();
     SMTCarInfo getCar(string id);

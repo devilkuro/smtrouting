@@ -58,10 +58,9 @@ SMTMap* SMTBaseRouting::getMap() {
 list<SMTEdge*> SMTBaseRouting::getShortestRoute(SMTEdge* origin,
         SMTEdge* destination) {
     // 最短路径使用迪杰斯特拉算法
-    multimap<double, Route> costMap;
-    list<SMTEdge*> rou;
+    list<string> rou;
     runDijkstraAlgorithm(origin, destination, rou);
-    // TODO 添加选路过程
+    // TODO needs test
     return rou;
 }
 
@@ -124,11 +123,10 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
 }
 
 void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
-        list<SMTEdge*> &route) {
+        list<string> &route) {
     initDijkstra(origin);
     processDijkstraLoop(destination);
     getDijkstralResult(origin, route);
-    // TODO needs test
 }
 
 SMTEdge* SMTBaseRouting::processDijkstralNode(SMTEdge* destination) {
@@ -159,35 +157,48 @@ void SMTBaseRouting::processDijkstralNeighbors(WeightEdge* wEdge) {
             wEdge->edge->viaVecMap.begin(); it != wEdge->edge->viaVecMap.end();
             ++it) {
         WeightEdge* next = weightEdgeMap[it->first];
+        if (next->w == getSmallerOne(next->w, wEdge->w)) {
+            // if next->w is smaller than wEdge->w
+            // the next edge is out edge, which means it has been processed already
+            continue;
+        }
         // w means the delta weight from wEdge to next
-        double w = -1;
+        double deltaW = -1;
         if (next == NULL) {
             std::cout << "processDijkstralNeighbors:" << "No edge "
                     << next->edge->id << " in weightEdgeMap" << std::endl;
         }
         for (unsigned int i = 0; i < it->second.size(); ++i) {
             double viaLen = it->second[i]->getViaLength();
-            if (w == -1) {
-                w = viaLen;
-            } else {
-                w = w > viaLen ? viaLen : w;
-            }
+            deltaW = getSmallerOne(deltaW, viaLen);
         }
-        w += wEdge->edge->length();
-        if (w < 0) {
+        if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
-                    << "cannot handle negative cost from" << wEdge->edge->id
+                    << "cannot handle negative via cost from" << wEdge->edge->id
                     << " to " << next->edge->id << std::endl;
         }
-        changeDijkstraWeight(wEdge, next, w + wEdge->w);
+        deltaW += wEdge->edge->length();
+        changeDijkstraWeight(wEdge, next, deltaW + wEdge->w);
+    }
+}
+
+double SMTBaseRouting::getSmallerOne(double a, double b) {
+    if (a < 0) {
+        return b;
+    } else if (b < 0) {
+        return -1;
+    } else if (a > b) {
+        return b;
+    } else {
+        return a;
     }
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
-        list<SMTEdge*>& route) {
+        list<string>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
     while (wEdge != NULL) {
-        route.push_front(wEdge->edge);
+        route.push_front(wEdge->edge->id);
         wEdge = wEdge->previous;
     }
 }

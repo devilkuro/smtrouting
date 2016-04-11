@@ -79,9 +79,9 @@ protected:
     virtual void finish();
 
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
-            list<SMTEdge*> &route);
+            list<string> &route);
     // TODO add independent weight modify function
-
+    double getSmallerOne(double a, double b);
     // protected members
     SMTMap* _pMap;
 
@@ -92,7 +92,7 @@ private:
     int processDijkstraLoop(SMTEdge* destination);
     SMTEdge* processDijkstralNode(SMTEdge* destination);
     virtual void processDijkstralNeighbors(WeightEdge* wEdge);
-    void getDijkstralResult(SMTEdge* destination, list<SMTEdge*> &route);
+    void getDijkstralResult(SMTEdge* destination, list<string> &route);
 };
 
 #endif /* __SMTBASEROUTING_H_ */

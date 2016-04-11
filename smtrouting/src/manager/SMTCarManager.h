@@ -18,17 +18,22 @@
 
 #include <omnetpp.h>
 #include "SMTMap.h"
+#include "CarFlowXMLHelper.h"
+
+using std::map;
+using std::string;
+using std::multimap;
 
 class SMTCarManager: public cSimpleModule {
 public:
     SMTCarManager() :
-            pMap(0) {
+            _pMap(NULL) {
     }
     virtual ~SMTCarManager();
 
-protected:
-    SMTMap* pMap;
+    map<string, SMTCarInfo*> carMapByID;  // store car instance
 
+protected:
     // members
     string carPrefix;
     string XMLPrefix;
@@ -36,9 +41,21 @@ protected:
     string carFlowFileName;
 
     // functions
-    virtual void initialize();
+    virtual int numInitStages() const;
+    virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
+
+    SMTMap* getMap();
+private:
+    SMTMap* _pMap;
+};
+
+class SMTCarManagerAccess {
+public:
+    SMTCarManager* get() {
+        return FindModule<SMTCarManager*>::findGlobalModule();
+    }
 };
 
 #endif /* __SMTCARMANAGER_H_ */

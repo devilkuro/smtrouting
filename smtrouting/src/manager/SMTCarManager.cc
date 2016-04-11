@@ -18,13 +18,34 @@
 Define_Module(SMTCarManager);
 
 SMTCarManager::~SMTCarManager() {
+    for (map<string, SMTCarInfo*>::iterator it = carMapByID.begin();
+            it != carMapByID.end(); ++it) {
+        delete (it->second);
+    }
 }
 
-void SMTCarManager::initialize() {
+int SMTCarManager::numInitStages() const {
+    return 2;
+}
+
+void SMTCarManager::initialize(int stage) {
+    if (stage == 0) {
+        // set configuration
+    }
+    if (stage == 1) {
+        // set map and car info
+    }
 }
 
 void SMTCarManager::handleMessage(cMessage* msg) {
 }
 
 void SMTCarManager::finish() {
+}
+
+SMTMap* SMTCarManager::getMap() {
+    if (_pMap == NULL) {
+        _pMap = SMTCarManagerAccess().get();
+    }
+    return _pMap;
 }
