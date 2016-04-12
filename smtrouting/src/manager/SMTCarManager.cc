@@ -14,14 +14,12 @@
 // 
 
 #include "SMTCarManager.h"
+#include <cmath>
 
 Define_Module(SMTCarManager);
 
 SMTCarManager::~SMTCarManager() {
-    for (map<string, SMTCarInfo*>::iterator it = carMapByID.begin();
-            it != carMapByID.end(); ++it) {
-        delete (it->second);
-    }
+    releaseCarMap();
 }
 
 int SMTCarManager::numInitStages() const {
@@ -32,6 +30,8 @@ void SMTCarManager::initialize(int stage) {
     if (stage == 0) {
         // set configuration.
         debug = par("debug").boolValue();
+        endAfterGenerateCarFlowFile =
+                par("endAfterGenerateCarFlowFile").boolValue();
         carPrefix = par("carPrefix").stringValue();
         XMLPrefix = par("XMLPrefix").stringValue();
         rouXMLFileName = par("rouXMLFileName").stringValue();
@@ -42,12 +42,24 @@ void SMTCarManager::initialize(int stage) {
         if (carFlowXMLFileName == "") {
             carFlowXMLFileName = XMLPrefix + "_default" + ".cf.xml";
         }
+        genPar.minGenNumPerHour = par("minGenNumPerHour").doubleValue();
+        genPar.maxGenNumPerHour = par("maxGenNumPerHour").doubleValue();
+        genPar.startTime = par("startTime").doubleValue();
+        genPar.prePeriod = par("prePeriod").doubleValue();
+        genPar.increasePeriod = par("increasePeriod").doubleValue();
+        genPar.maxPeriod = par("maxPeriod").doubleValue();
+        genPar.decreasePeriod = par("decreasePeriod").doubleValue();
+        genPar.sufPeriod = par("sufPeriod").doubleValue();
+        genPar.generateInterval = par("generateInterval").doubleValue();
+
         SMTCarInfo::loadVehicleTypeXML(rouXMLFileName);
+        carInfoVec = SMTCarInfo::getDefaultVehicleTypeVector();
     }
     if (stage == 1) {
         // set map and car info
-        getMap();
-
+        mapPar.maxInnerIndex = getMap()->innerPrimaryEdges.size();
+        mapPar.maxEnterIndex = getMap()->enterPrimaryEdges.size();
+        mapPar.maxOutIndex = getMap()->outPrimaryEdges.size();
     }
 }
 
@@ -73,11 +85,42 @@ SMTComInterface* SMTCarManager::getComIf() {
     return _pComIf;
 }
 
+void SMTCarManager::generateCarFlowFile(const string& path) {
+    // TODO add generating process
+
+    if (endAfterGenerateCarFlowFile) {
+        endSimulation();
+    }
+}
+
+void SMTCarManager::loadCarFlowFile(const string& path) {
+    string xmlpath;
+    releaseCarMap();
+    if (path != "") {
+        xmlpath = path;
+    } else {
+        xmlpath = carFlowXMLFileName;
+    }
+    if ((carFlowHelper.loadXML(xmlpath) & 1) != 0) {
+        generateCarFlowFile(xmlpath);
+        carFlowHelper.loadXML(xmlpath);
+    }
+    SMTCarInfo* car = carFlowHelper.getFirstCar();
+    while (car != NULL) {
+        if (carMapByID.find(car->id) == carMapByID.end()) {
+            carMapByID[car->id] = car;
+        } else {
+            std::cout << "duplicate car with name " << car->id << std::endl;
+        }
+        car = carFlowHelper.getNextCar();
+    }
+}
+
 void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
     switch (car->type) {
     case SMTCarInfo::SMTCARINFO_ROUTETYPE_OD:
-        if (!getComIf()->addVehicle(car->id, car->vtype, car->origin,
-                car->time, 0, car->maxSpeed, 0)) {
+        if (!getComIf()->addVehicle(car->id, car->vtype, car->origin, car->time,
+                0, car->maxSpeed, 0)) {
             if (debug) {
                 cout << "add car failed: car id: " << car->id << ", road: "
                         << car->origin << ", @" << car->time << endl;
@@ -90,4 +133,41 @@ void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
     default:
         break;
     }
+}
+
+int SMTCarManager::getGenCarNumAtTime(double time, double &remain) {
+    double result = 0;
+    double stageStartTime = 0;
+    double douNum = 0;
+    // before start time
+    if (time < stageStartTime + genPar.startTime) {
+        douNum = genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        remain += douNum;
+        return (int) result;
+    }
+    stageStartTime += genPar.startTime;
+    // at previous min stage
+    if (time < stageStartTime + genPar.prePeriod) {
+        douNum = genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        remain = std::modf(douNum, &result);
+        return (int) result;
+    }
+    stageStartTime += genPar.prePeriod;
+    // at increase stage
+    if (time < stageStartTime + genPar.increasePeriod) {
+        // TODO
+        douNum = genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        remain = std::modf(douNum, &result);
+        return (int) result;
+    }
+    stageStartTime += genPar.increasePeriod;
+}
+
+void SMTCarManager::releaseCarMap() {
+    for (map<string, SMTCarInfo*>::iterator it = carMapByID.begin();
+            it != carMapByID.end(); ++it) {
+        delete (it->second);
+    }
+    carMapByID.clear();
+    carMapByTime.clear();
 }

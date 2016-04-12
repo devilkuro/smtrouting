@@ -60,6 +60,8 @@ public:
     void setVehicleArrived(std::string nodeId);
     // change the destination of one vehicle
     void changeVehicleTarget(std::string nodeId, std::string destination);
+    // add new route
+    void addRoute(std::string routeId, std::list<std::string> route);
 protected:
     Veins::TraCIConnection& smtConnection;
 };

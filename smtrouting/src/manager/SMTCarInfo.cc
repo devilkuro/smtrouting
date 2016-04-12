@@ -64,7 +64,7 @@ void SMTCarInfo::loadVehicleTypeXML(const string &path) {
     doc->Clear();
 }
 
-SMTCarInfo* SMTCarInfo::getDefaultVeicleTypeInfo(const string &vTypeId) {
+SMTCarInfo* SMTCarInfo::getDefaultVehicleTypeInfo(const string &vTypeId) {
     if (defaultVTypeMap.find(vTypeId) != defaultVTypeMap.end()) {
         return defaultVTypeMap[vTypeId];
     }
@@ -89,7 +89,7 @@ void SMTCarInfo::release() {
     }
 }
 
-list<string> SMTCarInfo::getDefaultVeicleTypeList() {
+list<string> SMTCarInfo::getDefaultVehicleTypeList() {
     list<string> result;
     for (map<string, SMTCarInfo*>::iterator it = defaultVTypeMap.begin();
             it != defaultVTypeMap.end(); it++) {
@@ -121,3 +121,11 @@ string SMTCarInfo::toString() {
     return str;
 }
 
+vector<SMTCarInfo*> SMTCarInfo::getDefaultVehicleTypeVector() {
+    vector<SMTCarInfo*> result;
+    for (map<string, SMTCarInfo*>::iterator it = defaultVTypeMap.begin();
+            it != defaultVTypeMap.end(); it++) {
+        result.push_back(it->second);
+    }
+    return result;
+}

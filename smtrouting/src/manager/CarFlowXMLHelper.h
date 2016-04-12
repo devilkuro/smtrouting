@@ -57,7 +57,7 @@ public:
     // path should have '.xml' as suffix
     int setXMLPath(string path);
     // path should have '.xml' as suffix
-    int loadXML(string path);
+    int loadXML(const string &path);
     void clear(bool save = false);
     // path should have '.xml' as suffix
     void save(string path = "");

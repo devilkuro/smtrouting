@@ -110,6 +110,7 @@ void SMTMap::initialize(int stage) {
 void SMTMap::handleMessage(cMessage *msg) {
     if (msg == stepMsg) {
         if (getLaunchd()->isConnected()) {
+            addBaseRoutes();
             if (debug) {
                 verifyNetConfig();
             }
@@ -661,4 +662,14 @@ void SMTVia::initVia(SMTEdge* edge, unsigned int conIndex) {
         }
     }
     calcViaLength();
+}
+
+void SMTMap::addBaseRoutes() {
+    for (map<string, SMTEdge*>::iterator it = edgeMap.begin();
+            it != edgeMap.end(); ++it) {
+        if (!it->second->isInternal) {
+            getLaunchd()->getSMTComInterface()->addRoute(it->first,
+                    list<string>().push_back(it->first));
+        }
+    }
 }

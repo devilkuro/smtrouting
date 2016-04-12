@@ -26,8 +26,19 @@ simple SMTCarManager
         @labels("SMTCarManager");
 
         bool debug = default(false);
+        bool endAfterGenerateCarFlowFile = default(true);
         string carPrefix = default("car");
         string XMLPrefix = default("smt");
         string rouXMLFileName = default("");
         string carFlowXMLFileName = default("");
+
+        double minGenNumPerHour = default(1000);
+        double maxGenNumPerHour = default(20000);
+        double startTime @unit(s) = default(1s);
+        double prePeriod @unit(s) = default(20min);
+        double increasePeriod @unit(s) = default(20min);
+        double maxPeriod @unit(s) = default(40min);
+        double decreasePeriod @unit(s) = default(20min);
+        double sufPeriod @unit(s) = default(100min);
+        double generateInterval @unit(s) = default(1s);
 }

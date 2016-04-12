@@ -232,6 +232,8 @@ protected:
     void addTLFromTLXML(cXMLElement* xml);
     void addConFromConXML(cXMLElement* xml);
     void verifyNetConfig();
+
+    void addBaseRoutes();
 };
 
 class SMTMapAccess {

@@ -39,7 +39,7 @@ int CarFlowXMLHelper::setXMLPath(string path) {
 }
 
 // load xml file
-int CarFlowXMLHelper::loadXML(string path) {
+int CarFlowXMLHelper::loadXML(const string &path) {
     // result: bit set
     int result = 0;
     // 设置xml path
@@ -303,7 +303,7 @@ SMTCarInfo* CarFlowXMLHelper::getCar(XMLElement* e) {
         string rtype = getRouteTypeOfCar(e);
         // set the vType related parameters first
         if (SMTCarInfo::hasInitialized()) {
-            *car = *(SMTCarInfo::getDefaultVeicleTypeInfo(vtype));
+            *car = *(SMTCarInfo::getDefaultVehicleTypeInfo(vtype));
         }
         car->id = getIdOfCar(e);
         car->vtype = vtype;

@@ -178,3 +178,17 @@ void SMTComInterface::changeVehicleTarget(std::string nodeId,
     TraCIBuffer buf = smtConnection.query(CMD_SET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << variableType << destination);
     ASSERT(buf.eof());
 }
+
+void SMTComInterface::addRoute(std::string routeId,
+        std::list<std::string> route) {
+    uint8_t variableId = ADD;
+    uint8_t variableType = TYPE_STRINGLIST;
+    int32_t count = route.size();
+    TraCIBuffer buf = TraCIBuffer();
+    buf << variableId << routeId << variableType << count;
+    for(std::list<std::string>::iterator it = route.begin(); it != route.end(); it++){
+        buf << (*it);
+    }
+    buf = smtConnection.query(CMD_SET_ROUTE_VARIABLE, buf);
+    ASSERT(buf.eof());
+}

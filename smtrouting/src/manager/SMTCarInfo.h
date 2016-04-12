@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <vector>
 #include "tinyxml2.h"
 #include "StringHelper.h"
 
@@ -34,9 +35,10 @@ public:
     static void loadVehicleTypeXML(const string &path);
     static void release();
     // return car with route type SMTCARINFO_ROUTETYPE_LAST_TYPE, if no car own this type id
-    static SMTCarInfo* getDefaultVeicleTypeInfo(const string &vTypeId);
+    static SMTCarInfo* getDefaultVehicleTypeInfo(const string &vTypeId);
     // load vehicle type xml first
-    static list<string> getDefaultVeicleTypeList();
+    static list<string> getDefaultVehicleTypeList();
+    static vector<SMTCarInfo*> getDefaultVehicleTypeVector();
 
     string toString();
 public:
