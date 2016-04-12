@@ -162,3 +162,19 @@ void SMTComInterface::changeLane(std::string nodeId, uint8_t laneIndex,
     TraCIBuffer buf0 = smtConnection.query(CMD_SET_VEHICLE_VARIABLE, buf);
     ASSERT(buf0.eof());
 }
+
+void SMTComInterface::setVehicleArrived(std::string nodeId) {
+    uint8_t variableId = REMOVE;
+    uint8_t variableType = TYPE_BYTE;
+    uint8_t value = REMOVE_ARRIVED;
+    TraCIBuffer buf = smtConnection.query(CMD_SET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << variableType << value);
+    ASSERT(buf.eof());
+}
+
+void SMTComInterface::changeVehicleTarget(std::string nodeId,
+        std::string destination) {
+    uint8_t variableId = CMD_CHANGETARGET;
+    uint8_t variableType = TYPE_STRING;
+    TraCIBuffer buf = smtConnection.query(CMD_SET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << variableType << destination);
+    ASSERT(buf.eof());
+}

@@ -25,7 +25,9 @@ simple SMTCarManager
         @display("i=block/network2");
         @labels("SMTCarManager");
 
+        bool debug = default(false);
         string carPrefix = default("car");
         string XMLPrefix = default("smt");
         string rouXMLFileName = default("");
+        string carFlowXMLFileName = default("");
 }

@@ -56,6 +56,10 @@ public:
     // 变更车辆行驶车道
     void changeLane(std::string nodeId, uint8_t laneIndex,
             uint32_t duration = 0);
+    // remove vehicle with reason arrived
+    void setVehicleArrived(std::string nodeId);
+    // change the destination of one vehicle
+    void changeVehicleTarget(std::string nodeId, std::string destination);
 protected:
     Veins::TraCIConnection& smtConnection;
 };
