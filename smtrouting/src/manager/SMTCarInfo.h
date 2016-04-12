@@ -31,10 +31,10 @@ public:
     SMTCarInfo();
     virtual ~SMTCarInfo();
     static bool hasInitialized();
-    static void loadVehicleTypeXML(string path);
+    static void loadVehicleTypeXML(const string &path);
     static void release();
     // return car with route type SMTCARINFO_ROUTETYPE_LAST_TYPE, if no car own this type id
-    static SMTCarInfo getDefaultVeicleTypeInfo(string vTypeId);
+    static SMTCarInfo* getDefaultVeicleTypeInfo(const string &vTypeId);
     // load vehicle type xml first
     static list<string> getDefaultVeicleTypeList();
 
@@ -60,7 +60,7 @@ public:
 private:
     static string path;
     static XMLDocument* doc;
-    static map<string, SMTCarInfo> defaultVTypeMap;
+    static map<string, SMTCarInfo*> defaultVTypeMap;
 };
 
 #endif /* SMTCARINFO_H_ */

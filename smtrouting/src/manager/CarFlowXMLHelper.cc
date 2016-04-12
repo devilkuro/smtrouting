@@ -222,7 +222,7 @@ void CarFlowXMLHelper::save(string path) {
     notSaved = false;
 }
 
-SMTCarInfo CarFlowXMLHelper::getCar(string id) {
+SMTCarInfo* CarFlowXMLHelper::getCar(string id) {
     XMLElement* e = seekCarByAttribute("id", id);
     return getCar(e);
 }
@@ -295,58 +295,61 @@ string CarFlowXMLHelper::getCarTypeOFCar(XMLElement* e) {
     return "";
 }
 
-SMTCarInfo CarFlowXMLHelper::getCar(XMLElement* e) {
-    SMTCarInfo car;
+SMTCarInfo* CarFlowXMLHelper::getCar(XMLElement* e) {
+    SMTCarInfo* car = NULL;
     if (e != NULL) {
+        car = new SMTCarInfo();
         string vtype = getCarTypeOFCar(e);
         string rtype = getRouteTypeOfCar(e);
         // set the vType related parameters first
         if (SMTCarInfo::hasInitialized()) {
-            car = SMTCarInfo::getDefaultVeicleTypeInfo(vtype);
+            *car = *(SMTCarInfo::getDefaultVeicleTypeInfo(vtype));
         }
-        car.id = getIdOfCar(e);
-        car.vtype = vtype;
-        car.time = getDepartTimeOfCar(e);
+        car->id = getIdOfCar(e);
+        car->vtype = vtype;
+        car->time = getDepartTimeOfCar(e);
         // read the default info of the vtype
         if (rtype == "SMTCARINFO_ROUTETYPE_OD") {
-            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_OD;
-            car.origin = getOriginOfODCar(e);
-            car.destination = getDestinationOfODCar(e);
+            car->type = SMTCarInfo::SMTCARINFO_ROUTETYPE_OD;
+            car->origin = getOriginOfODCar(e);
+            car->destination = getDestinationOfODCar(e);
         } else if (rtype == "SMTCARINFO_ROUTETYPE_LOOP") {
-            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LOOP;
-            car.loop = switchRoadListToRoute(getLoopOfLoopCar(e));
+            car->type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LOOP;
+            car->loop = switchRoadListToRoute(getLoopOfLoopCar(e));
         } else {
-            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LAST_TYPE;
+            car->type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LAST_TYPE;
         }
     }
     return car;
 }
 
-SMTCarInfo CarFlowXMLHelper::getFirstCar() {
-    SMTCarInfo car;
+SMTCarInfo* CarFlowXMLHelper::getFirstCar() {
     if (root != NULL) {
         curCarElement = root->FirstChildElement("car");
         return getCar(curCarElement);
     }
-    return car;
+    return NULL;
 }
 
 void CarFlowXMLHelper::setCurrentCar(string id) {
     curCarElement = seekCarByAttribute("id", id);
+    if(curCarElement==NULL){
+        cout<<"cannot set current car to "<< id << endl;
+    }
 }
 
-SMTCarInfo CarFlowXMLHelper::getCurrentCar() {
+SMTCarInfo* CarFlowXMLHelper::getCurrentCar() {
     return getCar(curCarElement);
 }
 
-SMTCarInfo CarFlowXMLHelper::getNextCar() {
+SMTCarInfo* CarFlowXMLHelper::getNextCar() {
     if (curCarElement != NULL) {
         curCarElement = curCarElement->NextSiblingElement("car");
     }
     return getCurrentCar();
 }
 
-SMTCarInfo CarFlowXMLHelper::getPreviousCar() {
+SMTCarInfo* CarFlowXMLHelper::getPreviousCar() {
     if (curCarElement != NULL) {
         curCarElement = curCarElement->PreviousSiblingElement("car");
     }

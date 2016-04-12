@@ -36,7 +36,7 @@ public:
     bool addLoopCar(string id, list<string> loop, double departTime, string vtype);
 
     list<string> getAllCars();
-    SMTCarInfo getCar(string id);
+    SMTCarInfo* getCar(string id);
     string getRouteTypeOfCar(string id);
     string getOriginOfODCar(string id);
     string getDestinationOfODCar(string id);
@@ -45,11 +45,11 @@ public:
     double getDepartTimeOfCar(string id);
 
     // traversal xml files
-    SMTCarInfo getFirstCar();
+    SMTCarInfo* getFirstCar();
     void setCurrentCar(string id);
-    SMTCarInfo getCurrentCar();
-    SMTCarInfo getNextCar();
-    SMTCarInfo getPreviousCar();
+    SMTCarInfo* getCurrentCar();
+    SMTCarInfo* getNextCar();
+    SMTCarInfo* getPreviousCar();
 
     list<string> switchRouteToRoadList(string route);
     string switchRoadListToRoute(list<string> roadlist);
@@ -80,7 +80,7 @@ protected:
     void finish();
 
     // xml related functions
-    SMTCarInfo getCar(XMLElement* e);
+    SMTCarInfo* getCar(XMLElement* e);
     string getIdOfCar(XMLElement* e);
     string getRouteTypeOfCar(XMLElement* e);
     string getOriginOfODCar(XMLElement* e);

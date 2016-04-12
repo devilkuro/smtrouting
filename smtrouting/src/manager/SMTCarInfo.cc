@@ -6,10 +6,11 @@
  */
 
 #include "SMTCarInfo.h"
+#include <iostream>
 
 string SMTCarInfo::path = "";
 XMLDocument* SMTCarInfo::doc = NULL;
-map<string, SMTCarInfo> SMTCarInfo::defaultVTypeMap;
+map<string, SMTCarInfo*> SMTCarInfo::defaultVTypeMap;
 SMTCarInfo::SMTCarInfo() {
     id = "";
     type = SMTCARINFO_ROUTETYPE_LAST_TYPE;
@@ -30,10 +31,9 @@ SMTCarInfo::SMTCarInfo() {
 }
 
 SMTCarInfo::~SMTCarInfo() {
-    // FIXME 静态变量doc需要clear().
 }
 
-void SMTCarInfo::loadVehicleTypeXML(string path) {
+void SMTCarInfo::loadVehicleTypeXML(const string &path) {
     if (doc != NULL) {
         defaultVTypeMap.clear();
     } else {
@@ -44,17 +44,17 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
         XMLElement* root = doc->FirstChildElement("routes");
         if (root != NULL) {
             XMLElement* e = root->FirstChildElement("vType");
-            SMTCarInfo car;
+            SMTCarInfo* car = new SMTCarInfo();
             while (e) {
                 if (NULL != e->Attribute("id")) {
-                    car.vtype = e->Attribute("id");
-                    car.accel = e->DoubleAttribute("accel");
-                    car.decel = e->DoubleAttribute("decel");
-                    car.sigma = e->DoubleAttribute("sigma");
-                    car.length = e->DoubleAttribute("length");
-                    car.minGap = e->DoubleAttribute("minGap");
-                    car.maxSpeed = e->DoubleAttribute("maxSpeed");
-                    car.color = e->Attribute("color");
+                    car->vtype = e->Attribute("id");
+                    car->accel = e->DoubleAttribute("accel");
+                    car->decel = e->DoubleAttribute("decel");
+                    car->sigma = e->DoubleAttribute("sigma");
+                    car->length = e->DoubleAttribute("length");
+                    car->minGap = e->DoubleAttribute("minGap");
+                    car->maxSpeed = e->DoubleAttribute("maxSpeed");
+                    car->color = e->Attribute("color");
                     defaultVTypeMap[e->Attribute("id")] = car;
                 }
                 e = e->NextSiblingElement("vType");
@@ -64,11 +64,12 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
     doc->Clear();
 }
 
-SMTCarInfo SMTCarInfo::getDefaultVeicleTypeInfo(string vTypeId) {
+SMTCarInfo* SMTCarInfo::getDefaultVeicleTypeInfo(const string &vTypeId) {
     if (defaultVTypeMap.find(vTypeId) != defaultVTypeMap.end()) {
         return defaultVTypeMap[vTypeId];
     }
-    return SMTCarInfo();
+    cout << "no vehicle type named " << vTypeId << endl;
+    return NULL;
 }
 
 bool SMTCarInfo::hasInitialized() {
@@ -77,15 +78,20 @@ bool SMTCarInfo::hasInitialized() {
 }
 
 void SMTCarInfo::release() {
+    // FIXME 静态变量doc需要clear().
     if (doc != NULL) {
         doc->Clear();
         doc = NULL;
+    }
+    for (map<string, SMTCarInfo*>::iterator it = defaultVTypeMap.begin();
+            it != defaultVTypeMap.end(); ++it) {
+        delete (it->second);
     }
 }
 
 list<string> SMTCarInfo::getDefaultVeicleTypeList() {
     list<string> result;
-    for (map<string, SMTCarInfo>::iterator it = defaultVTypeMap.begin();
+    for (map<string, SMTCarInfo*>::iterator it = defaultVTypeMap.begin();
             it != defaultVTypeMap.end(); it++) {
         result.push_back(it->first);
     }

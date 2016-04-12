@@ -45,7 +45,7 @@ void SMTCarManager::finish() {
 
 SMTMap* SMTCarManager::getMap() {
     if (_pMap == NULL) {
-        _pMap = SMTCarManagerAccess().get();
+        _pMap = SMTMapAccess().get();
     }
     return _pMap;
 }

@@ -58,7 +58,7 @@ SMTMap* SMTBaseRouting::getMap() {
 list<SMTEdge*> SMTBaseRouting::getShortestRoute(SMTEdge* origin,
         SMTEdge* destination) {
     // 最短路径使用迪杰斯特拉算法
-    list<string> rou;
+    list<SMTEdge*> rou;
     runDijkstraAlgorithm(origin, destination, rou);
     // TODO needs test
     return rou;
@@ -108,7 +108,7 @@ void SMTBaseRouting::changeDijkstraWeight(WeightEdge* from, WeightEdge* to,
     }
     to->previous = from;
     to->w = w;
-    processMap.insert(std::make_pair(w, wEdge));
+    processMap.insert(std::make_pair(w, to));
 }
 
 int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
@@ -123,7 +123,7 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
 }
 
 void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
-        list<string> &route) {
+        list<SMTEdge*> &route) {
     initDijkstra(origin);
     processDijkstraLoop(destination);
     getDijkstralResult(origin, route);
@@ -195,10 +195,10 @@ double SMTBaseRouting::getSmallerOne(double a, double b) {
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
-        list<string>& route) {
+        list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
     while (wEdge != NULL) {
-        route.push_front(wEdge->edge->id);
+        route.push_front(wEdge->edge);
         wEdge = wEdge->previous;
     }
 }
