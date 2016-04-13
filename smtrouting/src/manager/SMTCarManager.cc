@@ -60,10 +60,18 @@ void SMTCarManager::initialize(int stage) {
         mapPar.maxInnerIndex = getMap()->innerPrimaryEdges.size();
         mapPar.maxEnterIndex = getMap()->enterPrimaryEdges.size();
         mapPar.maxOutIndex = getMap()->outPrimaryEdges.size();
+        loadCarFlowFile(carFlowXMLFileName);
+        // start car generating process
+        genSetpMsg = new cMessage("generate step msg");
+        scheduleAt(genPar.startTime, genSetpMsg);
     }
 }
 
 void SMTCarManager::handleMessage(cMessage* msg) {
+    if (msg == genSetpMsg) {
+        handleGenMessage(msg);
+    }
+    std::cout << "unknown message" << std::endl;
 }
 
 void SMTCarManager::finish() {
@@ -86,8 +94,15 @@ SMTComInterface* SMTCarManager::getComIf() {
 }
 
 void SMTCarManager::generateCarFlowFile(const string& path) {
-    // TODO add generating process
-
+    // add generating car flow file process
+    double curTime = 0;
+    double remain = 0;
+    int n = getGenCarNumAtTime(curTime, remain);
+    while (n >= 0) {
+        addRandomInnerVehicleIntoXML(curTime, n);
+        curTime += genPar.generateInterval;
+        n = getGenCarNumAtTime(curTime, remain);
+    }
     if (endAfterGenerateCarFlowFile) {
         endSimulation();
     }
@@ -109,6 +124,7 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
     while (car != NULL) {
         if (carMapByID.find(car->id) == carMapByID.end()) {
             carMapByID[car->id] = car;
+            carMapByTime.insert(std::make_pair(car->time, car));
         } else {
             std::cout << "duplicate car with name " << car->id << std::endl;
         }
@@ -119,8 +135,8 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
 void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
     switch (car->type) {
     case SMTCarInfo::SMTCARINFO_ROUTETYPE_OD:
-        if (!getComIf()->addVehicle(car->id, car->vtype, car->origin, car->time,
-                0, car->maxSpeed, 0)) {
+        if (!getComIf()->addVehicle(car->id, car->vtype, car->origin, 0, 0,
+                car->maxSpeed, 0)) {
             if (debug) {
                 cout << "add car failed: car id: " << car->id << ", road: "
                         << car->origin << ", @" << car->time << endl;
@@ -155,12 +171,134 @@ int SMTCarManager::getGenCarNumAtTime(double time, double &remain) {
     stageStartTime += genPar.prePeriod;
     // at increase stage
     if (time < stageStartTime + genPar.increasePeriod) {
-        // TODO
-        douNum = genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        double minL = time - stageStartTime;
+        double maxL = genPar.increasePeriod - minL;
+        douNum = (minL * genPar.minGenNumPerHour
+                + maxL * genPar.maxGenNumPerHour) / genPar.increasePeriod / 3600
+                * genPar.generateInterval;
         remain = std::modf(douNum, &result);
         return (int) result;
     }
     stageStartTime += genPar.increasePeriod;
+    // at max stage
+    if (time < stageStartTime + genPar.maxPeriod) {
+        douNum = genPar.maxGenNumPerHour / 3600 * genPar.generateInterval;
+        remain = std::modf(douNum, &result);
+        return (int) result;
+    }
+    // at decrease stage
+    stageStartTime += genPar.maxPeriod;
+    if (time < stageStartTime + genPar.decreasePeriod) {
+        double maxL = time - stageStartTime;
+        double minL = genPar.decreasePeriod - maxL;
+        douNum = (minL * genPar.minGenNumPerHour
+                + maxL * genPar.maxGenNumPerHour) / genPar.decreasePeriod / 3600
+                * genPar.generateInterval;
+        remain = std::modf(douNum, &result);
+        return (int) result;
+    }
+    stageStartTime += genPar.decreasePeriod;
+    // at later min stage
+    if (time < stageStartTime + genPar.sufPeriod) {
+        douNum = genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        remain = std::modf(douNum, &result);
+        return (int) result;
+    }
+    stageStartTime += genPar.sufPeriod;
+    // return -1 if the time is out of range
+    return -1;
+}
+
+void SMTCarManager::addRandomInnerVehicleIntoXML(double departTime,
+        unsigned int num) {
+    for (unsigned int i = 0; i < num; ++i) {
+        carFlowHelper.addODCar(
+                carPrefix + itoa(genPar.lastVechileIndex++, 0, 0),
+                getRandomNotOutEdge()->id, getRandomNotEnterEdge()->id,
+                departTime, getRandomCarType()->vtype);
+    }
+}
+
+void SMTCarManager::addRandomThroughVehicleIntoXML(double departTime,
+        unsigned int num) {
+    for (unsigned int i = 0; i < num; ++i) {
+        carFlowHelper.addODCar(
+                carPrefix + itoa(genPar.lastVechileIndex++, 0, 0),
+                getRandomEnterEdge()->id, getRandomOutEdge()->id, departTime,
+                getRandomCarType()->vtype);
+    }
+}
+
+SMTCarInfo* SMTCarManager::getRandomCarType() {
+    if (carInfoVec.size() > 0) {
+        return carInfoVec[intrand(carInfoVec.size())];
+    } else {
+        return NULL;
+    }
+}
+
+SMTEdge* SMTCarManager::getRandomNotOutEdge() {
+    int r = intrand(mapPar.maxInnerIndex + mapPar.maxEnterIndex);
+    if (r < mapPar.maxInnerIndex) {
+        return getMap()->innerPrimaryEdges[r];
+    }
+    r -= mapPar.maxInnerIndex;
+    if (r < mapPar.maxEnterIndex) {
+        return getMap()->enterPrimaryEdges[r];
+    }
+    return NULL;
+}
+
+SMTEdge* SMTCarManager::getRandomNotEnterEdge() {
+    int r = intrand(mapPar.maxInnerIndex + mapPar.maxOutIndex);
+    if (r < mapPar.maxInnerIndex) {
+        return getMap()->innerPrimaryEdges[r];
+    }
+    r -= mapPar.maxInnerIndex;
+    if (r < mapPar.maxOutIndex) {
+        return getMap()->outPrimaryEdges[r];
+    }
+    return NULL;
+}
+
+SMTEdge* SMTCarManager::getRandomEnterEdge() {
+    int r = intrand(mapPar.maxEnterIndex);
+    if (r < mapPar.maxEnterIndex) {
+        return getMap()->enterPrimaryEdges[r];
+    }
+    return NULL;
+}
+
+SMTEdge* SMTCarManager::getRandomOutEdge() {
+    int r = intrand(mapPar.maxOutIndex);
+    if (r < mapPar.maxOutIndex) {
+        return getMap()->outPrimaryEdges[r];
+    }
+    return NULL;
+}
+
+SMTEdge* SMTCarManager::getRandomInnerEdge() {
+    int r = intrand(mapPar.maxInnerIndex);
+    if (r < mapPar.maxInnerIndex) {
+        return getMap()->innerPrimaryEdges[r];
+    }
+    return NULL;
+}
+
+void SMTCarManager::handleGenMessage(cMessage* msg) {
+    multimap<double, SMTCarInfo*>::iterator it = carMapByTime.begin();
+    if (getMap()->getLaunchd()->isConnected()) {
+        for (; it != carMapByTime.end() && it->first <= simTime().dbl(); ++it) {
+            addOneVehicle(it->second);
+            carMapByTime.erase(it);
+            it = carMapByTime.begin();
+        }
+    }
+    if (it != carMapByTime.end()) {
+        scheduleAt(it->first, msg);
+    } else {
+        cancelAndDelete(msg);
+    }
 }
 
 void SMTCarManager::releaseCarMap() {

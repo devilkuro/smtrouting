@@ -18,6 +18,8 @@
 
 #include "TraCIMobility.h"
 #include "SMTMap.h"
+#include "SMTCarManager.h"
+#include "SMTBaseRouting.h"
 
 class SMTMobility: public Veins::TraCIMobility {
 public:
@@ -39,9 +41,12 @@ public:
         double enterNextEdgeTime; // 进入下一条edge时间
     };
     SMTMobility() :
-            smtMap(0), hasRouted(false), hasInitialized(false), lastEdge(0), curPrimaryEdge(
-                    0), lastPrimaryEdge(0), lastPos(-1), laneChangeMsg(0), laneChangeDuration(
-                    5), preferredLaneIndex(0), isChangeAndHold(false) {
+            carInfo(NULL), origin(NULL), destination(
+            NULL), hasRouted(false), hasInitialized(false), lastEdge(0), curPrimaryEdge(
+                    0), lastPrimaryEdge(0), laneChangeMsg(0), laneChangeDuration(
+                    5), preferredLaneIndex(0), isChangeAndHold(false), smtMap(
+                    0), _pCarManager(
+            NULL), _pRouting(NULL) {
     }
     virtual ~SMTMobility();
 
@@ -60,17 +65,32 @@ public:
     void changeToPreferredLane(int laneIndex = -1);
 protected:
     // 接口成员
-    SMTMap* smtMap;
     SMTStat smtStat;
+    SMTCarInfo* carInfo;
+    SMTBaseRouting* getRouting() {
+        if (_pRouting == NULL) {
+            _pRouting = SMTRoutingAccess().get();
+        }
+        return _pRouting;
+    }
     SMTMap* getMap() {
         if (smtMap == NULL) {
             smtMap = SMTMapAccess().get();
         }
         return smtMap;
     }
+    SMTCarManager* getCarManager() {
+        if (_pCarManager == NULL) {
+            _pCarManager = SMTCarManagerAccess().get();
+        }
+        return _pCarManager;
+    }
     inline SMTComInterface* getComIf() {
         return getMap()->getLaunchd()->getSMTComInterface();
     }
+    // 车辆相关信息
+    SMTEdge* origin;
+    SMTEdge* destination;
     // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
@@ -80,8 +100,6 @@ protected:
     SMTEdge* curPrimaryEdge;
     string lastPrimaryRoadId;    // 记录上一条主要道路id
     SMTEdge* lastPrimaryEdge;
-    double lastPos; // 用于判定是否需要进行记录
-    string title;   // 记录生成记录的标题列
     cMessage* laneChangeMsg;  // 用于保持车道的消息
     double laneChangeDuration;
     uint8_t preferredLaneIndex;
@@ -95,7 +113,7 @@ protected:
     // statisticAtFinish
     virtual void statisticAtFinish();
     // initialize the route in routing process
-    virtual void processAtRouting();
+    virtual bool processAtRouting();
     // when road changed from one road to another, not the first time appearing on the map.
     virtual void processWhenChangeRoad();
     // when the car first appear on the map.
@@ -109,6 +127,10 @@ protected:
 
     void startChangeLane(uint8_t laneIndex, double delay = 0);
 private:
+    SMTMap* smtMap;
+    SMTCarManager* _pCarManager;
+    SMTBaseRouting* _pRouting;
+
     void cmdSetNoOvertake();
     void cmdChangeLane(uint8_t laneIndex, uint32_t duration = 0);
     double cmdGetLanePosition();

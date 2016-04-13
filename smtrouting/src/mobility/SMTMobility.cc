@@ -25,11 +25,12 @@ SMTMobility::~SMTMobility() {
 void SMTMobility::initialize(int stage) {
     Veins::TraCIMobility::initialize(stage);
     if (stage == 0) {
-        smtMap = getMap();
-        title = title + "external_id" + "\t" + "time" + "\t" + "road_id" + "\t"
-                + "record_road" + "\t" + "position";
         isChangeAndHold = par("isChangeAndHold");
         laneChangeDuration = par("laneChangeDuration");
+        carInfo = getCarManager()->carMapByID[external_id];
+        ASSERT2(carInfo, "undefined car in car manager.");
+        origin = getMap()->getSMTEdgeById(carInfo->origin);
+        destination = getMap()->getSMTEdgeById(carInfo->destination);
     }
 }
 
@@ -56,8 +57,11 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
         if (getMap()->isReady()) {
             // Map system must be initialized first
             // initialize the route
-            processAtRouting();
-            hasRouted = true;
+            if (!getMap()->getSMTEdgeById(road_id)->isInternal) {
+                if(processAtRouting()){
+                    hasRouted = true;
+                }
+            }
         }
     } else {
         // process after the routing
@@ -112,10 +116,14 @@ void SMTMobility::statisticAtFinish() {
     // 结束时的统计方法
 }
 
-void SMTMobility::processAtRouting() {
+bool SMTMobility::processAtRouting() {
     // 选路阶段
     // 设置车道变换模式
     cmdSetNoOvertake();
+    // 设置路径
+    list<string> route;
+    getRouting()->getShortestRoute(getMap()->getSMTEdgeById(road_id),destination,route);
+    return getComIf()->changeVehicleRoute(external_id,route);
 }
 
 void SMTMobility::processWhenChangeRoad() {
@@ -145,7 +153,7 @@ void SMTMobility::changeToPreferredLane(int laneIndex) {
 
 void SMTMobility::startChangeLane(uint8_t laneIndex, double delay) {
     laneChangeMsg = new cMessage(road_id.c_str(), laneIndex);
-    scheduleAt(simTime() + updateInterval + delay, laneChangeMsg);
+    scheduleAt(simTime() + delay, laneChangeMsg);
 }
 
 void SMTMobility::cmdSetNoOvertake() {
@@ -184,7 +192,8 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
             laneChangeMsg = NULL;
         }
     } else {
-        std::cout<<"handleLaneChangeMsg can only handle laneChangeMsg."<<std::endl;
+        std::cout << "handleLaneChangeMsg can only handle laneChangeMsg."
+                << std::endl;
         cancelAndDelete(msg);
     }
 }

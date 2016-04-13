@@ -21,6 +21,8 @@ import org.car2x.veins.modules.world.annotations.AnnotationManager;
 import smt.map.SMTMap;
 import smt.overrideVeins.SMTLaunchd;
 import smt.overrideVeins.SMTConManager;
+import smt.manager.SMTCarManager;
+import smt.routing.SMTBaseRouting;
 
 network SMTRoutingScenario
 {
@@ -28,32 +30,37 @@ network SMTRoutingScenario
         double playgroundSizeX @unit(m); // x size of the area the nodes are in (in meters)
         double playgroundSizeY @unit(m); // y size of the area the nodes are in (in meters)
         double playgroundSizeZ @unit(m); // z size of the area the nodes are in (in meters)
-        @display("bgb=$playgroundSizeX,$playgroundSizeY");
+        @display("bgb=500,500");
     submodules:
         obstacles: ObstacleControl {
-            @display("p=240,50");
+            @display("p=172,24");
         }
         annotations: AnnotationManager {
-            @display("p=260,50");
+            @display("p=223,24");
         }
         connectionManager: SMTConManager {
             parameters:
-                @display("p=150,0;i=abstract/multicast");
+                @display("p=103,24;i=abstract/multicast");
         }
         world: BaseWorldUtility {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;
                 playgroundSizeZ = playgroundSizeZ;
-                @display("p=30,0;i=misc/globe");
+                @display("p=45,24;i=misc/globe");
         }
         manager: SMTLaunchd {
             parameters:
-                @display("p=512,128");
+                @display("p=281,24");
         }
         map: SMTMap {
-            @display("p=200,50");
+            @display("p=45,83");
         }
-        
+        carmanager: SMTCarManager {
+            @display("p=45,136");
+        }
+        routingMethod: SMTBaseRouting {
+            @display("p=45,194");
+        }
     connections allowunconnected:
 }

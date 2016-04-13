@@ -34,7 +34,6 @@ public:
         Route() :
                 cost(0) {
         }
-
         double cost;
         list<SMTEdge*> edges;
     };
@@ -93,6 +92,13 @@ private:
     SMTEdge* processDijkstralNode(SMTEdge* destination);
     virtual void processDijkstralNeighbors(WeightEdge* wEdge);
     void getDijkstralResult(SMTEdge* destination, list<string> &route);
+};
+
+class SMTRoutingAccess{
+public:
+    SMTBaseRouting* get(){
+        return FindModule<SMTBaseRouting*>::findGlobalModule();
+    }
 };
 
 #endif /* __SMTBASEROUTING_H_ */

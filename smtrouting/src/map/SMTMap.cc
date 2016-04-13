@@ -668,8 +668,9 @@ void SMTMap::addBaseRoutes() {
     for (map<string, SMTEdge*>::iterator it = edgeMap.begin();
             it != edgeMap.end(); ++it) {
         if (!it->second->isInternal) {
-            getLaunchd()->getSMTComInterface()->addRoute(it->first,
-                    list<string>().push_back(it->first));
+            list<string> route;
+            route.push_back(it->first);
+            getLaunchd()->getSMTComInterface()->addRoute(it->first, route);
         }
     }
 }

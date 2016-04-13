@@ -43,7 +43,7 @@ public:
         GeneratorParameter() :
                 minGenNumPerHour(0), maxGenNumPerHour(0), startTime(0), prePeriod(
                         0), increasePeriod(0), maxPeriod(0), decreasePeriod(0), sufPeriod(
-                        0), generateInterval(0) {
+                        0), generateInterval(0), lastVechileIndex(0) {
         }
         // _-/'''\-_
         // min-increasePeriod->increase->max-maxPeriod->decrease-decreasePeriod->min
@@ -56,10 +56,12 @@ public:
         double decreasePeriod;
         double sufPeriod;
         double generateInterval;
+        unsigned int lastVechileIndex;
     };
 public:
     SMTCarManager() :
-            debug(false), endAfterGenerateCarFlowFile(false), _pMap(NULL), _pComIf(
+            debug(false), endAfterGenerateCarFlowFile(false), genSetpMsg(NULL), _pMap(
+                    NULL), _pComIf(
             NULL) {
     }
     virtual ~SMTCarManager();
@@ -84,6 +86,7 @@ protected:
     CarFlowXMLHelper carFlowHelper;
     vector<SMTCarInfo*> carInfoVec;
     GeneratorParameter genPar;
+    cMessage* genSetpMsg;
 
     // use for get random edge
     MapParameter mapPar;
@@ -92,6 +95,7 @@ protected:
     virtual int numInitStages() const;
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
+    virtual void handleGenMessage(cMessage* msg);
     virtual void finish();
 
     SMTMap* getMap();
@@ -102,6 +106,14 @@ protected:
     // get the car number at certain time
     // the fractional part is returned by remain
     int getGenCarNumAtTime(double time, double &remain);
+    void addRandomInnerVehicleIntoXML(double departTime, unsigned int num);
+    void addRandomThroughVehicleIntoXML(double departTime, unsigned int num);
+    SMTCarInfo* getRandomCarType();
+    SMTEdge* getRandomNotOutEdge();
+    SMTEdge* getRandomNotEnterEdge();
+    SMTEdge* getRandomEnterEdge();
+    SMTEdge* getRandomOutEdge();
+    SMTEdge* getRandomInnerEdge();
 
 private:
     SMTMap* _pMap;

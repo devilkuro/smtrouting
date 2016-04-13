@@ -20,4 +20,8 @@ package smt.routing;
 //
 simple SMTBaseRouting
 {
+    parameters:
+	    @class(SMTBaseRouting);
+        @display("i=block/network2");
+        @labels("SMTBaseRouting");
 }
