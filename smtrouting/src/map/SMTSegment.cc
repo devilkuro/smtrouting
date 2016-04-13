@@ -19,8 +19,8 @@ SMTSegment::~SMTSegment() {
     // TODO Auto-generated destructor stub
 }
 
-bool SMTSegment::setSegment(const list<double>& durList,
-        const list<string>& states, double offset) {
+bool SMTSegment::setSegment(list<double>& durList,
+        list<string>& states, double offset) {
     // FIXME 需要验证offset的用法
     content.resetState(durList, states, offset);
     return updateTimeInfo();

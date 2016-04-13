@@ -34,7 +34,7 @@ public:
     double ty; // the duration of yellow light
     double tr; // the duration of red light
 
-    bool setSegment(const list<double> &durList, const list<string> &states,
+    bool setSegment(list<double> &durList, list<string> &states,
             double offset);
     bool updateTimeInfo();
 };

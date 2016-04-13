@@ -99,7 +99,7 @@ void SMTPhaseSegment::setState(double start, double end, string value) {
     updateHeadTailPeriod();
 }
 
-void SMTPhaseSegment::resetState(list<double> segLens, list<string> values,
+void SMTPhaseSegment::resetState(list<double> &segLens, list<string> &values,
         double start) {
     if (segLens.size() != values.size()) {
         std::cout << "unmatched segLens and values." << std::endl;

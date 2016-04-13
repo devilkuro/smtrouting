@@ -47,7 +47,7 @@ public:
     string preState;
 
     void setState(double start, double end, string value);
-    void resetState(list<double> segLens, list<string> values, double start);
+    void resetState(list<double> &segLens, list<string> &values, double start);
     bool moveCertainStateAHead(string value);
 
 public:

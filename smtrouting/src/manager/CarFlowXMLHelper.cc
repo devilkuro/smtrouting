@@ -58,6 +58,7 @@ int CarFlowXMLHelper::loadXML(const string &path) {
     if (e == XML_ERROR_FILE_NOT_FOUND) {
         initXML();
         result += 2;
+        save(path);
     } else {
         // load root element
         result += setRoot();
@@ -394,5 +395,5 @@ int CarFlowXMLHelper::setRoot() {
         }
         return 0;
     }
-    return -1;
+    return -17;
 }
