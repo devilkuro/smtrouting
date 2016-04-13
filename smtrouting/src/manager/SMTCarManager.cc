@@ -15,6 +15,7 @@
 
 #include "SMTCarManager.h"
 #include <cmath>
+#include "StringHelper.h"
 
 Define_Module(SMTCarManager);
 
@@ -217,7 +218,9 @@ void SMTCarManager::addRandomInnerVehicleIntoXML(double departTime,
         unsigned int num) {
     for (unsigned int i = 0; i < num; ++i) {
         carFlowHelper.addODCar(
-                carPrefix + itoa(genPar.lastVechileIndex++, 0, 0),
+                carPrefix
+                        + Fanjing::StringHelper::int2str(
+                                genPar.lastVechileIndex++),
                 getRandomNotOutEdge()->id, getRandomNotEnterEdge()->id,
                 departTime, getRandomCarType()->vtype);
     }
@@ -227,7 +230,9 @@ void SMTCarManager::addRandomThroughVehicleIntoXML(double departTime,
         unsigned int num) {
     for (unsigned int i = 0; i < num; ++i) {
         carFlowHelper.addODCar(
-                carPrefix + itoa(genPar.lastVechileIndex++, 0, 0),
+                carPrefix
+                        + Fanjing::StringHelper::int2str(
+                                genPar.lastVechileIndex++),
                 getRandomEnterEdge()->id, getRandomOutEdge()->id, departTime,
                 getRandomCarType()->vtype);
     }
