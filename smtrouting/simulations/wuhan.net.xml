@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!-- generated on 04/14/16 18:43:50 by SUMO netconvert Version 0.22.0
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -22,11 +21,8 @@
 
 </configuration>
 -->
-
 <net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
-
     <location netOffset="-465.86,0.00" convBoundary="0.00,0.00,8283.53,7497.40" origBoundary="0.00,0.00,18000.00,14000.00" projParameter="!"/>
-
     <edge id=":10/10_0" function="internal">
         <lane id=":10/10_0_0" index="0" speed="20.00" length="7.40" shape="2967.51,3516.57 2966.74,3515.47 2965.37,3514.79 2963.41,3514.55 2960.86,3514.73"/>
     </edge>
@@ -1254,7 +1250,6 @@
     <edge id=":8/30_0" function="internal">
         <lane id=":8/30_0_0" index="0" speed="20.00" length="4.82" shape="4558.02,7481.89 4558.06,7483.37 4557.63,7484.19 4556.71,7484.33 4555.32,7483.79"/>
     </edge>
-
     <edge id="10/10to10/12" from="10/10" to="10/12" priority="-1">
         <lane id="10/10to10/12_0" index="0" speed="20.00" length="325.86" shape="2976.82,3513.18 3088.18,3819.43"/>
         <lane id="10/10to10/12_1" index="1" speed="20.00" length="325.86" shape="2973.71,3514.31 3085.08,3820.55"/>
@@ -1867,7 +1862,6 @@
         <lane id="8/30to8/28_1" index="1" speed="20.00" length="970.59" shape="4552.63,7485.70 3991.22,6693.96"/>
         <lane id="8/30to8/28_2" index="2" speed="20.00" length="970.59" shape="4555.32,7483.79 3993.91,6692.05"/>
     </edge>
-
     <tlLogic id="10/10" type="static" programID="0" offset="0">
         <phase duration="27" state="GGrGrG"/>
         <phase duration="3" state="yGrGrG"/>
@@ -2242,7 +2236,6 @@
         <phase duration="31" state="G"/>
         <phase duration="6" state="y"/>
     </tlLogic>
-
     <junction id="10/10" type="traffic_light" x="2969.84" y="3508.49" incLanes="10/12to10/10_0 10/12to10/10_1 10/8to10/10_0 10/8to10/10_1 8/10to10/10_0 8/10to10/10_1" intLanes=":10/10_0_0 :10/10_1_0 :10/10_2_0 :10/10_6_0 :10/10_4_0 :10/10_7_0" shape="2966.01,3517.11 2978.32,3512.64 2972.47,3497.04 2960.24,3501.73 2959.29,3503.33 2961.08,3516.31">
         <request index="0" response="000000" foes="000000" cont="0"/>
         <request index="1" response="000000" foes="101000" cont="0"/>
@@ -2349,31 +2342,31 @@
     </junction>
     <junction id="18/12" type="traffic_light" x="5022.53" y="3231.89" incLanes="18/14to18/12_0 18/14to18/12_1 18/14to18/12_2 20/12to18/12_0 20/12to18/12_1 20/12to18/12_2 18/8to18/12_0 18/8to18/12_1 18/8to18/12_2 14/12to18/12_0 14/12to18/12_1 14/12to18/12_2" intLanes=":18/12_0_0 :18/12_1_0 :18/12_12_0 :18/12_3_0 :18/12_4_0 :18/12_13_0 :18/12_6_0 :18/12_7_0 :18/12_14_0 :18/12_9_0 :18/12_10_0 :18/12_15_0" shape="5016.20,3244.60 5034.99,3238.68 5039.15,3235.15 5030.98,3217.23 5029.30,3216.38 5010.03,3220.48 5009.47,3225.04 5013.50,3240.93">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="18/14" type="traffic_light" x="5270.02" y="4018.02" incLanes="20/14to18/14_0 20/14to18/14_1 20/14to18/14_2 18/12to18/14_0 18/12to18/14_1 18/12to18/14_2 10/14to18/14_0 10/14to18/14_1 10/14to18/14_2 18/16to18/14_0 18/16to18/14_1 18/16to18/14_2" intLanes=":18/14_0_0 :18/14_1_0 :18/14_12_0 :18/14_3_0 :18/14_4_0 :18/14_13_0 :18/14_6_0 :18/14_7_0 :18/14_14_0 :18/14_9_0 :18/14_10_0 :18/14_15_0" shape="5283.92,4023.88 5277.86,4005.14 5275.98,4004.17 5257.19,4010.08 5248.78,4014.36 5253.70,4030.01 5254.60,4030.97 5269.94,4036.76">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="18/16" type="traffic_light" x="5022.53" y="4673.14" incLanes="18/18to18/16_0 18/18to18/16_1 18/14to18/16_0 18/14to18/16_1 12/16to18/16_0 12/16to18/16_1" intLanes=":18/16_0_0 :18/16_1_0 :18/16_2_0 :18/16_6_0 :18/16_4_0 :18/16_7_0" shape="5016.58,4683.37 5032.95,4682.39 5032.53,4665.19 5017.19,4659.39 5011.17,4669.81 5015.06,4682.32">
         <request index="0" response="000000" foes="000000" cont="0"/>
@@ -2385,17 +2378,17 @@
     </junction>
     <junction id="18/18" type="traffic_light" x="5066.20" y="5401.04" incLanes="18/28to18/18_0 18/28to18/18_1 18/28to18/18_2 20/18to18/18_0 20/18to18/18_1 20/18to18/18_2 18/16to18/18_0 18/16to18/18_1 18/16to18/18_2 14/18to18/18_0 14/18to18/18_1 14/18to18/18_2" intLanes=":18/18_0_0 :18/18_1_0 :18/18_12_0 :18/18_3_0 :18/18_4_0 :18/18_13_0 :18/18_6_0 :18/18_7_0 :18/18_14_0 :18/18_9_0 :18/18_10_0 :18/18_15_0" shape="5065.79,5420.26 5080.05,5412.15 5080.81,5410.85 5080.81,5394.45 5075.33,5388.71 5058.96,5389.69 5057.10,5391.19 5057.10,5407.59">
         <request index="0" response="000000010000" foes="000100010000" cont="0"/>
-        <request index="1" response="111000110000" foes="111100110000" cont="0"/>
-        <request index="2" response="110011110000" foes="110011110000" cont="1"/>
+        <request index="1" response="110000110000" foes="110100110000" cont="0"/>
+        <request index="2" response="110010110000" foes="110010110000" cont="1"/>
         <request index="3" response="000000000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000000000000" foes="100110000111" cont="0"/>
-        <request index="5" response="011000000000" foes="011110000110" cont="1"/>
+        <request index="4" response="000000000000" foes="100110000110" cont="0"/>
+        <request index="5" response="010000000000" foes="010110000110" cont="1"/>
         <request index="6" response="010000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="110000111000" foes="110000111100" cont="0"/>
-        <request index="8" response="110000110011" foes="110000110011" cont="1"/>
+        <request index="7" response="110000110000" foes="110000110100" cont="0"/>
+        <request index="8" response="110000110010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000000" foes="000000100010" cont="0"/>
-        <request index="10" response="000000000000" foes="000111100110" cont="0"/>
-        <request index="11" response="000000011000" foes="000110011110" cont="1"/>
+        <request index="10" response="000000000000" foes="000110100110" cont="0"/>
+        <request index="11" response="000000010000" foes="000110010110" cont="1"/>
     </junction>
     <junction id="18/28" type="traffic_light" x="5430.15" y="6041.59" incLanes="18/30to18/28_0 18/30to18/28_1 18/18to18/28_0 18/18to18/28_1 16/28to18/28_0 16/28to18/28_1" intLanes=":18/28_0_0 :18/28_1_0 :18/28_2_0 :18/28_6_0 :18/28_4_0 :18/28_7_0" shape="5426.06,6050.56 5438.58,6046.71 5430.03,6028.12 5415.77,6036.22 5415.04,6037.80 5417.49,6050.67">
         <request index="0" response="000000" foes="000000" cont="0"/>
@@ -2413,45 +2406,45 @@
     </junction>
     <junction id="18/8" type="traffic_light" x="4585.79" y="1179.20" incLanes="18/12to18/8_0 18/12to18/8_1 18/12to18/8_2 20/8to18/8_0 20/8to18/8_1 20/8to18/8_2 18/6to18/8_0 18/6to18/8_1 18/6to18/8_2 14/8to18/8_0 14/8to18/8_1 14/8to18/8_2" intLanes=":18/8_0_0 :18/8_1_0 :18/8_12_0 :18/8_3_0 :18/8_4_0 :18/8_13_0 :18/8_6_0 :18/8_7_0 :18/8_14_0 :18/8_9_0 :18/8_10_0 :18/8_15_0" shape="4578.66,1193.04 4597.93,1188.94 4599.10,1187.26 4596.80,1171.03 4588.58,1162.90 4573.94,1170.31 4572.42,1172.15 4576.08,1188.14">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="20/12" type="traffic_light" x="6682.15" y="2241.94" incLanes="20/14to20/12_0 20/14to20/12_1 20/14to20/12_2 22/12to20/12_0 22/12to20/12_1 22/12to20/12_2 20/8to20/12_0 20/8to20/12_1 20/8to20/12_2 18/12to20/12_0 18/12to20/12_1 18/12to20/12_2" intLanes=":20/12_0_0 :20/12_1_0 :20/12_12_0 :20/12_3_0 :20/12_4_0 :20/12_13_0 :20/12_6_0 :20/12_7_0 :20/12_14_0 :20/12_9_0 :20/12_10_0 :20/12_15_0" shape="6678.82,2258.40 6696.75,2250.23 6697.45,2248.21 6693.40,2232.32 6689.20,2230.18 6673.36,2234.40 6665.31,2242.07 6677.00,2257.93">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="20/14" type="traffic_light" x="7206.24" y="3392.03" incLanes="22/14to20/14_0 22/14to20/14_1 22/14to20/14_2 20/12to20/14_0 20/12to20/14_1 20/12to20/14_2 18/14to20/14_0 18/14to20/14_1 18/14to20/14_2 20/18to20/14_0 20/18to20/14_1 20/18to20/14_2" intLanes=":20/14_0_0 :20/14_1_0 :20/14_12_0 :20/14_3_0 :20/14_4_0 :20/14_13_0 :20/14_6_0 :20/14_7_0 :20/14_14_0 :20/14_9_0 :20/14_10_0 :20/14_15_0" shape="7216.30,3401.32 7215.37,3384.95 7209.99,3376.52 7192.07,3384.69 7186.89,3387.93 7192.95,3406.67 7194.18,3407.70 7210.43,3409.89">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="20/18" type="traffic_light" x="6987.87" y="5007.97" incLanes="20/14to20/18_0 20/14to20/18_1 18/18to20/18_0 18/18to20/18_1" intLanes=":20/18_0_0 :20/18_1_0" shape="6994.72,5006.17 6978.47,5003.98 6976.92,5006.14 6984.26,5020.80">
         <request index="0" response="00" foes="00" cont="0"/>
@@ -2545,17 +2538,17 @@
     </junction>
     <junction id="6/24" type="traffic_light" x="3275.56" y="6536.57" incLanes="6/28to6/24_0 6/28to6/24_1 6/28to6/24_2 8/24to6/24_0 8/24to6/24_1 8/24to6/24_2 6/22to6/24_0 6/22to6/24_1 6/22to6/24_2 4/24to6/24_0 4/24to6/24_1 4/24to6/24_2" intLanes=":6/24_0_0 :6/24_1_0 :6/24_12_0 :6/24_3_0 :6/24_4_0 :6/24_13_0 :6/24_6_0 :6/24_7_0 :6/24_14_0 :6/24_9_0 :6/24_10_0 :6/24_15_0" shape="3273.08,6551.98 3287.29,6543.79 3291.41,6540.34 3283.46,6522.32 3281.12,6519.31 3265.28,6523.57 3264.19,6524.78 3261.61,6540.98">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="6/28" type="traffic_light" x="3493.93" y="6915.08" incLanes="8/28to6/28_0 8/28to6/28_1 6/24to6/28_0 6/24to6/28_1 4/28to6/28_0 4/28to6/28_1" intLanes=":6/28_0_0 :6/28_6_0 :6/28_2_0 :6/28_7_0 :6/28_4_0 :6/28_5_0" shape="3503.28,6917.92 3496.30,6903.08 3494.19,6902.42 3479.99,6910.61 3481.47,6916.16 3489.26,6926.69">
         <request index="0" response="000000" foes="000000" cont="0"/>
@@ -2583,31 +2576,31 @@
     </junction>
     <junction id="8/12" type="traffic_light" x="2736.91" y="4003.46" incLanes="8/18to8/12_0 8/18to8/12_1 8/18to8/12_2 10/12to8/12_0 10/12to8/12_1 10/12to8/12_2 8/10to8/12_0 8/10to8/12_1 8/10to8/12_2 4/12to8/12_0 4/12to8/12_1 4/12to8/12_2" intLanes=":8/12_0_0 :8/12_1_0 :8/12_12_0 :8/12_3_0 :8/12_4_0 :8/12_13_0 :8/12_6_0 :8/12_7_0 :8/12_14_0 :8/12_9_0 :8/12_10_0 :8/12_15_0" shape="2731.45,4016.73 2749.84,4009.68 2751.81,4007.03 2744.47,3992.36 2741.70,3989.73 2726.65,3996.25 2721.22,4001.06 2729.32,4015.31">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="8/18" type="traffic_light" x="3261.00" y="5371.92" incLanes="8/20to8/18_0 8/20to8/18_1 8/20to8/18_2 10/18to8/18_0 10/18to8/18_1 10/18to8/18_2 8/12to8/18_0 8/12to8/18_1 8/12to8/18_2 4/18to8/18_0 4/18to8/18_1 4/18to8/18_2" intLanes=":8/18_0_0 :8/18_1_0 :8/18_12_0 :8/18_3_0 :8/18_4_0 :8/18_13_0 :8/18_6_0 :8/18_7_0 :8/18_14_0 :8/18_9_0 :8/18_10_0 :8/18_15_0" shape="3259.12,5389.69 3273.68,5382.14 3274.48,5380.68 3273.12,5364.34 3263.38,5350.60 3244.99,5357.64 3244.05,5358.77 3241.07,5374.90">
         <request index="0" response="000000000000" foes="000100010000" cont="0"/>
-        <request index="1" response="000000000000" foes="111100110000" cont="0"/>
-        <request index="2" response="000011000000" foes="110011110000" cont="1"/>
+        <request index="1" response="000000000000" foes="110100110000" cont="0"/>
+        <request index="2" response="000010000000" foes="110010110000" cont="1"/>
         <request index="3" response="000010000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000110000111" foes="100110000111" cont="0"/>
-        <request index="5" response="011110000110" foes="011110000110" cont="1"/>
+        <request index="4" response="000110000110" foes="100110000110" cont="0"/>
+        <request index="5" response="010110000110" foes="010110000110" cont="1"/>
         <request index="6" response="000000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="000000000000" foes="110000111100" cont="0"/>
-        <request index="8" response="000000000011" foes="110000110011" cont="1"/>
+        <request index="7" response="000000000000" foes="110000110100" cont="0"/>
+        <request index="8" response="000000000010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000010" foes="000000100010" cont="0"/>
-        <request index="10" response="000111000110" foes="000111100110" cont="0"/>
-        <request index="11" response="000110011110" foes="000110011110" cont="1"/>
+        <request index="10" response="000110000110" foes="000110100110" cont="0"/>
+        <request index="11" response="000110010110" foes="000110010110" cont="1"/>
     </junction>
     <junction id="8/20" type="traffic_light" x="3464.82" y="5764.99" incLanes="8/22to8/20_0 8/22to8/20_1 8/18to8/20_0 8/18to8/20_1 6/20to8/20_0 6/20to8/20_1" intLanes=":8/20_0_0 :8/20_1_0 :8/20_2_0 :8/20_6_0 :8/20_4_0 :8/20_7_0" shape="3462.99,5774.43 3474.10,5767.49 3466.52,5754.05 3451.96,5761.60 3451.27,5763.51 3456.28,5775.61">
         <request index="0" response="000000" foes="000000" cont="0"/>
@@ -2627,135 +2620,133 @@
     </junction>
     <junction id="8/24" type="traffic_light" x="3770.54" y="6318.20" incLanes="8/28to8/24_0 8/28to8/24_1 8/28to8/24_2 14/24to8/24_0 14/24to8/24_1 14/24to8/24_2 8/22to8/24_0 8/22to8/24_1 8/22to8/24_2 6/24to8/24_0 6/24to8/24_1 6/24to8/24_2" intLanes=":8/24_0_0 :8/24_1_0 :8/24_12_0 :8/24_3_0 :8/24_4_0 :8/24_13_0 :8/24_6_0 :8/24_7_0 :8/24_14_0 :8/24_9_0 :8/24_10_0 :8/24_15_0" shape="3768.48,6333.92 3785.38,6323.79 3785.96,6321.87 3779.03,6307.00 3774.12,6303.35 3759.46,6310.68 3757.24,6313.30 3765.19,6331.32">
         <request index="0" response="000000010000" foes="000100010000" cont="0"/>
-        <request index="1" response="111000110000" foes="111100110000" cont="0"/>
-        <request index="2" response="110011110000" foes="110011110000" cont="1"/>
+        <request index="1" response="110000110000" foes="110100110000" cont="0"/>
+        <request index="2" response="110010110000" foes="110010110000" cont="1"/>
         <request index="3" response="000000000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000000000000" foes="100110000111" cont="0"/>
-        <request index="5" response="011000000000" foes="011110000110" cont="1"/>
+        <request index="4" response="000000000000" foes="100110000110" cont="0"/>
+        <request index="5" response="010000000000" foes="010110000110" cont="1"/>
         <request index="6" response="010000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="110000111000" foes="110000111100" cont="0"/>
-        <request index="8" response="110000110011" foes="110000110011" cont="1"/>
+        <request index="7" response="110000110000" foes="110000110100" cont="0"/>
+        <request index="8" response="110000110010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000000" foes="000000100010" cont="0"/>
-        <request index="10" response="000000000000" foes="000111100110" cont="0"/>
-        <request index="11" response="000000011000" foes="000110011110" cont="1"/>
+        <request index="10" response="000000000000" foes="000110100110" cont="0"/>
+        <request index="11" response="000000010000" foes="000110010110" cont="1"/>
     </junction>
     <junction id="8/28" type="traffic_light" x="3988.91" y="6682.15" incLanes="8/30to8/28_0 8/30to8/28_1 8/30to8/28_2 16/28to8/28_0 16/28to8/28_1 16/28to8/28_2 8/24to8/28_0 8/24to8/28_1 8/24to8/28_2 6/28to8/28_0 6/28to8/28_1 6/28to8/28_2" intLanes=":8/28_0_0 :8/28_1_0 :8/28_12_0 :8/28_3_0 :8/28_4_0 :8/28_13_0 :8/28_6_0 :8/28_7_0 :8/28_14_0 :8/28_9_0 :8/28_10_0 :8/28_15_0" shape="3987.22,6696.79 4000.60,6687.31 4004.68,6682.13 3994.43,6669.32 3990.98,6666.45 3974.08,6676.59 3973.50,6678.51 3980.48,6693.35">
         <request index="0" response="000000010000" foes="000100010000" cont="0"/>
-        <request index="1" response="111000110000" foes="111100110000" cont="0"/>
-        <request index="2" response="110011110000" foes="110011110000" cont="1"/>
+        <request index="1" response="110000110000" foes="110100110000" cont="0"/>
+        <request index="2" response="110010110000" foes="110010110000" cont="1"/>
         <request index="3" response="000000000000" foes="100010000000" cont="0"/>
-        <request index="4" response="000000000000" foes="100110000111" cont="0"/>
-        <request index="5" response="011000000000" foes="011110000110" cont="1"/>
+        <request index="4" response="000000000000" foes="100110000110" cont="0"/>
+        <request index="5" response="010000000000" foes="010110000110" cont="1"/>
         <request index="6" response="010000000000" foes="010000000100" cont="0"/>
-        <request index="7" response="110000111000" foes="110000111100" cont="0"/>
-        <request index="8" response="110000110011" foes="110000110011" cont="1"/>
+        <request index="7" response="110000110000" foes="110000110100" cont="0"/>
+        <request index="8" response="110000110010" foes="110000110010" cont="1"/>
         <request index="9" response="000000000000" foes="000000100010" cont="0"/>
-        <request index="10" response="000000000000" foes="000111100110" cont="0"/>
-        <request index="11" response="000000011000" foes="000110011110" cont="1"/>
+        <request index="10" response="000000000000" foes="000110100110" cont="0"/>
+        <request index="11" response="000000010000" foes="000110010110" cont="1"/>
     </junction>
     <junction id="8/30" type="traffic_light" x="4556.67" y="7482.84" incLanes="8/28to8/30_0 8/28to8/30_1" intLanes=":8/30_0_0" shape="4556.63,7482.87 4548.64,7488.54 4562.01,7479.05 4556.71,7482.81">
         <request index="0" response="0" foes="0" cont="0"/>
     </junction>
-
-    <junction id=":10/10_6_0" type="internal" x="2967.80" y="3507.79" incLanes=":10/10_3_0 10/12to10/10_1" intLanes=":10/10_1_0 :10/10_5_0"/>
-    <junction id=":10/10_7_0" type="internal" x="2968.17" y="3508.79" incLanes=":10/10_5_0 10/12to10/10_1" intLanes=":10/10_1_0 :10/10_3_0"/>
-    <junction id=":10/12_6_0" type="internal" x="3086.09" y="3827.17" incLanes=":10/12_1_0 8/12to10/12_1" intLanes=":10/12_3_0 :10/12_5_0"/>
-    <junction id=":10/12_7_0" type="internal" x="3086.53" y="3826.99" incLanes=":10/12_3_0 8/12to10/12_1" intLanes=":10/12_1_0 :10/12_5_0"/>
-    <junction id=":10/16_6_0" type="internal" x="3756.97" y="4790.81" incLanes=":10/16_1_0 10/14to10/16_1" intLanes=":10/16_3_0 :10/16_5_0"/>
-    <junction id=":10/16_7_0" type="internal" x="3756.54" y="4791.39" incLanes=":10/16_5_0 10/14to10/16_1" intLanes=":10/16_1_0 :10/16_3_0"/>
-    <junction id=":10/18_6_0" type="internal" x="3609.27" y="5341.31" incLanes=":10/18_1_0 8/18to10/18_1" intLanes=":10/18_3_0 :10/18_5_0"/>
-    <junction id=":10/18_7_0" type="internal" x="3609.29" y="5341.31" incLanes=":10/18_3_0 8/18to10/18_1" intLanes=":10/18_1_0 :10/18_5_0"/>
-    <junction id=":10/8_6_0" type="internal" x="2446.75" y="2141.40" incLanes=":10/8_1_0 14/8to10/8_1" intLanes=":10/8_3_0 :10/8_5_0"/>
-    <junction id=":10/8_7_0" type="internal" x="2446.20" y="2141.56" incLanes=":10/8_5_0 14/8to10/8_1" intLanes=":10/8_1_0 :10/8_3_0"/>
-    <junction id=":12/16_6_0" type="internal" x="3946.45" y="5007.76" incLanes=":12/16_1_0 10/16to12/16_1" intLanes=":12/16_3_0 :12/16_5_0"/>
-    <junction id=":12/16_7_0" type="internal" x="3946.58" y="5008.00" incLanes=":12/16_3_0 10/16to12/16_1" intLanes=":12/16_1_0 :12/16_5_0"/>
-    <junction id=":12/18_6_0" type="internal" x="4017.67" y="5370.24" incLanes=":12/18_1_0 10/18to12/18_1" intLanes=":12/18_3_0 :12/18_5_0"/>
-    <junction id=":12/18_7_0" type="internal" x="4016.55" y="5370.16" incLanes=":12/18_3_0 10/18to12/18_1" intLanes=":12/18_1_0 :12/18_5_0"/>
-    <junction id=":14/12_6_0" type="internal" x="3929.78" y="3505.48" incLanes=":14/12_1_0 10/12to14/12_1" intLanes=":14/12_3_0 :14/12_5_0"/>
-    <junction id=":14/12_7_0" type="internal" x="3929.88" y="3505.39" incLanes=":14/12_3_0 10/12to14/12_1" intLanes=":14/12_1_0 :14/12_5_0"/>
-    <junction id=":14/18_6_0" type="internal" x="4424.97" y="5402.58" incLanes=":14/18_1_0 18/18to14/18_1" intLanes=":14/18_3_0 :14/18_5_0"/>
-    <junction id=":14/18_7_0" type="internal" x="4425.50" y="5402.61" incLanes=":14/18_5_0 18/18to14/18_1" intLanes=":14/18_1_0 :14/18_3_0"/>
-    <junction id=":14/24_6_0" type="internal" x="4427.02" y="6010.18" incLanes=":14/24_1_0 8/24to14/24_1" intLanes=":14/24_3_0 :14/24_5_0"/>
-    <junction id=":14/24_7_0" type="internal" x="4426.70" y="6010.32" incLanes=":14/24_3_0 8/24to14/24_1" intLanes=":14/24_1_0 :14/24_5_0"/>
-    <junction id=":14/8_6_0" type="internal" x="3203.29" y="1893.37" incLanes=":14/8_1_0 18/8to14/8_1" intLanes=":14/8_3_0 :14/8_5_0"/>
-    <junction id=":14/8_7_0" type="internal" x="3203.25" y="1893.40" incLanes=":14/8_5_0 18/8to14/8_1" intLanes=":14/8_1_0 :14/8_3_0"/>
-    <junction id=":16/28_6_0" type="internal" x="5124.18" y="6098.20" incLanes=":16/28_1_0 8/28to16/28_1" intLanes=":16/28_3_0 :16/28_5_0"/>
-    <junction id=":16/28_7_0" type="internal" x="5124.52" y="6098.14" incLanes=":16/28_3_0 8/28to16/28_1" intLanes=":16/28_1_0 :16/28_5_0"/>
-    <junction id=":18/12_12_0" type="internal" x="5023.08" y="3234.59" incLanes=":18/12_2_0 18/8to18/12_0 18/8to18/12_1" intLanes=":18/12_4_0 :18/12_5_0 :18/12_6_0 :18/12_7_0 :18/12_10_0 :18/12_11_0"/>
-    <junction id=":18/12_13_0" type="internal" x="5027.35" y="3230.12" incLanes=":18/12_5_0 14/12to18/12_0 14/12to18/12_1 18/14to18/12_1 18/8to18/12_1" intLanes=":18/12_1_0 :18/12_2_0 :18/12_7_0 :18/12_8_0 :18/12_9_0 :18/12_10_0"/>
-    <junction id=":18/12_14_0" type="internal" x="5021.46" y="3226.70" incLanes=":18/12_8_0 18/14to18/12_0 18/14to18/12_1" intLanes=":18/12_0_0 :18/12_1_0 :18/12_4_0 :18/12_5_0 :18/12_10_0 :18/12_11_0"/>
-    <junction id=":18/12_15_0" type="internal" x="5017.62" y="3232.09" incLanes=":18/12_11_0 18/14to18/12_1 18/8to18/12_1 20/12to18/12_0 20/12to18/12_1" intLanes=":18/12_1_0 :18/12_2_0 :18/12_3_0 :18/12_4_0 :18/12_7_0 :18/12_8_0"/>
-    <junction id=":18/14_12_0" type="internal" x="5272.32" y="4017.23" incLanes=":18/14_2_0 10/14to18/14_0 10/14to18/14_1" intLanes=":18/14_4_0 :18/14_5_0 :18/14_6_0 :18/14_7_0 :18/14_10_0 :18/14_11_0"/>
-    <junction id=":18/14_13_0" type="internal" x="5268.18" y="4013.39" incLanes=":18/14_5_0 10/14to18/14_1 18/16to18/14_0 18/16to18/14_1 20/14to18/14_1" intLanes=":18/14_1_0 :18/14_2_0 :18/14_7_0 :18/14_8_0 :18/14_9_0 :18/14_10_0"/>
-    <junction id=":18/14_14_0" type="internal" x="5263.30" y="4021.37" incLanes=":18/14_8_0 20/14to18/14_0 20/14to18/14_1" intLanes=":18/14_0_0 :18/14_1_0 :18/14_4_0 :18/14_5_0 :18/14_10_0 :18/14_11_0"/>
-    <junction id=":18/14_15_0" type="internal" x="5267.42" y="4022.59" incLanes=":18/14_11_0 10/14to18/14_1 18/12to18/14_0 18/12to18/14_1 20/14to18/14_1" intLanes=":18/14_1_0 :18/14_2_0 :18/14_3_0 :18/14_4_0 :18/14_7_0 :18/14_8_0"/>
-    <junction id=":18/16_6_0" type="internal" x="5020.25" y="4674.07" incLanes=":18/16_3_0 18/18to18/16_1" intLanes=":18/16_1_0 :18/16_5_0"/>
-    <junction id=":18/16_7_0" type="internal" x="5020.16" y="4673.51" incLanes=":18/16_5_0 18/18to18/16_1" intLanes=":18/16_1_0 :18/16_3_0"/>
-    <junction id=":18/18_12_0" type="internal" x="5070.05" y="5404.71" incLanes=":18/18_2_0 14/18to18/18_1 18/16to18/18_0 18/16to18/18_1 20/18to18/18_1" intLanes=":18/18_4_0 :18/18_5_0 :18/18_6_0 :18/18_7_0 :18/18_10_0 :18/18_11_0"/>
-    <junction id=":18/18_13_0" type="internal" x="5071.27" y="5400.66" incLanes=":18/18_5_0 14/18to18/18_0 14/18to18/18_1" intLanes=":18/18_1_0 :18/18_2_0 :18/18_7_0 :18/18_8_0 :18/18_9_0 :18/18_10_0"/>
-    <junction id=":18/18_14_0" type="internal" x="5066.04" y="5396.94" incLanes=":18/18_8_0 14/18to18/18_1 18/28to18/18_0 18/28to18/18_1 20/18to18/18_1" intLanes=":18/18_0_0 :18/18_1_0 :18/18_4_0 :18/18_5_0 :18/18_10_0 :18/18_11_0"/>
-    <junction id=":18/18_15_0" type="internal" x="5064.42" y="5401.76" incLanes=":18/18_11_0 20/18to18/18_0 20/18to18/18_1" intLanes=":18/18_1_0 :18/18_2_0 :18/18_3_0 :18/18_4_0 :18/18_7_0 :18/18_8_0"/>
-    <junction id=":18/28_6_0" type="internal" x="5426.13" y="6041.20" incLanes=":18/28_3_0 18/30to18/28_1" intLanes=":18/28_1_0 :18/28_5_0"/>
-    <junction id=":18/28_7_0" type="internal" x="5427.15" y="6042.42" incLanes=":18/28_5_0 18/30to18/28_1" intLanes=":18/28_1_0 :18/28_3_0"/>
-    <junction id=":18/8_12_0" type="internal" x="4587.21" y="1182.73" incLanes=":18/8_2_0 18/6to18/8_0 18/6to18/8_1" intLanes=":18/8_4_0 :18/8_5_0 :18/8_6_0 :18/8_7_0 :18/8_10_0 :18/8_11_0"/>
-    <junction id=":18/8_13_0" type="internal" x="4590.33" y="1178.64" incLanes=":18/8_5_0 14/8to18/8_0 14/8to18/8_1 18/12to18/8_1 18/6to18/8_1" intLanes=":18/8_1_0 :18/8_2_0 :18/8_7_0 :18/8_8_0 :18/8_9_0 :18/8_10_0"/>
-    <junction id=":18/8_14_0" type="internal" x="4583.28" y="1175.87" incLanes=":18/8_8_0 18/12to18/8_0 18/12to18/8_1" intLanes=":18/8_0_0 :18/8_1_0 :18/8_4_0 :18/8_5_0 :18/8_10_0 :18/8_11_0"/>
-    <junction id=":18/8_15_0" type="internal" x="4581.68" y="1179.44" incLanes=":18/8_11_0 18/12to18/8_1 18/6to18/8_1 20/8to18/8_0 20/8to18/8_1" intLanes=":18/8_1_0 :18/8_2_0 :18/8_3_0 :18/8_4_0 :18/8_7_0 :18/8_8_0"/>
-    <junction id=":20/12_12_0" type="internal" x="6684.61" y="2247.06" incLanes=":20/12_2_0 20/8to20/12_0 20/8to20/12_1" intLanes=":20/12_4_0 :20/12_5_0 :20/12_6_0 :20/12_7_0 :20/12_10_0 :20/12_11_0"/>
-    <junction id=":20/12_13_0" type="internal" x="6687.32" y="2240.92" incLanes=":20/12_5_0 18/12to20/12_0 18/12to20/12_1 20/14to20/12_1 20/8to20/12_1" intLanes=":20/12_1_0 :20/12_2_0 :20/12_7_0 :20/12_8_0 :20/12_9_0 :20/12_10_0"/>
-    <junction id=":20/12_14_0" type="internal" x="6682.12" y="2239.34" incLanes=":20/12_8_0 20/14to20/12_0 20/14to20/12_1" intLanes=":20/12_0_0 :20/12_1_0 :20/12_4_0 :20/12_5_0 :20/12_10_0 :20/12_11_0"/>
-    <junction id=":20/12_15_0" type="internal" x="6679.81" y="2244.35" incLanes=":20/12_11_0 20/14to20/12_1 20/8to20/12_1 22/12to20/12_0 22/12to20/12_1" intLanes=":20/12_1_0 :20/12_2_0 :20/12_3_0 :20/12_4_0 :20/12_7_0 :20/12_8_0"/>
-    <junction id=":20/14_12_0" type="internal" x="7208.38" y="3392.46" incLanes=":20/14_2_0 18/14to20/14_0 18/14to20/14_1" intLanes=":20/14_4_0 :20/14_5_0 :20/14_6_0 :20/14_7_0 :20/14_10_0 :20/14_11_0"/>
-    <junction id=":20/14_13_0" type="internal" x="7204.12" y="3389.86" incLanes=":20/14_5_0 18/14to20/14_1 20/18to20/14_0 20/18to20/14_1 22/14to20/14_1" intLanes=":20/14_1_0 :20/14_2_0 :20/14_7_0 :20/14_8_0 :20/14_9_0 :20/14_10_0"/>
-    <junction id=":20/14_14_0" type="internal" x="7200.43" y="3395.27" incLanes=":20/14_8_0 22/14to20/14_0 22/14to20/14_1" intLanes=":20/14_0_0 :20/14_1_0 :20/14_4_0 :20/14_5_0 :20/14_10_0 :20/14_11_0"/>
-    <junction id=":20/14_15_0" type="internal" x="7205.56" y="3397.64" incLanes=":20/14_11_0 18/14to20/14_1 20/12to20/14_0 20/12to20/14_1 22/14to20/14_1" intLanes=":20/14_1_0 :20/14_2_0 :20/14_3_0 :20/14_4_0 :20/14_7_0 :20/14_8_0"/>
-    <junction id=":20/8_6_0" type="internal" x="6333.71" y="935.10" incLanes=":20/8_1_0 22/8to20/8_1" intLanes=":20/8_3_0 :20/8_5_0"/>
-    <junction id=":20/8_7_0" type="internal" x="6336.00" y="933.56" incLanes=":20/8_5_0 22/8to20/8_1" intLanes=":20/8_1_0 :20/8_3_0"/>
-    <junction id=":4/10_6_0" type="internal" x="1239.09" y="3799.46" incLanes=":4/10_1_0 4/8to4/10_1" intLanes=":4/10_3_0 :4/10_5_0"/>
-    <junction id=":4/10_7_0" type="internal" x="1238.96" y="3798.88" incLanes=":4/10_3_0 4/8to4/10_1" intLanes=":4/10_1_0 :4/10_5_0"/>
-    <junction id=":4/12_6_0" type="internal" x="1456.68" y="4727.86" incLanes=":4/12_1_0 4/10to4/12_1" intLanes=":4/12_3_0 :4/12_5_0"/>
-    <junction id=":4/12_7_0" type="internal" x="1456.72" y="4728.36" incLanes=":4/12_3_0 4/10to4/12_1" intLanes=":4/12_1_0 :4/12_5_0"/>
-    <junction id=":4/18_6_0" type="internal" x="1529.80" y="5051.56" incLanes=":4/18_1_0 4/12to4/18_1" intLanes=":4/18_3_0 :4/18_5_0"/>
-    <junction id=":4/18_7_0" type="internal" x="1529.70" y="5050.19" incLanes=":4/18_5_0 4/12to4/18_1" intLanes=":4/18_1_0 :4/18_3_0"/>
-    <junction id=":4/24_6_0" type="internal" x="1355.75" y="6230.14" incLanes=":4/24_1_0 4/18to4/24_1" intLanes=":4/24_3_0 :4/24_5_0"/>
-    <junction id=":4/24_7_0" type="internal" x="1355.88" y="6229.01" incLanes=":4/24_5_0 4/18to4/24_1" intLanes=":4/24_1_0 :4/24_3_0"/>
-    <junction id=":4/8_6_0" type="internal" x="990.62" y="2722.66" incLanes=":4/8_3_0" intLanes=":4/8_1_0 :4/8_5_0"/>
-    <junction id=":4/8_7_0" type="internal" x="990.62" y="2722.66" incLanes=":4/8_5_0 6/8to4/8_1" intLanes=":4/8_1_0 :4/8_3_0"/>
-    <junction id=":6/10_6_0" type="internal" x="2008.38" y="3594.48" incLanes=":6/10_1_0 4/10to6/10_1" intLanes=":6/10_3_0 :6/10_5_0"/>
-    <junction id=":6/10_7_0" type="internal" x="2007.92" y="3594.54" incLanes=":6/10_3_0 4/10to6/10_1" intLanes=":6/10_1_0 :6/10_5_0"/>
-    <junction id=":6/22_6_0" type="internal" x="3176.37" y="6156.94" incLanes=":6/22_1_0 6/20to6/22_1" intLanes=":6/22_3_0 :6/22_5_0"/>
-    <junction id=":6/22_7_0" type="internal" x="3176.70" y="6157.26" incLanes=":6/22_3_0 6/20to6/22_1" intLanes=":6/22_1_0 :6/22_5_0"/>
-    <junction id=":6/24_12_0" type="internal" x="3277.24" y="6538.56" incLanes=":6/24_2_0 6/22to6/24_0 6/22to6/24_1" intLanes=":6/24_4_0 :6/24_5_0 :6/24_6_0 :6/24_7_0 :6/24_10_0 :6/24_11_0"/>
-    <junction id=":6/24_13_0" type="internal" x="3278.94" y="6533.73" incLanes=":6/24_5_0 4/24to6/24_0 4/24to6/24_1 6/22to6/24_1 6/28to6/24_1" intLanes=":6/24_1_0 :6/24_2_0 :6/24_7_0 :6/24_8_0 :6/24_9_0 :6/24_10_0"/>
-    <junction id=":6/24_14_0" type="internal" x="3273.74" y="6530.54" incLanes=":6/24_8_0 6/28to6/24_0 6/28to6/24_1" intLanes=":6/24_0_0 :6/24_1_0 :6/24_4_0 :6/24_5_0 :6/24_10_0 :6/24_11_0"/>
-    <junction id=":6/24_15_0" type="internal" x="3272.26" y="6536.03" incLanes=":6/24_11_0 6/22to6/24_1 6/28to6/24_1 8/24to6/24_0 8/24to6/24_1" intLanes=":6/24_1_0 :6/24_2_0 :6/24_3_0 :6/24_4_0 :6/24_7_0 :6/24_8_0"/>
-    <junction id=":6/28_6_0" type="internal" x="3490.35" y="6914.06" incLanes=":6/28_1_0 4/28to6/28_1" intLanes=":6/28_3_0 :6/28_5_0"/>
-    <junction id=":6/28_7_0" type="internal" x="3492.07" y="6912.09" incLanes=":6/28_3_0 4/28to6/28_1" intLanes=":6/28_1_0 :6/28_5_0"/>
-    <junction id=":6/8_6_0" type="internal" x="1573.42" y="2374.68" incLanes=":6/8_1_0 10/8to6/8_1" intLanes=":6/8_3_0 :6/8_5_0"/>
-    <junction id=":6/8_7_0" type="internal" x="1572.26" y="2375.16" incLanes=":6/8_5_0 10/8to6/8_1" intLanes=":6/8_1_0 :6/8_3_0"/>
-    <junction id=":8/10_6_0" type="internal" x="2550.45" y="3568.02" incLanes=":8/10_1_0 10/10to8/10_1" intLanes=":8/10_3_0 :8/10_5_0"/>
-    <junction id=":8/10_7_0" type="internal" x="2551.16" y="3567.95" incLanes=":8/10_5_0 10/10to8/10_1" intLanes=":8/10_1_0 :8/10_3_0"/>
-    <junction id=":8/12_12_0" type="internal" x="2738.32" y="4006.79" incLanes=":8/12_2_0 8/10to8/12_0 8/10to8/12_1" intLanes=":8/12_4_0 :8/12_5_0 :8/12_6_0 :8/12_7_0 :8/12_10_0 :8/12_11_0"/>
-    <junction id=":8/12_13_0" type="internal" x="2741.42" y="4001.56" incLanes=":8/12_5_0 4/12to8/12_0 4/12to8/12_1 8/10to8/12_1 8/18to8/12_1" intLanes=":8/12_1_0 :8/12_2_0 :8/12_7_0 :8/12_8_0 :8/12_9_0 :8/12_10_0"/>
-    <junction id=":8/12_14_0" type="internal" x="2735.17" y="4000.62" incLanes=":8/12_8_0 8/18to8/12_0 8/18to8/12_1" intLanes=":8/12_0_0 :8/12_1_0 :8/12_4_0 :8/12_5_0 :8/12_10_0 :8/12_11_0"/>
-    <junction id=":8/12_15_0" type="internal" x="2733.73" y="4004.98" incLanes=":8/12_11_0 10/12to8/12_0 10/12to8/12_1 8/10to8/12_1 8/18to8/12_1" intLanes=":8/12_1_0 :8/12_2_0 :8/12_3_0 :8/12_4_0 :8/12_7_0 :8/12_8_0"/>
-    <junction id=":8/18_12_0" type="internal" x="3264.07" y="5375.67" incLanes=":8/18_2_0 8/12to8/18_0 8/12to8/18_1" intLanes=":8/18_4_0 :8/18_5_0 :8/18_6_0 :8/18_7_0 :8/18_10_0 :8/18_11_0"/>
-    <junction id=":8/18_13_0" type="internal" x="3264.72" y="5371.54" incLanes=":8/18_5_0 4/18to8/18_0 4/18to8/18_1 8/12to8/18_1 8/20to8/18_1" intLanes=":8/18_1_0 :8/18_2_0 :8/18_7_0 :8/18_8_0 :8/18_9_0 :8/18_10_0"/>
-    <junction id=":8/18_14_0" type="internal" x="3256.55" y="5366.77" incLanes=":8/18_8_0 8/20to8/18_0 8/20to8/18_1" intLanes=":8/18_0_0 :8/18_1_0 :8/18_4_0 :8/18_5_0 :8/18_10_0 :8/18_11_0"/>
-    <junction id=":8/18_15_0" type="internal" x="3255.71" y="5371.37" incLanes=":8/18_11_0 10/18to8/18_0 10/18to8/18_1 8/12to8/18_1 8/20to8/18_1" intLanes=":8/18_1_0 :8/18_2_0 :8/18_3_0 :8/18_4_0 :8/18_7_0 :8/18_8_0"/>
-    <junction id=":8/20_6_0" type="internal" x="3461.71" y="5765.88" incLanes=":8/20_3_0 8/22to8/20_1" intLanes=":8/20_1_0 :8/20_5_0"/>
-    <junction id=":8/20_7_0" type="internal" x="3461.94" y="5766.08" incLanes=":8/20_5_0 8/22to8/20_1" intLanes=":8/20_1_0 :8/20_3_0"/>
-    <junction id=":8/22_6_0" type="internal" x="3608.29" y="5997.75" incLanes=":8/22_3_0 8/24to8/22_1" intLanes=":8/22_1_0 :8/22_5_0"/>
-    <junction id=":8/22_7_0" type="internal" x="3608.40" y="5997.94" incLanes=":8/22_5_0 8/24to8/22_1" intLanes=":8/22_1_0 :8/22_3_0"/>
-    <junction id=":8/24_12_0" type="internal" x="3773.15" y="6322.41" incLanes=":8/24_2_0 14/24to8/24_1 6/24to8/24_1 8/22to8/24_0 8/22to8/24_1" intLanes=":8/24_4_0 :8/24_5_0 :8/24_6_0 :8/24_7_0 :8/24_10_0 :8/24_11_0"/>
-    <junction id=":8/24_13_0" type="internal" x="3775.22" y="6316.19" incLanes=":8/24_5_0 6/24to8/24_0 6/24to8/24_1" intLanes=":8/24_1_0 :8/24_2_0 :8/24_7_0 :8/24_8_0 :8/24_9_0 :8/24_10_0"/>
-    <junction id=":8/24_14_0" type="internal" x="3769.41" y="6314.72" incLanes=":8/24_8_0 14/24to8/24_1 6/24to8/24_1 8/28to8/24_0 8/28to8/24_1" intLanes=":8/24_0_0 :8/24_1_0 :8/24_4_0 :8/24_5_0 :8/24_10_0 :8/24_11_0"/>
-    <junction id=":8/24_15_0" type="internal" x="3767.45" y="6318.90" incLanes=":8/24_11_0 14/24to8/24_0 14/24to8/24_1" intLanes=":8/24_1_0 :8/24_2_0 :8/24_3_0 :8/24_4_0 :8/24_7_0 :8/24_8_0"/>
-    <junction id=":8/28_12_0" type="internal" x="3991.28" y="6684.32" incLanes=":8/28_2_0 16/28to8/28_1 6/28to8/28_1 8/24to8/28_0 8/24to8/28_1" intLanes=":8/28_4_0 :8/28_5_0 :8/28_6_0 :8/28_7_0 :8/28_10_0 :8/28_11_0"/>
-    <junction id=":8/28_13_0" type="internal" x="3991.68" y="6679.99" incLanes=":8/28_5_0 6/28to8/28_0 6/28to8/28_1" intLanes=":8/28_1_0 :8/28_2_0 :8/28_7_0 :8/28_8_0 :8/28_9_0 :8/28_10_0"/>
-    <junction id=":8/28_14_0" type="internal" x="3986.28" y="6678.92" incLanes=":8/28_8_0 16/28to8/28_1 6/28to8/28_1 8/30to8/28_0 8/30to8/28_1" intLanes=":8/28_0_0 :8/28_1_0 :8/28_4_0 :8/28_5_0 :8/28_10_0 :8/28_11_0"/>
-    <junction id=":8/28_15_0" type="internal" x="3984.35" y="6684.01" incLanes=":8/28_11_0 16/28to8/28_0 16/28to8/28_1" intLanes=":8/28_1_0 :8/28_2_0 :8/28_3_0 :8/28_4_0 :8/28_7_0 :8/28_8_0"/>
-
+    <junction id=":10/10_6_0" type="internal" x="2967.80" y="3507.79" incLanes=":10/10_3_0 10/12to10/10_1" intLanes=""/>
+    <junction id=":10/10_7_0" type="internal" x="2968.17" y="3508.79" incLanes=":10/10_5_0 10/12to10/10_1" intLanes=""/>
+    <junction id=":10/12_6_0" type="internal" x="3086.09" y="3827.17" incLanes=":10/12_1_0 8/12to10/12_1" intLanes=""/>
+    <junction id=":10/12_7_0" type="internal" x="3086.53" y="3826.99" incLanes=":10/12_3_0 8/12to10/12_1" intLanes=""/>
+    <junction id=":10/16_6_0" type="internal" x="3756.97" y="4790.81" incLanes=":10/16_1_0 10/14to10/16_1" intLanes=""/>
+    <junction id=":10/16_7_0" type="internal" x="3756.54" y="4791.39" incLanes=":10/16_5_0 10/14to10/16_1" intLanes=""/>
+    <junction id=":10/18_6_0" type="internal" x="3609.27" y="5341.31" incLanes=":10/18_1_0 8/18to10/18_1" intLanes=""/>
+    <junction id=":10/18_7_0" type="internal" x="3609.29" y="5341.31" incLanes=":10/18_3_0 8/18to10/18_1" intLanes=""/>
+    <junction id=":10/8_6_0" type="internal" x="2446.75" y="2141.40" incLanes=":10/8_1_0 14/8to10/8_1" intLanes=""/>
+    <junction id=":10/8_7_0" type="internal" x="2446.20" y="2141.56" incLanes=":10/8_5_0 14/8to10/8_1" intLanes=""/>
+    <junction id=":12/16_6_0" type="internal" x="3946.45" y="5007.76" incLanes=":12/16_1_0 10/16to12/16_1" intLanes=""/>
+    <junction id=":12/16_7_0" type="internal" x="3946.58" y="5008.00" incLanes=":12/16_3_0 10/16to12/16_1" intLanes=""/>
+    <junction id=":12/18_6_0" type="internal" x="4017.67" y="5370.24" incLanes=":12/18_1_0 10/18to12/18_1" intLanes=""/>
+    <junction id=":12/18_7_0" type="internal" x="4016.55" y="5370.16" incLanes=":12/18_3_0 10/18to12/18_1" intLanes=""/>
+    <junction id=":14/12_6_0" type="internal" x="3929.78" y="3505.48" incLanes=":14/12_1_0 10/12to14/12_1" intLanes=""/>
+    <junction id=":14/12_7_0" type="internal" x="3929.88" y="3505.39" incLanes=":14/12_3_0 10/12to14/12_1" intLanes=""/>
+    <junction id=":14/18_6_0" type="internal" x="4424.97" y="5402.58" incLanes=":14/18_1_0 18/18to14/18_1" intLanes=""/>
+    <junction id=":14/18_7_0" type="internal" x="4425.50" y="5402.61" incLanes=":14/18_5_0 18/18to14/18_1" intLanes=""/>
+    <junction id=":14/24_6_0" type="internal" x="4427.02" y="6010.18" incLanes=":14/24_1_0 8/24to14/24_1" intLanes=""/>
+    <junction id=":14/24_7_0" type="internal" x="4426.70" y="6010.32" incLanes=":14/24_3_0 8/24to14/24_1" intLanes=""/>
+    <junction id=":14/8_6_0" type="internal" x="3203.29" y="1893.37" incLanes=":14/8_1_0 18/8to14/8_1" intLanes=""/>
+    <junction id=":14/8_7_0" type="internal" x="3203.25" y="1893.40" incLanes=":14/8_5_0 18/8to14/8_1" intLanes=""/>
+    <junction id=":16/28_6_0" type="internal" x="5124.18" y="6098.20" incLanes=":16/28_1_0 8/28to16/28_1" intLanes=""/>
+    <junction id=":16/28_7_0" type="internal" x="5124.52" y="6098.14" incLanes=":16/28_3_0 8/28to16/28_1" intLanes=""/>
+    <junction id=":18/12_12_0" type="internal" x="5023.08" y="3234.59" incLanes=":18/12_2_0 18/8to18/12_0 18/8to18/12_1" intLanes=""/>
+    <junction id=":18/12_13_0" type="internal" x="5027.35" y="3230.12" incLanes=":18/12_5_0 14/12to18/12_0 14/12to18/12_1 18/14to18/12_1 18/8to18/12_1" intLanes=""/>
+    <junction id=":18/12_14_0" type="internal" x="5021.46" y="3226.70" incLanes=":18/12_8_0 18/14to18/12_0 18/14to18/12_1" intLanes=""/>
+    <junction id=":18/12_15_0" type="internal" x="5017.62" y="3232.09" incLanes=":18/12_11_0 18/14to18/12_1 18/8to18/12_1 20/12to18/12_0 20/12to18/12_1" intLanes=""/>
+    <junction id=":18/14_12_0" type="internal" x="5272.32" y="4017.23" incLanes=":18/14_2_0 10/14to18/14_0 10/14to18/14_1" intLanes=""/>
+    <junction id=":18/14_13_0" type="internal" x="5268.18" y="4013.39" incLanes=":18/14_5_0 10/14to18/14_1 18/16to18/14_0 18/16to18/14_1 20/14to18/14_1" intLanes=""/>
+    <junction id=":18/14_14_0" type="internal" x="5263.30" y="4021.37" incLanes=":18/14_8_0 20/14to18/14_0 20/14to18/14_1" intLanes=""/>
+    <junction id=":18/14_15_0" type="internal" x="5267.42" y="4022.59" incLanes=":18/14_11_0 10/14to18/14_1 18/12to18/14_0 18/12to18/14_1 20/14to18/14_1" intLanes=""/>
+    <junction id=":18/16_6_0" type="internal" x="5020.25" y="4674.07" incLanes=":18/16_3_0 18/18to18/16_1" intLanes=""/>
+    <junction id=":18/16_7_0" type="internal" x="5020.16" y="4673.51" incLanes=":18/16_5_0 18/18to18/16_1" intLanes=""/>
+    <junction id=":18/18_12_0" type="internal" x="5070.05" y="5404.71" incLanes=":18/18_2_0 14/18to18/18_1 18/16to18/18_0 18/16to18/18_1 20/18to18/18_1" intLanes=""/>
+    <junction id=":18/18_13_0" type="internal" x="5071.27" y="5400.66" incLanes=":18/18_5_0 14/18to18/18_0 14/18to18/18_1" intLanes=""/>
+    <junction id=":18/18_14_0" type="internal" x="5066.04" y="5396.94" incLanes=":18/18_8_0 14/18to18/18_1 18/28to18/18_0 18/28to18/18_1 20/18to18/18_1" intLanes=""/>
+    <junction id=":18/18_15_0" type="internal" x="5064.42" y="5401.76" incLanes=":18/18_11_0 20/18to18/18_0 20/18to18/18_1" intLanes=""/>
+    <junction id=":18/28_6_0" type="internal" x="5426.13" y="6041.20" incLanes=":18/28_3_0 18/30to18/28_1" intLanes=""/>
+    <junction id=":18/28_7_0" type="internal" x="5427.15" y="6042.42" incLanes=":18/28_5_0 18/30to18/28_1" intLanes=""/>
+    <junction id=":18/8_12_0" type="internal" x="4587.21" y="1182.73" incLanes=":18/8_2_0 18/6to18/8_0 18/6to18/8_1" intLanes=""/>
+    <junction id=":18/8_13_0" type="internal" x="4590.33" y="1178.64" incLanes=":18/8_5_0 14/8to18/8_0 14/8to18/8_1 18/12to18/8_1 18/6to18/8_1" intLanes=""/>
+    <junction id=":18/8_14_0" type="internal" x="4583.28" y="1175.87" incLanes=":18/8_8_0 18/12to18/8_0 18/12to18/8_1" intLanes=""/>
+    <junction id=":18/8_15_0" type="internal" x="4581.68" y="1179.44" incLanes=":18/8_11_0 18/12to18/8_1 18/6to18/8_1 20/8to18/8_0 20/8to18/8_1" intLanes=""/>
+    <junction id=":20/12_12_0" type="internal" x="6684.61" y="2247.06" incLanes=":20/12_2_0 20/8to20/12_0 20/8to20/12_1" intLanes=""/>
+    <junction id=":20/12_13_0" type="internal" x="6687.32" y="2240.92" incLanes=":20/12_5_0 18/12to20/12_0 18/12to20/12_1 20/14to20/12_1 20/8to20/12_1" intLanes=""/>
+    <junction id=":20/12_14_0" type="internal" x="6682.12" y="2239.34" incLanes=":20/12_8_0 20/14to20/12_0 20/14to20/12_1" intLanes=""/>
+    <junction id=":20/12_15_0" type="internal" x="6679.81" y="2244.35" incLanes=":20/12_11_0 20/14to20/12_1 20/8to20/12_1 22/12to20/12_0 22/12to20/12_1" intLanes=""/>
+    <junction id=":20/14_12_0" type="internal" x="7208.38" y="3392.46" incLanes=":20/14_2_0 18/14to20/14_0 18/14to20/14_1" intLanes=""/>
+    <junction id=":20/14_13_0" type="internal" x="7204.12" y="3389.86" incLanes=":20/14_5_0 18/14to20/14_1 20/18to20/14_0 20/18to20/14_1 22/14to20/14_1" intLanes=""/>
+    <junction id=":20/14_14_0" type="internal" x="7200.43" y="3395.27" incLanes=":20/14_8_0 22/14to20/14_0 22/14to20/14_1" intLanes=""/>
+    <junction id=":20/14_15_0" type="internal" x="7205.56" y="3397.64" incLanes=":20/14_11_0 18/14to20/14_1 20/12to20/14_0 20/12to20/14_1 22/14to20/14_1" intLanes=""/>
+    <junction id=":20/8_6_0" type="internal" x="6333.71" y="935.10" incLanes=":20/8_1_0 22/8to20/8_1" intLanes=""/>
+    <junction id=":20/8_7_0" type="internal" x="6336.00" y="933.56" incLanes=":20/8_5_0 22/8to20/8_1" intLanes=""/>
+    <junction id=":4/10_6_0" type="internal" x="1239.09" y="3799.46" incLanes=":4/10_1_0 4/8to4/10_1" intLanes=""/>
+    <junction id=":4/10_7_0" type="internal" x="1238.96" y="3798.88" incLanes=":4/10_3_0 4/8to4/10_1" intLanes=""/>
+    <junction id=":4/12_6_0" type="internal" x="1456.68" y="4727.86" incLanes=":4/12_1_0 4/10to4/12_1" intLanes=""/>
+    <junction id=":4/12_7_0" type="internal" x="1456.72" y="4728.36" incLanes=":4/12_3_0 4/10to4/12_1" intLanes=""/>
+    <junction id=":4/18_6_0" type="internal" x="1529.80" y="5051.56" incLanes=":4/18_1_0 4/12to4/18_1" intLanes=""/>
+    <junction id=":4/18_7_0" type="internal" x="1529.70" y="5050.19" incLanes=":4/18_5_0 4/12to4/18_1" intLanes=""/>
+    <junction id=":4/24_6_0" type="internal" x="1355.75" y="6230.14" incLanes=":4/24_1_0 4/18to4/24_1" intLanes=""/>
+    <junction id=":4/24_7_0" type="internal" x="1355.88" y="6229.01" incLanes=":4/24_5_0 4/18to4/24_1" intLanes=""/>
+    <junction id=":4/8_6_0" type="internal" x="990.62" y="2722.66" incLanes=":4/8_3_0" intLanes=""/>
+    <junction id=":4/8_7_0" type="internal" x="990.62" y="2722.66" incLanes=":4/8_5_0 6/8to4/8_1" intLanes=""/>
+    <junction id=":6/10_6_0" type="internal" x="2008.38" y="3594.48" incLanes=":6/10_1_0 4/10to6/10_1" intLanes=""/>
+    <junction id=":6/10_7_0" type="internal" x="2007.92" y="3594.54" incLanes=":6/10_3_0 4/10to6/10_1" intLanes=""/>
+    <junction id=":6/22_6_0" type="internal" x="3176.37" y="6156.94" incLanes=":6/22_1_0 6/20to6/22_1" intLanes=""/>
+    <junction id=":6/22_7_0" type="internal" x="3176.70" y="6157.26" incLanes=":6/22_3_0 6/20to6/22_1" intLanes=""/>
+    <junction id=":6/24_12_0" type="internal" x="3277.24" y="6538.56" incLanes=":6/24_2_0 6/22to6/24_0 6/22to6/24_1" intLanes=""/>
+    <junction id=":6/24_13_0" type="internal" x="3278.94" y="6533.73" incLanes=":6/24_5_0 4/24to6/24_0 4/24to6/24_1 6/22to6/24_1 6/28to6/24_1" intLanes=""/>
+    <junction id=":6/24_14_0" type="internal" x="3273.74" y="6530.54" incLanes=":6/24_8_0 6/28to6/24_0 6/28to6/24_1" intLanes=""/>
+    <junction id=":6/24_15_0" type="internal" x="3272.26" y="6536.03" incLanes=":6/24_11_0 6/22to6/24_1 6/28to6/24_1 8/24to6/24_0 8/24to6/24_1" intLanes=""/>
+    <junction id=":6/28_6_0" type="internal" x="3490.35" y="6914.06" incLanes=":6/28_1_0 4/28to6/28_1" intLanes=""/>
+    <junction id=":6/28_7_0" type="internal" x="3492.07" y="6912.09" incLanes=":6/28_3_0 4/28to6/28_1" intLanes=""/>
+    <junction id=":6/8_6_0" type="internal" x="1573.42" y="2374.68" incLanes=":6/8_1_0 10/8to6/8_1" intLanes=""/>
+    <junction id=":6/8_7_0" type="internal" x="1572.26" y="2375.16" incLanes=":6/8_5_0 10/8to6/8_1" intLanes=""/>
+    <junction id=":8/10_6_0" type="internal" x="2550.45" y="3568.02" incLanes=":8/10_1_0 10/10to8/10_1" intLanes=""/>
+    <junction id=":8/10_7_0" type="internal" x="2551.16" y="3567.95" incLanes=":8/10_5_0 10/10to8/10_1" intLanes=""/>
+    <junction id=":8/12_12_0" type="internal" x="2738.32" y="4006.79" incLanes=":8/12_2_0 8/10to8/12_0 8/10to8/12_1" intLanes=""/>
+    <junction id=":8/12_13_0" type="internal" x="2741.42" y="4001.56" incLanes=":8/12_5_0 4/12to8/12_0 4/12to8/12_1 8/10to8/12_1 8/18to8/12_1" intLanes=""/>
+    <junction id=":8/12_14_0" type="internal" x="2735.17" y="4000.62" incLanes=":8/12_8_0 8/18to8/12_0 8/18to8/12_1" intLanes=""/>
+    <junction id=":8/12_15_0" type="internal" x="2733.73" y="4004.98" incLanes=":8/12_11_0 10/12to8/12_0 10/12to8/12_1 8/10to8/12_1 8/18to8/12_1" intLanes=""/>
+    <junction id=":8/18_12_0" type="internal" x="3264.07" y="5375.67" incLanes=":8/18_2_0 8/12to8/18_0 8/12to8/18_1" intLanes=""/>
+    <junction id=":8/18_13_0" type="internal" x="3264.72" y="5371.54" incLanes=":8/18_5_0 4/18to8/18_0 4/18to8/18_1 8/12to8/18_1 8/20to8/18_1" intLanes=""/>
+    <junction id=":8/18_14_0" type="internal" x="3256.55" y="5366.77" incLanes=":8/18_8_0 8/20to8/18_0 8/20to8/18_1" intLanes=""/>
+    <junction id=":8/18_15_0" type="internal" x="3255.71" y="5371.37" incLanes=":8/18_11_0 10/18to8/18_0 10/18to8/18_1 8/12to8/18_1 8/20to8/18_1" intLanes=""/>
+    <junction id=":8/20_6_0" type="internal" x="3461.71" y="5765.88" incLanes=":8/20_3_0 8/22to8/20_1" intLanes=""/>
+    <junction id=":8/20_7_0" type="internal" x="3461.94" y="5766.08" incLanes=":8/20_5_0 8/22to8/20_1" intLanes=""/>
+    <junction id=":8/22_6_0" type="internal" x="3608.29" y="5997.75" incLanes=":8/22_3_0 8/24to8/22_1" intLanes=""/>
+    <junction id=":8/22_7_0" type="internal" x="3608.40" y="5997.94" incLanes=":8/22_5_0 8/24to8/22_1" intLanes=""/>
+    <junction id=":8/24_12_0" type="internal" x="3773.15" y="6322.41" incLanes=":8/24_2_0 14/24to8/24_1 6/24to8/24_1 8/22to8/24_0 8/22to8/24_1" intLanes=""/>
+    <junction id=":8/24_13_0" type="internal" x="3775.22" y="6316.19" incLanes=":8/24_5_0 6/24to8/24_0 6/24to8/24_1" intLanes=""/>
+    <junction id=":8/24_14_0" type="internal" x="3769.41" y="6314.72" incLanes=":8/24_8_0 14/24to8/24_1 6/24to8/24_1 8/28to8/24_0 8/28to8/24_1" intLanes=""/>
+    <junction id=":8/24_15_0" type="internal" x="3767.45" y="6318.90" incLanes=":8/24_11_0 14/24to8/24_0 14/24to8/24_1" intLanes=""/>
+    <junction id=":8/28_12_0" type="internal" x="3991.28" y="6684.32" incLanes=":8/28_2_0 16/28to8/28_1 6/28to8/28_1 8/24to8/28_0 8/24to8/28_1" intLanes=""/>
+    <junction id=":8/28_13_0" type="internal" x="3991.68" y="6679.99" incLanes=":8/28_5_0 6/28to8/28_0 6/28to8/28_1" intLanes=""/>
+    <junction id=":8/28_14_0" type="internal" x="3986.28" y="6678.92" incLanes=":8/28_8_0 16/28to8/28_1 6/28to8/28_1 8/30to8/28_0 8/30to8/28_1" intLanes=""/>
+    <junction id=":8/28_15_0" type="internal" x="3984.35" y="6684.01" incLanes=":8/28_11_0 16/28to8/28_0 16/28to8/28_1" intLanes=""/>
     <connection from="10/10to10/12" to="10/12to14/12" fromLane="0" toLane="0" via=":10/12_2_0" tl="10/12" linkIndex="5" dir="r" state="o"/>
     <connection from="10/10to10/12" to="10/12to8/12" fromLane="1" toLane="1" via=":10/12_3_0" tl="10/12" linkIndex="4" dir="l" state="o"/>
     <connection from="10/10to10/8" to="10/8to6/8" fromLane="0" toLane="0" via=":10/8_0_0" tl="10/8" linkIndex="3" dir="r" state="o"/>
@@ -3067,7 +3058,6 @@
     <connection from="8/30to8/28" to="8/28to6/28" fromLane="0" toLane="0" via=":8/28_0_0" tl="8/28" linkIndex="5" dir="r" state="o"/>
     <connection from="8/30to8/28" to="8/28to8/24" fromLane="1" toLane="1" via=":8/28_1_0" tl="8/28" linkIndex="4" dir="s" state="o"/>
     <connection from="8/30to8/28" to="8/28to16/28" fromLane="2" toLane="1" via=":8/28_2_0" tl="8/28" linkIndex="3" dir="l" state="o"/>
-
     <connection from=":10/10_0" to="10/10to8/10" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":10/10_1" to="10/10to10/8" fromLane="0" toLane="1" dir="s" state="M"/>
     <connection from=":10/10_2" to="10/10to10/12" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3477,5 +3467,4 @@
     <connection from=":8/28_11" to="8/28to8/30" fromLane="0" toLane="1" via=":8/28_15_0" dir="s" state="m"/>
     <connection from=":8/28_15" to="8/28to8/30" fromLane="0" toLane="1" dir="s" state="M"/>
     <connection from=":8/30_0" to="8/30to8/28" fromLane="0" toLane="2" dir="s" state="M"/>
-
 </net>
