@@ -94,6 +94,7 @@ protected:
     // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
+    // FIXME 一下变量需要确认作用
     string lastRoadId;    // 用于记录上一条道路的id
     SMTEdge* lastEdge;
     string curPrimaryRoadId;    // 记录上一条主要道路id

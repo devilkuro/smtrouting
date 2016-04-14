@@ -132,7 +132,7 @@ void SMTMobility::processWhenChangeRoad() {
     // 当车辆首次进入某条道路时执行
     // TODO 进行Lane控制算法
     // 车辆抵达终点操作
-    if (condition) {
+    if (lastEdge == destination) {
         getComIf()->setVehicleArrived(external_id);
     }
 }
