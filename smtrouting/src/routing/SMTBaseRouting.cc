@@ -55,8 +55,8 @@ SMTMap* SMTBaseRouting::getMap() {
     return _pMap;
 }
 
-void SMTBaseRouting::getShortestRoute(SMTEdge* origin,
-        SMTEdge* destination, list<string> &rou) {
+void SMTBaseRouting::getShortestRoute(SMTEdge* origin, SMTEdge* destination,
+        list<string> &rou) {
     // 最短路径使用迪杰斯特拉算法
     rou.clear();
     runDijkstraAlgorithm(origin, destination, rou);
@@ -80,7 +80,8 @@ void SMTBaseRouting::initDijkstra(SMTEdge* origin) {
     // outSet.clear();
     processMap.clear();
     // insert origin edge into processMap
-    processMap.insert(std::make_pair(origin->length(), ori_it->second));
+    ori_it->second->w = origin->length();
+    processMap.insert(std::make_pair(ori_it->second->w, ori_it->second));
 }
 
 void SMTBaseRouting::changeDijkstraWeight(WeightEdge* from, WeightEdge* to,
@@ -116,6 +117,7 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
         curEdge = processDijkstralNode(destination);
     } while (curEdge != destination && curEdge != NULL);
     if (curEdge == NULL) {
+        std::cout<<"dead end"<<std::endl;
         return -1;
     }
     return 0;
@@ -125,7 +127,7 @@ void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
         list<string> &route) {
     initDijkstra(origin);
     processDijkstraLoop(destination);
-    getDijkstralResult(origin, route);
+    getDijkstralResult(destination, route);
 }
 
 SMTEdge* SMTBaseRouting::processDijkstralNode(SMTEdge* destination) {
@@ -139,12 +141,18 @@ SMTEdge* SMTBaseRouting::processDijkstralNode(SMTEdge* destination) {
     // C->2. if processMap is empty, it is dead end.
     //    3. return NULL
     if (processMap.size() == 0) {
+        std::cout<<"dead end"<<std::endl;
         return NULL;
     }
     WeightEdge* wEdge = processMap.begin()->second;
     if (wEdge->edge == destination) {
         return destination;
     } else {
+        // remove wEdge out of processMap
+        // since it will be out edge after process its neighbors
+        // and it must be moved out of processMap
+        // or it will be an infinite loop.
+        processMap.erase(processMap.begin());
         processDijkstralNeighbors(wEdge);
         return wEdge->edge;
     }
@@ -161,24 +169,9 @@ void SMTBaseRouting::processDijkstralNeighbors(WeightEdge* wEdge) {
             // the next edge is out edge, which means it has been processed already
             continue;
         }
-        // w means the delta weight from wEdge to next
-        double deltaW = -1;
-        if (next == NULL) {
-            std::cout << "processDijkstralNeighbors:" << "No edge "
-                    << next->edge->id << " in weightEdgeMap" << std::endl;
-        }
-        for (unsigned int i = 0; i < it->second.size(); ++i) {
-            double viaLen = it->second[i]->getViaLength();
-            deltaW = getSmallerOne(deltaW, viaLen);
-        }
-        if (deltaW < 0) {
-            std::cout << "processDijkstralNeighbors:"
-                    << "cannot handle negative via cost from" << wEdge->edge->id
-                    << " to " << next->edge->id << std::endl;
-        }
-        deltaW += wEdge->edge->length();
-        changeDijkstraWeight(wEdge, next, deltaW + wEdge->w);
+        changeDijkstraWeight(wEdge, next, getWeightFromEdgeToEdge(wEdge, next));
     }
+
 }
 
 double SMTBaseRouting::getSmallerOne(double a, double b) {
@@ -200,4 +193,25 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         route.push_front(wEdge->edge->id);
         wEdge = wEdge->previous;
     }
+}
+
+double SMTBaseRouting::getWeightFromEdgeToEdge(WeightEdge* from,
+        WeightEdge* to) {
+    // w means the delta weight from wEdge to next
+    double deltaW = -1;
+    if (to == NULL) {
+        std::cout << "processDijkstralNeighbors:" << "No edge " << to->edge->id
+                << " in weightEdgeMap" << std::endl;
+    }
+    for (unsigned int i = 0; i < from->edge->viaVecMap[to->edge].size(); ++i) {
+        double viaLen = from->edge->viaVecMap[to->edge][i]->getViaLength();
+        deltaW = getSmallerOne(deltaW, viaLen);
+    }
+    if (deltaW < 0) {
+        std::cout << "processDijkstralNeighbors:"
+                << "cannot handle negative via cost from" << from->edge->id
+                << " to " << to->edge->id << std::endl;
+    }
+    deltaW += from->edge->length() + from->w;
+    return deltaW;
 }

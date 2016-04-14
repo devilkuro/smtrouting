@@ -328,11 +328,11 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
     cXMLAttributeMap attrMap = xml->getAttributes();
     con->from = attrMap["from"];
     con->to = attrMap["to"];
-    con->fromLane = strtol(attrMap["fromLane"].c_str(), 0, 0);
-    con->toLane = strtol(attrMap["toLane"].c_str(), 0, 0);
+    con->fromLane = Fanjing::StringHelper::str2int(attrMap["fromLane"]);
+    con->toLane = Fanjing::StringHelper::str2int(attrMap["toLane"]);
     con->via = attrMap["via"];
     con->tl = attrMap["tl"];
-    con->linkIndex = strtol(attrMap["linkIndex"].c_str(), 0, 0);
+    con->linkIndex = Fanjing::StringHelper::str2int(attrMap["linkIndex"]);
     con->dir = attrMap["dir"];
     // SMT 属性
     ASSERT2(edgeMap.find(con->from) != edgeMap.end(), "unknown from edge.");

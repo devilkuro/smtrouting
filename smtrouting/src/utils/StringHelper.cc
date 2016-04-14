@@ -13,9 +13,10 @@ stringstream StringHelper::ss;
 
 int StringHelper::str2int(string s) {
     int i;
+    ss.str("");
+    ss.clear();
     ss << s;
     ss >> i;
-    ss.str("");
     return i;
 }
 
@@ -25,9 +26,10 @@ int StringHelper::char2int(char* s) {
 
 double StringHelper::str2dbl(string s) {
     double d;
+    ss.str("");
+    ss.clear();
     ss << s;
     ss >> d;
-    ss.str("");
     return d;
 }
 
@@ -41,19 +43,19 @@ string StringHelper::int2str(int i) {
 
 string StringHelper::dbl2str(double d, int precision) {
     string s;
+    ss.str("");
+    ss.clear();
     if (precision != -1) {
         ss << fixed;
         ss.precision(precision);
         ss << d;
         s = ss.str();
-        ss.str("");
         ss.unsetf(ios_base::floatfield);
         // reset to default precision
         ss.precision(6);
     } else {
         ss << d;
         s = ss.str();
-        ss.str("");
     }
     return s;
 }

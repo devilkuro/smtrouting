@@ -41,10 +41,11 @@ public:
     class WeightEdge {
     public:
         WeightEdge(SMTEdge* e) :
-                w(-1), previous(NULL), edge(e) {
+                w(-1), t(-1), previous(NULL), edge(e) {
         }
 
         double w;
+        double t;
         WeightEdge* previous;
         SMTEdge* edge;
     };
@@ -58,8 +59,8 @@ public:
 
     // routing functions
     // TODO 添加基本的寻路方法
-    virtual void getShortestRoute(SMTEdge* origin,
-            SMTEdge* destination, list<string> &rou);
+    virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
+            list<string> &rou);
 
 protected:
     // members for dijkstra's algorithm
@@ -80,6 +81,7 @@ protected:
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
             list<string> &route);
     // TODO add independent weight modify function
+    virtual double getWeightFromEdgeToEdge(WeightEdge* from,WeightEdge* to);
     double getSmallerOne(double a, double b);
     // protected members
     SMTMap* _pMap;
@@ -94,9 +96,9 @@ private:
     void getDijkstralResult(SMTEdge* destination, list<string> &route);
 };
 
-class SMTRoutingAccess{
+class SMTRoutingAccess {
 public:
-    SMTBaseRouting* get(){
+    SMTBaseRouting* get() {
         return FindModule<SMTBaseRouting*>::findGlobalModule();
     }
 };

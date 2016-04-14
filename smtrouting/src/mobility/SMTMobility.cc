@@ -58,7 +58,7 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
             // Map system must be initialized first
             // initialize the route
             if (!getMap()->getSMTEdgeById(road_id)->isInternal) {
-                if(processAtRouting()){
+                if (processAtRouting()) {
                     hasRouted = true;
                 }
             }
@@ -75,9 +75,6 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
             processWhenInitializingRoad();
             // switch record process trigger
             hasInitialized = true;
-        } else {
-            // when road changed
-            processWhenChangeRoad();
         }
         // in nextPosition the car has been on the road,
         // then update the last_road_id and enterTime
@@ -94,6 +91,9 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
         }
         lastRoadId = road_id;
         lastEdge = edge;
+
+        // when road changed
+        processWhenChangeRoad();
     }
     // normal process
     processWhenNextPosition();
@@ -122,13 +122,19 @@ bool SMTMobility::processAtRouting() {
     cmdSetNoOvertake();
     // 设置路径
     list<string> route;
-    getRouting()->getShortestRoute(getMap()->getSMTEdgeById(road_id),destination,route);
-    return getComIf()->changeVehicleRoute(external_id,route);
+    getRouting()->getShortestRoute(getMap()->getSMTEdgeById(road_id),
+            destination, route);
+    bool r = getComIf()->changeVehicleRoute(external_id, route);
+    return r;
 }
 
 void SMTMobility::processWhenChangeRoad() {
     // 当车辆首次进入某条道路时执行
     // TODO 进行Lane控制算法
+    // 车辆抵达终点操作
+    if (condition) {
+        getComIf()->setVehicleArrived(external_id);
+    }
 }
 
 void SMTMobility::processWhenInitializingRoad() {
