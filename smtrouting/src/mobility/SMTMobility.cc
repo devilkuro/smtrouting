@@ -102,6 +102,11 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
 void SMTMobility::handleSelfMsg(cMessage* msg) {
     if (msg == laneChangeMsg) {
         handleLaneChangeMsg(msg);
+    } else if (msg == arrivedMsg) {
+        //getComIf()->setVehicleArrived(external_id);
+        cancelAndDelete(arrivedMsg);
+        arrivedMsg = NULL;
+        cmdVehicleArrived();
     } else {
         // cancel and delete the unknown message.
         cancelAndDelete(msg);
@@ -133,7 +138,8 @@ void SMTMobility::processWhenChangeRoad() {
     // TODO 进行Lane控制算法
     // 车辆抵达终点操作
     if (lastEdge == destination) {
-        getComIf()->setVehicleArrived(external_id);
+        arrivedMsg = new cMessage("arrived");
+        scheduleAt(simTime() + 0.01, arrivedMsg);
     }
 }
 
@@ -206,4 +212,8 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
 
 double SMTMobility::cmdGetLanePosition() {
     return getComIf()->getLanePosition(external_id);
+}
+
+void SMTMobility::cmdVehicleArrived() {
+    getMap()->getLaunchd()->setVehicleArrived(external_id);
 }

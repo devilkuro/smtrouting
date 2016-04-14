@@ -34,7 +34,7 @@ public:
 
     cXMLElement* getLaunchdConfig();
     SMTComInterface* getSMTComInterface();
-
+    void setVehicleArrived(std::string &nodeId);
 protected:
     SMTComInterface* smtComIfc;
 };

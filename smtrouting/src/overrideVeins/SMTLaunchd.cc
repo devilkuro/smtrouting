@@ -36,3 +36,31 @@ SMTComInterface* SMTLaunchd::getSMTComInterface() {
     }
     return smtComIfc;
 }
+
+void SMTLaunchd::setVehicleArrived(std::string &nodeId) {
+    Enter_Method_Silent
+    ();
+    getSMTComInterface()->setVehicleArrived(nodeId);
+    if (debug) {
+        EV << "SMTLaunchd reports " << nodeId << " arrived." << endl;
+    }
+
+    if (subscribedVehicles.find(nodeId) != subscribedVehicles.end()) {
+        subscribedVehicles.erase(nodeId);
+        unsubscribeFromVehicleVariables(nodeId);
+    }
+
+    // check if this object has been deleted already (e.g. because it was outside the ROI)
+    cModule* mod = getManagedModule(nodeId);
+    if (mod)
+        deleteModule(nodeId);
+
+    if (unEquippedHosts.find(nodeId) != unEquippedHosts.end()) {
+        unEquippedHosts.erase(nodeId);
+    }
+
+    activeVehicleCount--;
+    if ((activeVehicleCount == 0) && autoShutdown)
+        autoShutdownTriggered = true;
+    drivingVehicleCount--;
+}

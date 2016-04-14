@@ -42,8 +42,8 @@ public:
     };
     SMTMobility() :
             carInfo(NULL), origin(NULL), destination(
-            NULL), hasRouted(false), hasInitialized(false), lastEdge(0), curPrimaryEdge(
-                    0), lastPrimaryEdge(0), laneChangeMsg(0), laneChangeDuration(
+            NULL), hasRouted(false), hasInitialized(false), arrivedMsg(NULL), lastEdge(
+                    0), curPrimaryEdge(0), lastPrimaryEdge(0), laneChangeMsg(0), laneChangeDuration(
                     5), preferredLaneIndex(0), isChangeAndHold(false), smtMap(
                     0), _pCarManager(
             NULL), _pRouting(NULL) {
@@ -94,6 +94,7 @@ protected:
     // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
+    cMessage* arrivedMsg;
     // FIXME 一下变量需要确认作用
     string lastRoadId;    // 用于记录上一条道路的id
     SMTEdge* lastEdge;
@@ -135,6 +136,7 @@ private:
     void cmdSetNoOvertake();
     void cmdChangeLane(uint8_t laneIndex, uint32_t duration = 0);
     double cmdGetLanePosition();
+    void cmdVehicleArrived();
 };
 
 #endif /* SMTMOBILITY_H_ */
