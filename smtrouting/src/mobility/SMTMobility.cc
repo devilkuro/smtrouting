@@ -19,7 +19,14 @@
 Define_Module(SMTMobility);
 
 SMTMobility::~SMTMobility() {
-
+    if(laneChangeMsg){
+        cancelAndDelete(laneChangeMsg);
+        laneChangeMsg = NULL;
+    }
+    if(arrivedMsg){
+        cancelAndDelete(arrivedMsg);
+        arrivedMsg = NULL;
+    }
 }
 
 void SMTMobility::initialize(int stage) {
@@ -139,7 +146,7 @@ void SMTMobility::processWhenChangeRoad() {
     // 车辆抵达终点操作
     if (lastEdge == destination) {
         arrivedMsg = new cMessage("arrived");
-        scheduleAt(simTime() + 0.01, arrivedMsg);
+        scheduleAt(simTime() + 1, arrivedMsg);
     }
 }
 

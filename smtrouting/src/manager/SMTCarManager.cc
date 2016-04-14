@@ -146,6 +146,10 @@ void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
                 cout << "add car failed: car id: " << car->id << ", road: "
                         << car->origin << ", @" << car->time << endl;
             }
+        }else{if (debug) {
+            cout << "add car: car id: " << car->id << ", road: "
+                    << car->origin << ", @" << car->time << endl;
+        }
         }
         break;
     case SMTCarInfo::SMTCARINFO_ROUTETYPE_LOOP:
