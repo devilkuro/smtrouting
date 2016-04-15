@@ -56,8 +56,10 @@ SMTMap* SMTBaseRouting::getMap() {
 }
 
 void SMTBaseRouting::getShortestRoute(SMTEdge* origin, SMTEdge* destination,
-        list<string> &rou) {
+        list<SMTEdge*> &rou, double time, SMTCarInfo* car) {
     // 最短路径使用迪杰斯特拉算法
+    startTime = time;
+    carInfo = car;
     rou.clear();
     runDijkstraAlgorithm(origin, destination, rou);
     // TODO needs test
@@ -74,6 +76,7 @@ void SMTBaseRouting::initDijkstra(SMTEdge* origin) {
             it != weightEdgeMap.end(); ++it) {
         it->second->previous = NULL;
         it->second->w = -1;
+        it->second->t = -1;
     }
     // 2. init unSet, outSet, processMap
     // unSet = weightEdgeMap;
@@ -81,6 +84,7 @@ void SMTBaseRouting::initDijkstra(SMTEdge* origin) {
     processMap.clear();
     // insert origin edge into processMap
     ori_it->second->w = origin->length();
+    ori_it->second->t = startTime;
     processMap.insert(std::make_pair(ori_it->second->w, ori_it->second));
 }
 
@@ -117,14 +121,14 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
         curEdge = processDijkstralNode(destination);
     } while (curEdge != destination && curEdge != NULL);
     if (curEdge == NULL) {
-        std::cout<<"dead end"<<std::endl;
+        std::cout << "dead end" << std::endl;
         return -1;
     }
     return 0;
 }
 
 void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
-        list<string> &route) {
+        list<SMTEdge*> &route) {
     initDijkstra(origin);
     processDijkstraLoop(destination);
     getDijkstralResult(destination, route);
@@ -141,7 +145,7 @@ SMTEdge* SMTBaseRouting::processDijkstralNode(SMTEdge* destination) {
     // C->2. if processMap is empty, it is dead end.
     //    3. return NULL
     if (processMap.size() == 0) {
-        std::cout<<"dead end"<<std::endl;
+        std::cout << "dead end" << std::endl;
         return NULL;
     }
     WeightEdge* wEdge = processMap.begin()->second;
@@ -187,10 +191,10 @@ double SMTBaseRouting::getSmallerOne(double a, double b) {
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
-        list<string>& route) {
+        list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
     while (wEdge != NULL) {
-        route.push_front(wEdge->edge->id);
+        route.push_front(wEdge->edge);
         wEdge = wEdge->previous;
     }
 }

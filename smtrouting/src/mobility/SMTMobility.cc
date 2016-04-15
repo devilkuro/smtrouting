@@ -19,11 +19,11 @@
 Define_Module(SMTMobility);
 
 SMTMobility::~SMTMobility() {
-    if(laneChangeMsg){
+    if (laneChangeMsg) {
         cancelAndDelete(laneChangeMsg);
         laneChangeMsg = NULL;
     }
-    if(arrivedMsg){
+    if (arrivedMsg) {
         cancelAndDelete(arrivedMsg);
         arrivedMsg = NULL;
     }
@@ -133,11 +133,9 @@ bool SMTMobility::processAtRouting() {
     // 设置车道变换模式
     cmdSetNoOvertake();
     // 设置路径
-    list<string> route;
     getRouting()->getShortestRoute(getMap()->getSMTEdgeById(road_id),
-            destination, route);
-    bool r = getComIf()->changeVehicleRoute(external_id, route);
-    return r;
+            destination, carRoute);
+    return updateVehicleRoute();
 }
 
 void SMTMobility::processWhenChangeRoad() {
@@ -177,7 +175,7 @@ void SMTMobility::startChangeLane(uint8_t laneIndex, double delay) {
 
 void SMTMobility::cmdSetNoOvertake() {
     getComIf()->setLaneChangeMode(external_id,
-            SMTComInterface::LANEMODE_DISALLOW_OVERTAKE);
+            SMTComInterface::LANEMODE_FORCE_CO_DIS_OT);
     if (debug) {
         std::cout << "car " << external_id << " will not make overtake."
                 << std::endl;
@@ -219,6 +217,21 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
 
 double SMTMobility::cmdGetLanePosition() {
     return getComIf()->getLanePosition(external_id);
+}
+
+bool SMTMobility::updateVehicleRoute() {
+    if (carRoute.empty()) {
+        // change target if no chosen route
+        getComIf()->changeVehicleTarget(getExternalId(), destination->id);
+        return true;
+    } else {
+        list<string> strList;
+        for (list<SMTEdge*>::iterator it = carRoute.begin();
+                it != carRoute.end(); ++it) {
+            strList.push_back((*it)->id);
+        }
+        return getComIf()->changeVehicleRoute(getExternalId(), strList);
+    }
 }
 
 void SMTMobility::cmdVehicleArrived() {

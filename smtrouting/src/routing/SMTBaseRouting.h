@@ -18,6 +18,7 @@
 
 #include <csimplemodule.h>
 #include "SMTMap.h"
+#include "SMTCarInfo.h"
 #include <set>
 
 using std::list;
@@ -51,7 +52,7 @@ public:
     };
 public:
     SMTBaseRouting() :
-            _pMap(NULL) {
+            startTime(-1), carInfo(NULL), _pMap(NULL) {
     }
     virtual ~SMTBaseRouting();
 
@@ -60,7 +61,7 @@ public:
     // routing functions
     // TODO 添加基本的寻路方法
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
-            list<string> &rou);
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
 
 protected:
     // members for dijkstra's algorithm
@@ -72,6 +73,8 @@ protected:
     // the finished edges, maybe useless
     // map<SMTEdge*, WeightEdge*> outSet;
 
+    double startTime;
+    SMTCarInfo* carInfo;
     // functions
     virtual int numInitStages() const;
     virtual void initialize(int stage);
@@ -79,9 +82,9 @@ protected:
     virtual void finish();
 
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
-            list<string> &route);
+            list<SMTEdge*> &route);
     // TODO add independent weight modify function
-    virtual double getWeightFromEdgeToEdge(WeightEdge* from,WeightEdge* to);
+    virtual double getWeightFromEdgeToEdge(WeightEdge* from, WeightEdge* to);
     double getSmallerOne(double a, double b);
     // protected members
     SMTMap* _pMap;
@@ -93,7 +96,7 @@ private:
     int processDijkstraLoop(SMTEdge* destination);
     SMTEdge* processDijkstralNode(SMTEdge* destination);
     virtual void processDijkstralNeighbors(WeightEdge* wEdge);
-    void getDijkstralResult(SMTEdge* destination, list<string> &route);
+    void getDijkstralResult(SMTEdge* destination, list<SMTEdge*> &route);
 };
 
 class SMTRoutingAccess {

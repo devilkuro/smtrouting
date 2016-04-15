@@ -91,6 +91,7 @@ protected:
     // 车辆相关信息
     SMTEdge* origin;
     SMTEdge* destination;
+    list<SMTEdge*> carRoute;
     // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
@@ -132,7 +133,7 @@ private:
     SMTMap* smtMap;
     SMTCarManager* _pCarManager;
     SMTBaseRouting* _pRouting;
-
+    bool updateVehicleRoute();
     void cmdSetNoOvertake();
     void cmdChangeLane(uint8_t laneIndex, uint32_t duration = 0);
     double cmdGetLanePosition();
