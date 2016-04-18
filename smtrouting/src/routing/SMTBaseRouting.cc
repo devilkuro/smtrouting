@@ -223,7 +223,7 @@ double SMTBaseRouting::getWeightFromEdgeToEdge(WeightEdge* from,
     return deltaW;
 }
 
-void SMTBaseRouting::suppressEdge(SMTEdge* edge, double pos) {
+bool SMTBaseRouting::suppressEdge(SMTEdge* edge, double pos) {
     map<SMTEdge*, double>::iterator it = suppressedEdges.find(edge);
     if (it == suppressedEdges.end()) {
         if (pos < 0) {
@@ -231,7 +231,9 @@ void SMTBaseRouting::suppressEdge(SMTEdge* edge, double pos) {
         } else {
             suppressedEdges[edge] = pos;
         }
+        return true;
     }
+    return false;
 }
 
 void SMTBaseRouting::releaseEdge(SMTEdge* edge) {

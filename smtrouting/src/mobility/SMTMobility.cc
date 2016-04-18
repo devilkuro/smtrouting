@@ -223,13 +223,12 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                 // 仅在不在目标车道时进行更改车道的尝试
                 cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
                         laneChangeDuration);
-                if (speed < 0.2) {
+                if (speed < 0.1) {
                     // suppressing curEdge
                     // if have not changed lane successfully near cross
                     double pos = cmdGetLanePosition();
-                    if (pos > curEdge->length() - 10) {
-                        getRouting()->suppressEdge(curEdge);
-                        hasSuppressEdge = true;
+                    if (pos > curEdge->length() - 5) {
+                        hasSuppressEdge = getRouting()->suppressEdge(curEdge);
                     }
                 }
             }

@@ -64,7 +64,7 @@ public:
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
 
     // try to change to corrected lane by suppress cars prevent this car
-    virtual void suppressEdge(SMTEdge* edge, double pos = -1);
+    virtual bool suppressEdge(SMTEdge* edge, double pos = -1);
     virtual void releaseEdge(SMTEdge* edge);
     inline const map<SMTEdge*, double> &getSuppressedEdgeMapRef() {
         return suppressedEdges;
