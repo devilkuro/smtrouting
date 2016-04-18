@@ -43,9 +43,8 @@ public:
     SMTMobility() :
             carInfo(NULL), origin(NULL), destination(
             NULL), hasRouted(false), hasInitialized(false), arrivedMsg(NULL), lastEdge(
-                    0), curPrimaryEdge(0), lastPrimaryEdge(0), laneChangeMsg(0), laneChangeDuration(
-                    5), preferredLaneIndex(0), isChangeAndHold(false), smtMap(
-                    0), _pCarManager(
+                    0), curEdge(NULL), laneChangeMsg(0), laneChangeDuration(5), preferredLaneIndex(
+                    0), isChangeAndHold(false), smtMap(0), _pCarManager(
             NULL), _pRouting(NULL) {
     }
     virtual ~SMTMobility();
@@ -97,12 +96,10 @@ protected:
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
     cMessage* arrivedMsg;
     // FIXME 一下变量需要确认作用
-    string lastRoadId;    // 用于记录上一条道路的id
-    SMTEdge* lastEdge;
-    string curPrimaryRoadId;    // 记录上一条主要道路id
-    SMTEdge* curPrimaryEdge;
-    string lastPrimaryRoadId;    // 记录上一条主要道路id
-    SMTEdge* lastPrimaryEdge;
+    string curRoadId;   // 用于记录当前道路的id,亦用作判定道路改变
+    SMTEdge* lastEdge;  // 记录上一条道路对应Edge
+    SMTEdge* curEdge;   // 记录当前道路对应Edge
+    SMTEdge* nextPrimaryEdge;
     cMessage* laneChangeMsg;  // 用于保持车道的消息
     double laneChangeDuration;
     uint8_t preferredLaneIndex;

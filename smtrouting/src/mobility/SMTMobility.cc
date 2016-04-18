@@ -75,7 +75,7 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
         processAfterRouting();
     }
     // road change
-    if (road_id != lastRoadId) {
+    if (road_id != curRoadId) {
         // statistics process
         if (!hasInitialized) {
             // when the car first appear on the map.
@@ -83,22 +83,10 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
             // switch record process trigger
             hasInitialized = true;
         }
-        // in nextPosition the car has been on the road,
-        // then update the last_road_id and enterTime
-        SMTEdge* edge = getMap()->getSMTEdgeById(road_id);
-        if (edge->isInternal) {
-            if (!lastEdge->isInternal) {
-                lastPrimaryRoadId = lastRoadId;
-                lastPrimaryEdge = lastEdge;
-            }
-        } else {
-            curPrimaryRoadId = road_id;
-            curPrimaryEdge = edge;
-            // recordRoadId = convertStrToRecordId(road_id);
-        }
-        lastRoadId = road_id;
-        lastEdge = edge;
-
+        // in nextPosition the car has been on the road
+        curRoadId = road_id;
+        lastEdge = curEdge;
+        curEdge = getMap()->getSMTEdgeById(road_id);
         // when road changed
         processWhenChangeRoad();
     }
@@ -139,12 +127,36 @@ bool SMTMobility::processAtRouting() {
 }
 
 void SMTMobility::processWhenChangeRoad() {
+    // cancel the old lane change message
+    cancelAndDelete(laneChangeMsg);
+    laneChangeMsg = NULL;
     // 当车辆首次进入某条道路时执行
-    // TODO 进行Lane控制算法
-    // 车辆抵达终点操作
-    if (lastEdge == destination) {
+    if (curEdge == destination) {
+        // 车辆抵达终点操作
         arrivedMsg = new cMessage("arrived");
         scheduleAt(simTime() + 1, arrivedMsg);
+    } else {
+        if (!curEdge->isInternal) {
+            // TODO 进行Lane控制算法
+            while ((*carRoute.begin()) != curEdge) {
+                std::cout << "redundant edges in route : "
+                        << carRoute.front()->id << std::endl;
+                carRoute.pop_front();
+            }
+            carRoute.pop_front();
+            SMTEdge* next = carRoute.front();
+            if (curEdge->viaVecMap.find(next)
+                    != curEdge->viaVecMap.end()) {
+                // FIXME may not always use via 0.
+                preferredLaneIndex =
+                        curEdge->viaVecMap[next][0]->fromLane;
+                startChangeLane(preferredLaneIndex,0.1);
+            } else {
+                std::cout << "next edges " << carRoute.front()->id
+                        << " is unlinked at " << curEdge->id << std::endl;
+                ASSERT2(!debug,"next edge unlinked ");
+            }
+        }
     }
 }
 
@@ -203,7 +215,6 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                     laneChangeMsg);
         } else {
             // 若道路变化,或已成功变道且不需保持车道则不在继续改变车道
-            // FIXME 以下内容需要更改为持续变更车道
             // cancel and delete the message if lane changed successfully.
             cancelAndDelete(laneChangeMsg);
             laneChangeMsg = NULL;
