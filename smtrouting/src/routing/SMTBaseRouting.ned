@@ -24,4 +24,6 @@ simple SMTBaseRouting
 	    @class(SMTBaseRouting);
         @display("i=block/network2");
         @labels("SMTBaseRouting");
+        
+        double suppressLength@unit(m) = default(20m);
 }

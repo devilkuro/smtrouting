@@ -19,21 +19,16 @@
 Define_Module(SMTMobility);
 
 SMTMobility::~SMTMobility() {
-    if (laneChangeMsg) {
-        cancelAndDelete(laneChangeMsg);
-        laneChangeMsg = NULL;
-    }
-    if (arrivedMsg) {
-        cancelAndDelete(arrivedMsg);
-        arrivedMsg = NULL;
-    }
 }
 
 void SMTMobility::initialize(int stage) {
     Veins::TraCIMobility::initialize(stage);
     if (stage == 0) {
-        isChangeAndHold = par("isChangeAndHold");
-        laneChangeDuration = par("laneChangeDuration");
+        beSuppressed = false;
+        hasSuppressEdge = false;
+        checkSuppressInterval = par("checkSuppressInterval").doubleValue();
+        isChangeAndHold = par("isChangeAndHold").boolValue();
+        laneChangeDuration = par("laneChangeDuration").doubleValue();
         carInfo = getCarManager()->carMapByID[external_id];
         ASSERT2(carInfo, "undefined car in car manager.");
         origin = getMap()->getSMTEdgeById(carInfo->origin);
@@ -43,6 +38,18 @@ void SMTMobility::initialize(int stage) {
 
 void SMTMobility::finish() {
     Veins::TraCIMobility::finish();
+    if (laneChangeMsg) {
+        cancelAndDelete(laneChangeMsg);
+        laneChangeMsg = NULL;
+    }
+    if (arrivedMsg) {
+        cancelAndDelete(arrivedMsg);
+        arrivedMsg = NULL;
+    }
+    if (checkSuppressedEdgesMsg) {
+        cancelAndDelete(checkSuppressedEdgesMsg);
+        checkSuppressedEdgesMsg = NULL;
+    }
 }
 
 void SMTMobility::preInitialize(std::string external_id, const Coord& position,
@@ -102,6 +109,8 @@ void SMTMobility::handleSelfMsg(cMessage* msg) {
         cancelAndDelete(arrivedMsg);
         arrivedMsg = NULL;
         cmdVehicleArrived();
+    } else if (msg == checkSuppressedEdgesMsg) {
+        handleSuppressMsg(msg);
     } else {
         // cancel and delete the unknown message.
         cancelAndDelete(msg);
@@ -131,6 +140,10 @@ void SMTMobility::processWhenChangeRoad() {
     cancelAndDelete(laneChangeMsg);
     laneChangeMsg = NULL;
     // 当车辆首次进入某条道路时执行
+    if(hasSuppressEdge){
+        getRouting()->releaseEdge(lastEdge);
+        hasSuppressEdge = false;
+    }
     if (curEdge == destination) {
         // 车辆抵达终点操作
         arrivedMsg = new cMessage("arrived");
@@ -145,16 +158,14 @@ void SMTMobility::processWhenChangeRoad() {
             }
             carRoute.pop_front();
             SMTEdge* next = carRoute.front();
-            if (curEdge->viaVecMap.find(next)
-                    != curEdge->viaVecMap.end()) {
+            if (curEdge->viaVecMap.find(next) != curEdge->viaVecMap.end()) {
                 // FIXME may not always use via 0.
-                preferredLaneIndex =
-                        curEdge->viaVecMap[next][0]->fromLane;
-                startChangeLane(preferredLaneIndex,0.1);
+                preferredLaneIndex = curEdge->viaVecMap[next][0]->fromLane;
+                startChangeLane(preferredLaneIndex, 0.1);
             } else {
                 std::cout << "next edges " << carRoute.front()->id
                         << " is unlinked at " << curEdge->id << std::endl;
-                ASSERT2(!debug,"next edge unlinked ");
+                ASSERT2(!debug, "next edge unlinked ");
             }
         }
     }
@@ -162,6 +173,8 @@ void SMTMobility::processWhenChangeRoad() {
 
 void SMTMobility::processWhenInitializingRoad() {
     // 车辆首次出现在地图上时执行
+    checkSuppressedEdgesMsg = new cMessage();
+    scheduleAt(simTime() + checkSuppressInterval, checkSuppressedEdgesMsg);
 }
 
 void SMTMobility::processWhenNextPosition() {
@@ -199,10 +212,10 @@ void SMTMobility::cmdChangeLane(uint8_t laneIndex, uint32_t duration) {
 }
 
 void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
-    uint8_t curLaneIndex = commandGetLaneIndex();
-    uint8_t targetLaneIndex = laneChangeMsg->getKind();
-    string msgName = laneChangeMsg->getName();
     if (msg == laneChangeMsg) {
+        uint8_t curLaneIndex = commandGetLaneIndex();
+        uint8_t targetLaneIndex = laneChangeMsg->getKind();
+        string msgName = laneChangeMsg->getName();
         if (msgName == road_id
                 && (isChangeAndHold || curLaneIndex != targetLaneIndex)) {
             // 当道路没有改变时,如果需要保持车道或者车道更换为成功则继续尝试
@@ -210,6 +223,15 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                 // 仅在不在目标车道时进行更改车道的尝试
                 cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
                         laneChangeDuration);
+                if (speed < 0.2) {
+                    // suppressing curEdge
+                    // if have not changed lane successfully near cross
+                    double pos = cmdGetLanePosition();
+                    if (pos > curEdge->length() - 10) {
+                        getRouting()->suppressEdge(curEdge);
+                        hasSuppressEdge = true;
+                    }
+                }
             }
             scheduleAt(simTime() + laneChangeDuration + updateInterval,
                     laneChangeMsg);
@@ -247,4 +269,65 @@ bool SMTMobility::updateVehicleRoute() {
 
 void SMTMobility::cmdVehicleArrived() {
     getMap()->getLaunchd()->setVehicleArrived(external_id);
+}
+
+void SMTMobility::cmdBrake() {
+    getComIf()->setSpeed(getExternalId(), 0);
+
+}
+
+void SMTMobility::checkSuppressState() {
+    // 判定退出压制状态
+    if (beSuppressed) {
+        const map<SMTEdge*, double> &suppreseedEdgesRef =
+                (getRouting()->getSuppressedEdgeMapRef());
+        bool speedUpFlag = false;
+        map<SMTEdge*, double>::const_iterator it = suppreseedEdgesRef.find(
+                curEdge);
+        if (it == suppreseedEdgesRef.end()) {
+            // 不再压制道路列表内
+            speedUpFlag = true;
+        } else if (curEdge->isInternal) {
+            // enter an internal edge
+            speedUpFlag = true;
+        } else {
+            double lanePos = cmdGetLanePosition();
+            if (lanePos > curEdge->length() - it->second
+                    || lanePos < curEdge->length() - it->second * 2) {
+                // get out of the suppressed area
+                speedUpFlag = true;
+            }
+        }
+        if (speedUpFlag) {
+            cmdSpeedUp();
+            beSuppressed = false;
+        }
+    } else if (speed < 1.0 && !curEdge->isInternal) {
+        // 仅当车速过低时考虑道路阻塞问题
+        const map<SMTEdge*, double> &suppreseedEdgesRef =
+                (getRouting()->getSuppressedEdgeMapRef());
+        if (!beSuppressed) {
+            if (suppreseedEdgesRef.size() > 0) {
+                map<SMTEdge*, double>::const_iterator it =
+                        suppreseedEdgesRef.find(curEdge);
+                if (it != suppreseedEdgesRef.end()) {
+                    double lanePos = cmdGetLanePosition();
+                    if (lanePos < curEdge->length() - it->second
+                            && lanePos > curEdge->length() - it->second * 2) {
+                        cmdBrake();
+                        beSuppressed = true;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void SMTMobility::handleSuppressMsg(cMessage* msg) {
+    checkSuppressState();
+    scheduleAt(simTime() + checkSuppressInterval, checkSuppressedEdgesMsg);
+}
+
+void SMTMobility::cmdSpeedUp() {
+    getComIf()->setSpeed(getExternalId(), -1);
 }

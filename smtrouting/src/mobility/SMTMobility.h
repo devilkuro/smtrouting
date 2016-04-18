@@ -42,8 +42,10 @@ public:
     };
     SMTMobility() :
             carInfo(NULL), origin(NULL), destination(
-            NULL), hasRouted(false), hasInitialized(false), arrivedMsg(NULL), lastEdge(
-                    0), curEdge(NULL), laneChangeMsg(0), laneChangeDuration(5), preferredLaneIndex(
+            NULL), hasRouted(false), hasInitialized(false), arrivedMsg(
+            NULL), beSuppressed(false), hasSuppressEdge(false), checkSuppressInterval(
+                    10), checkSuppressedEdgesMsg(NULL), lastEdge(0), curEdge(
+                    NULL), laneChangeMsg(0), laneChangeDuration(5), preferredLaneIndex(
                     0), isChangeAndHold(false), smtMap(0), _pCarManager(
             NULL), _pRouting(NULL) {
     }
@@ -95,6 +97,12 @@ protected:
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
     cMessage* arrivedMsg;
+
+    bool beSuppressed;  // 是否被其他车辆压制
+    bool hasSuppressEdge;   // 是否压制其他车辆
+    double checkSuppressInterval;   // 压制状态判定间隔
+    cMessage* checkSuppressedEdgesMsg;
+
     // FIXME 一下变量需要确认作用
     string curRoadId;   // 用于记录当前道路的id,亦用作判定道路改变
     SMTEdge* lastEdge;  // 记录上一条道路对应Edge
@@ -124,17 +132,22 @@ protected:
 
     // 消息处理部分
     virtual void handleLaneChangeMsg(cMessage *msg);
+    virtual void handleSuppressMsg(cMessage *msg);
 
     void startChangeLane(uint8_t laneIndex, double delay = 0);
-private:
-    SMTMap* smtMap;
-    SMTCarManager* _pCarManager;
-    SMTBaseRouting* _pRouting;
+
+    void checkSuppressState();
     bool updateVehicleRoute();
     void cmdSetNoOvertake();
     void cmdChangeLane(uint8_t laneIndex, uint32_t duration = 0);
     double cmdGetLanePosition();
     void cmdVehicleArrived();
+    void cmdBrake();
+    void cmdSpeedUp();
+private:
+    SMTMap* smtMap;
+    SMTCarManager* _pCarManager;
+    SMTBaseRouting* _pRouting;
 };
 
 #endif /* SMTMOBILITY_H_ */

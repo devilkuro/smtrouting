@@ -29,15 +29,6 @@ using std::set;
 class SMTBaseRouting: public cSimpleModule {
 public:
     // 内部class
-    // ROUTE:用于记录选择的路径
-    class Route {
-    public:
-        Route() :
-                cost(0) {
-        }
-        double cost;
-        list<SMTEdge*> edges;
-    };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
     public:
@@ -50,9 +41,18 @@ public:
         WeightEdge* previous;
         SMTEdge* edge;
     };
+    // ROUTE:用于记录选择的路径
+    class Route {
+    public:
+        Route() :
+                cost(0) {
+        }
+        double cost;
+        list<WeightEdge*> edges;
+    };
 public:
     SMTBaseRouting() :
-            startTime(-1), carInfo(NULL), _pMap(NULL) {
+            suppressLength(40), startTime(-1), carInfo(NULL), _pMap(NULL) {
     }
     virtual ~SMTBaseRouting();
 
@@ -63,6 +63,12 @@ public:
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
 
+    // try to change to corrected lane by suppress cars prevent this car
+    virtual void suppressEdge(SMTEdge* edge, double pos = -1);
+    virtual void releaseEdge(SMTEdge* edge);
+    inline const map<SMTEdge*, double> &getSuppressedEdgeMapRef() {
+        return suppressedEdges;
+    }
 protected:
     // members for dijkstra's algorithm
     // weightEdgeMap用于存储所有WeightEdge便于回收内存
@@ -72,6 +78,8 @@ protected:
     // map<SMTEdge*, WeightEdge*> unSet;
     // the finished edges, maybe useless
     // map<SMTEdge*, WeightEdge*> outSet;
+    map<SMTEdge*, double> suppressedEdges;
+    double suppressLength;
 
     double startTime;
     SMTCarInfo* carInfo;
@@ -83,7 +91,7 @@ protected:
 
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &route);
-    // TODO add independent weight modify function
+    // independent weight modify function
     virtual double getWeightFromEdgeToEdge(WeightEdge* from, WeightEdge* to);
     double getSmallerOne(double a, double b);
     // protected members

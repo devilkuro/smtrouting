@@ -30,6 +30,9 @@ int SMTBaseRouting::numInitStages() const {
 }
 
 void SMTBaseRouting::initialize(int stage) {
+    if (stage == 0) {
+        suppressLength = par("suppressLength").doubleValue();
+    }
     if (stage == 1) {
         // needs to init weightEdgeMap here
         // to make sure Map has initialized before
@@ -218,4 +221,19 @@ double SMTBaseRouting::getWeightFromEdgeToEdge(WeightEdge* from,
     }
     deltaW += from->edge->length() + from->w;
     return deltaW;
+}
+
+void SMTBaseRouting::suppressEdge(SMTEdge* edge, double pos) {
+    map<SMTEdge*, double>::iterator it = suppressedEdges.find(edge);
+    if (it == suppressedEdges.end()) {
+        if (pos < 0) {
+            suppressedEdges[edge] = suppressLength;
+        } else {
+            suppressedEdges[edge] = pos;
+        }
+    }
+}
+
+void SMTBaseRouting::releaseEdge(SMTEdge* edge) {
+    suppressedEdges.erase(edge);
 }
