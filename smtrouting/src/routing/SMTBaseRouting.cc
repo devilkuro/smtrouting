@@ -176,7 +176,7 @@ void SMTBaseRouting::processDijkstralNeighbors(WeightEdge* wEdge) {
             // the next edge is out edge, which means it has been processed already
             continue;
         }
-        changeDijkstraWeight(wEdge, next, getWeightFromEdgeToEdge(wEdge, next));
+        modifyWeightFromEdgeToEdge(wEdge, next);
     }
 
 }
@@ -202,7 +202,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
     }
 }
 
-double SMTBaseRouting::getWeightFromEdgeToEdge(WeightEdge* from,
+double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         WeightEdge* to) {
     // w means the delta weight from wEdge to next
     double deltaW = -1;
@@ -219,7 +219,10 @@ double SMTBaseRouting::getWeightFromEdgeToEdge(WeightEdge* from,
                 << "cannot handle negative via cost from" << from->edge->id
                 << " to " << to->edge->id << std::endl;
     }
-    deltaW += from->edge->length() + from->w;
+    to->t = from->t + deltaW / carInfo->maxSpeed;
+    deltaW += from->edge->length();
+
+    changeDijkstraWeight(from, to, deltaW + from->w);
     return deltaW;
 }
 

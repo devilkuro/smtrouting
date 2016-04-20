@@ -131,7 +131,7 @@ bool SMTMobility::processAtRouting() {
     cmdSetNoOvertake();
     // 设置路径
     getRouting()->getShortestRoute(getMap()->getSMTEdgeById(road_id),
-            destination, carRoute);
+            destination, carRoute,simTime().dbl(),carInfo);
     return updateVehicleRoute();
 }
 
@@ -140,7 +140,7 @@ void SMTMobility::processWhenChangeRoad() {
     cancelAndDelete(laneChangeMsg);
     laneChangeMsg = NULL;
     // 当车辆首次进入某条道路时执行
-    if(hasSuppressEdge){
+    if (hasSuppressEdge) {
         getRouting()->releaseEdge(lastEdge);
         hasSuppressEdge = false;
     }
@@ -200,7 +200,7 @@ void SMTMobility::startChangeLane(uint8_t laneIndex, double delay) {
 
 void SMTMobility::cmdSetNoOvertake() {
     getComIf()->setLaneChangeMode(external_id,
-            SMTComInterface::LANEMODE_FORCE_CO_DIS_OT);
+            SMTComInterface::LANEMODE_FC_NSG_NDOE_ETBS);
     if (debug) {
         std::cout << "car " << external_id << " will not make overtake."
                 << std::endl;
@@ -223,9 +223,10 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                 // 仅在不在目标车道时进行更改车道的尝试
                 cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
                         laneChangeDuration);
-                if (speed < 0.1) {
+                if (!hasSuppressEdge && speed < 0.1) {
                     // suppressing curEdge
                     // if have not changed lane successfully near cross
+                    // and has not suppress edge already
                     double pos = cmdGetLanePosition();
                     if (pos > curEdge->length() - 5) {
                         hasSuppressEdge = getRouting()->suppressEdge(curEdge);

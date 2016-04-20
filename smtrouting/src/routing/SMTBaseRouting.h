@@ -92,7 +92,7 @@ protected:
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &route);
     // independent weight modify function
-    virtual double getWeightFromEdgeToEdge(WeightEdge* from, WeightEdge* to);
+    virtual double modifyWeightFromEdgeToEdge(WeightEdge* from, WeightEdge* to);
     double getSmallerOne(double a, double b);
     // protected members
     SMTMap* _pMap;
