@@ -30,18 +30,36 @@ using std::vector;
 class SMTBaseRouting: public cSimpleModule {
 public:
     // 内部class
+    // WEIGHTLANE: use for record car queue of lane
+    class WeightLane {
+
+    public:
+        class WeightEdge;
+        WeightLane() :
+                cost(-1), occupation(0), to(NULL) {
+        }
+
+        double cost;    // stand for pass through time
+        double occupation;
+        WeightEdge* to; // FIXME may lead to multiple edges
+        map<SMTCarInfo*, double> carMap;
+        multimap<double, SMTCarInfo*> enterTimeMap;
+
+        void insertCar(SMTCarInfo* car, double t);
+        void removeCar(SMTCarInfo* car, double t);
+    };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
     public:
         WeightEdge(SMTEdge* e) :
                 w(-1), t(-1), previous(NULL), edge(e) {
         }
-
+        virtual ~WeightEdge();
         double w;
         double t;
         WeightEdge* previous;
         SMTEdge* edge;
-        map<SMTEdge*, double> w2NextMap;
+        map<SMTEdge*, WeightLane*> w2NextMap;
     };
     // ROUTE:用于记录选择的路径
     class Route {
@@ -66,6 +84,8 @@ public:
 
     // routing functions
     // TODO 添加基本的寻路方法
+    virtual void changeRoad(SMTEdge* from, SMTEdge* to, int toLane, double t,
+            SMTCarInfo* car);
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getFastestRoute(SMTEdge* origin, SMTEdge* destination,

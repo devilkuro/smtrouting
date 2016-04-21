@@ -42,6 +42,24 @@ void SMTBaseRouting::initialize(int stage) {
                 it != getMap()->primaryEdgeSet.end(); ++it) {
             weightEdgeMap[*it] = new WeightEdge(*it);
         }
+        for (map<SMTEdge*, WeightEdge*>::iterator it = weightEdgeMap.begin();
+                it != weightEdgeMap.end(); ++it) {
+            for (map<SMTEdge*, vector<SMTVia*> >::iterator vIt =
+                    it->first->viaVecMap.begin();
+                    vIt != it->first->viaVecMap.end(); ++vIt) {
+                WeightLane* wLane = new WeightLane();
+                wLane->cost = 0;
+                wLane->occupation = 0;
+                wLane->to = vIt->first;
+                if (it->second->w2NextMap.find(vIt->first)
+                        == it->second->w2NextMap.end()) {
+                    it->second->w2NextMap[vIt->first] = wLane;
+                } else {
+                    std::cout << "system do not support multiple link for now"
+                            << std::endl;
+                }
+            }
+        }
     }
 }
 
@@ -197,7 +215,7 @@ double SMTBaseRouting::getSmallerOne(double a, double b) {
 void SMTBaseRouting::updatePassTime(SMTEdge* from, SMTEdge* to, double w,
         double curTime, SMTCarInfo* car) {
     WeightEdge* wEdge = weightEdgeMap[from];
-    wEdge->w2NextMap[to] = w;
+    wEdge->w2NextMap[to]->cost = w;
 }
 
 void SMTBaseRouting::getFastestRoute(SMTEdge* origin, SMTEdge* destination,
@@ -219,6 +237,14 @@ void SMTBaseRouting::getAIRRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
+void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
+        double t, SMTCarInfo* car) {
+    // update pass time and remove car from weightEdge 'from'
+    map<SMTEdge*, WeightEdge*>::iterator itEdge = weightEdgeMap.find(from);
+    map<SMTEdge*, WeightLane*>::iterator itLane = itEdge->second->w2NextMap.find(to);
+    itLane->second->removeCar(car);
+}
+
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
@@ -233,8 +259,8 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
     // w means the delta weight from wEdge to next
     double deltaW = -1;
     if (to == NULL) {
-        std::cout << "processDijkstralNeighbors:" << "No edge "
-                << to->edge->id << " in weightEdgeMap" << std::endl;
+        std::cout << "processDijkstralNeighbors:" << "No edge " << to->edge->id
+                << " in weightEdgeMap" << std::endl;
     }
     switch (routeType) {
     case SMT_RT_SHOREST:
@@ -257,7 +283,7 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         break;
     case SMT_RT_FAST:
         if (from->w2NextMap.find(to->edge) != from->w2NextMap.end()) {
-            deltaW = from->w2NextMap[to->edge];
+            deltaW = from->w2NextMap[to->edge]->cost;
         } else {
             deltaW = (from->edge->length()
                     + from->edge->viaVecMap[to->edge][0]->getViaLength())
@@ -292,4 +318,30 @@ bool SMTBaseRouting::suppressEdge(SMTEdge* edge, double pos) {
 
 void SMTBaseRouting::releaseEdge(SMTEdge* edge) {
     suppressedEdges.erase(edge);
+}
+
+void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
+    ASSERT2(carMap.find(car) == carMap.end(),
+            "car has been already in this lane");
+    carMap[car] = t;
+    enterTimeMap.insert(std::make_pair(t, car));
+}
+
+void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
+    map<SMTCarInfo*, double>::iterator itCar = carMap.find(car);
+    multimap<double, SMTCarInfo*>::iterator itT = enterTimeMap.find(
+            itCar->second);
+    while (itT->second != car) {
+        ++itT;
+        ASSERT2(itT->first != itCar->second, "try to remove inexistent car");
+    }
+    enterTimeMap.erase(itT);
+    carMap.erase(itCar);
+}
+
+SMTBaseRouting::WeightEdge::~WeightEdge() {
+    for (map<SMTEdge*, WeightLane*>::iterator it = w2NextMap.begin();
+            it != w2NextMap.end(); ++it) {
+        delete it->second;
+    }
 }

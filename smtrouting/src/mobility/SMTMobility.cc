@@ -93,6 +93,11 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
         // in nextPosition the car has been on the road
         curRoadId = road_id;
         lastEdge = curEdge;
+        if (lastEdge != NULL) {
+            if (!lastEdge->isInternal) {
+                lastPrimaryEdge = lastEdge;
+            }
+        }
         curEdge = getMap()->getSMTEdgeById(road_id);
         // when road changed
         processWhenChangeRoad();
@@ -148,6 +153,9 @@ void SMTMobility::processWhenChangeRoad() {
         // 车辆抵达终点操作
         arrivedMsg = new cMessage("arrived");
         scheduleAt(simTime() + 1, arrivedMsg);
+        // change to lane -1 means car arriving
+        getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, simTime().dbl(),
+                carInfo);
     } else {
         if (!curEdge->isInternal) {
             // TODO 进行Lane控制算法
@@ -167,14 +175,13 @@ void SMTMobility::processWhenChangeRoad() {
                         << " is unlinked at " << curEdge->id << std::endl;
                 ASSERT2(!debug, "next edge unlinked ");
             }
+            // change road in routing system
+            getRouting()->changeRoad(lastPrimaryEdge, curEdge,
+                    preferredLaneIndex, simTime().dbl(), carInfo);
         }
     }
     // update pass time to routing system
-    if (lastEdge != NULL) {
-        if (!lastEdge->isInternal) {
-            lastPrimaryEdge = lastEdge;
-        }
-    }
+    // FIXME try to move this function into routing class by changeRoad()
     if (!curEdge->isInternal) {
         if (lastPrimaryEdge != NULL) {
             getRouting()->updatePassTime(lastPrimaryEdge, curEdge,
