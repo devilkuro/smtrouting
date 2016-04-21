@@ -25,6 +25,7 @@ using std::list;
 using std::multimap;
 using std::map;
 using std::set;
+using std::vector;
 
 class SMTBaseRouting: public cSimpleModule {
 public:
@@ -40,6 +41,7 @@ public:
         double t;
         WeightEdge* previous;
         SMTEdge* edge;
+        map<SMTEdge*, double> w2NextMap;
     };
     // ROUTE:用于记录选择的路径
     class Route {
@@ -50,9 +52,13 @@ public:
         double cost;
         list<WeightEdge*> edges;
     };
+    enum SMT_ROUTING_TYPE {
+        SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
+    };
 public:
     SMTBaseRouting() :
-            suppressLength(40), startTime(-1), carInfo(NULL), _pMap(NULL) {
+            suppressLength(40), startTime(-1), carInfo(NULL), routeType(
+                    SMT_RT_FAST), _pMap(NULL) {
     }
     virtual ~SMTBaseRouting();
 
@@ -62,7 +68,12 @@ public:
     // TODO 添加基本的寻路方法
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-
+    virtual void getFastestRoute(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual void getAIRRoute(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual void updatePassTime(SMTEdge* from, SMTEdge* to, double w,
+            double curTime = -1, SMTCarInfo* car = NULL);
     // try to change to corrected lane by suppress cars prevent this car
     virtual bool suppressEdge(SMTEdge* edge, double pos = -1);
     virtual void releaseEdge(SMTEdge* edge);
@@ -83,6 +94,7 @@ protected:
 
     double startTime;
     SMTCarInfo* carInfo;
+    SMT_ROUTING_TYPE routeType;
     // functions
     virtual int numInitStages() const;
     virtual void initialize(int stage);

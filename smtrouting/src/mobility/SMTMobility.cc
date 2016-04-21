@@ -130,8 +130,8 @@ bool SMTMobility::processAtRouting() {
     // 设置车道变换模式
     cmdSetNoOvertake();
     // 设置路径
-    getRouting()->getShortestRoute(getMap()->getSMTEdgeById(road_id),
-            destination, carRoute,simTime().dbl(),carInfo);
+    getRouting()->getFastestRoute(getMap()->getSMTEdgeById(road_id),
+            destination, carRoute, simTime().dbl(), carInfo);
     return updateVehicleRoute();
 }
 
@@ -168,6 +168,20 @@ void SMTMobility::processWhenChangeRoad() {
                 ASSERT2(!debug, "next edge unlinked ");
             }
         }
+    }
+    // update pass time to routing system
+    if (lastEdge != NULL) {
+        if (!lastEdge->isInternal) {
+            lastPrimaryEdge = lastEdge;
+        }
+    }
+    if (!curEdge->isInternal) {
+        if (lastPrimaryEdge != NULL) {
+            getRouting()->updatePassTime(lastPrimaryEdge, curEdge,
+                    simTime().dbl() - enterLastPrimaryEdge, simTime().dbl(),
+                    carInfo);
+        }
+        enterLastPrimaryEdge = simTime().dbl();
     }
 }
 

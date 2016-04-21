@@ -61,6 +61,7 @@ SMTMap* SMTBaseRouting::getMap() {
 void SMTBaseRouting::getShortestRoute(SMTEdge* origin, SMTEdge* destination,
         list<SMTEdge*> &rou, double time, SMTCarInfo* car) {
     // 最短路径使用迪杰斯特拉算法
+    routeType = SMT_RT_SHOREST;
     startTime = time;
     carInfo = car;
     rou.clear();
@@ -193,6 +194,31 @@ double SMTBaseRouting::getSmallerOne(double a, double b) {
     }
 }
 
+void SMTBaseRouting::updatePassTime(SMTEdge* from, SMTEdge* to, double w,
+        double curTime, SMTCarInfo* car) {
+    WeightEdge* wEdge = weightEdgeMap[from];
+    wEdge->w2NextMap[to] = w;
+}
+
+void SMTBaseRouting::getFastestRoute(SMTEdge* origin, SMTEdge* destination,
+        list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
+    // 最短路径使用迪杰斯特拉算法
+    routeType = SMT_RT_FAST;
+    startTime = time;
+    carInfo = car;
+    rou.clear();
+    runDijkstraAlgorithm(origin, destination, rou);
+}
+
+void SMTBaseRouting::getAIRRoute(SMTEdge* origin, SMTEdge* destination,
+        list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
+    routeType = SMT_RT_AIR;
+    startTime = time;
+    carInfo = car;
+    rou.clear();
+    runDijkstraAlgorithm(origin, destination, rou);
+}
+
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
@@ -207,22 +233,47 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
     // w means the delta weight from wEdge to next
     double deltaW = -1;
     if (to == NULL) {
-        std::cout << "processDijkstralNeighbors:" << "No edge " << to->edge->id
-                << " in weightEdgeMap" << std::endl;
+        std::cout << "processDijkstralNeighbors:" << "No edge "
+                << to->edge->id << " in weightEdgeMap" << std::endl;
     }
-    for (unsigned int i = 0; i < from->edge->viaVecMap[to->edge].size(); ++i) {
-        double viaLen = from->edge->viaVecMap[to->edge][i]->getViaLength();
-        deltaW = getSmallerOne(deltaW, viaLen);
-    }
-    if (deltaW < 0) {
-        std::cout << "processDijkstralNeighbors:"
-                << "cannot handle negative via cost from" << from->edge->id
-                << " to " << to->edge->id << std::endl;
-    }
-    to->t = from->t + deltaW / carInfo->maxSpeed;
-    deltaW += from->edge->length();
+    switch (routeType) {
+    case SMT_RT_SHOREST:
+        for (unsigned int i = 0; i < from->edge->viaVecMap[to->edge].size();
+                ++i) {
+            double viaLen = from->edge->viaVecMap[to->edge][i]->getViaLength();
+            deltaW = getSmallerOne(deltaW, viaLen);
+        }
+        if (deltaW < 0) {
+            std::cout << "processDijkstralNeighbors:"
+                    << "cannot handle negative via cost from" << from->edge->id
+                    << " to " << to->edge->id << std::endl;
+        }
+        if (startTime != -1 && carInfo != NULL) {
+            to->t = from->t + deltaW / carInfo->maxSpeed;
+        }
+        deltaW += from->edge->length();
 
-    changeDijkstraWeight(from, to, deltaW + from->w);
+        changeDijkstraWeight(from, to, deltaW + from->w);
+        break;
+    case SMT_RT_FAST:
+        if (from->w2NextMap.find(to->edge) != from->w2NextMap.end()) {
+            deltaW = from->w2NextMap[to->edge];
+        } else {
+            deltaW = (from->edge->length()
+                    + from->edge->viaVecMap[to->edge][0]->getViaLength())
+                    / carInfo->maxSpeed;
+        }
+        if (deltaW < 0) {
+            std::cout << "processDijkstralNeighbors:"
+                    << "cannot handle negative via cost from" << from->edge->id
+                    << " to " << to->edge->id << std::endl;
+        }
+        changeDijkstraWeight(from, to, deltaW + from->w);
+        break;
+    default:
+        break;
+    }
+
     return deltaW;
 }
 

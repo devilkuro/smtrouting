@@ -26,6 +26,6 @@ simple SMTMobility extends TraCIMobility
         @display("i=block/cogwheel");
 
         bool isChangeAndHold = default(false);
-        double laneChangeDuration @unit("s") = default(5s);
-        double checkSuppressInterval@unit("s") = default(1s);
+        double laneChangeDuration @unit("s") = default(10s);
+        double checkSuppressInterval@unit("s") = default(10s);
 }

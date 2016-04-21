@@ -45,8 +45,9 @@ public:
             NULL), hasRouted(false), hasInitialized(false), arrivedMsg(
             NULL), beSuppressed(false), hasSuppressEdge(false), checkSuppressInterval(
                     10), checkSuppressedEdgesMsg(NULL), lastEdge(0), curEdge(
-                    NULL), laneChangeMsg(0), laneChangeDuration(5), preferredLaneIndex(
-                    0), isChangeAndHold(false), smtMap(0), _pCarManager(
+            NULL), lastPrimaryEdge(NULL), nextPrimaryEdge(NULL), laneChangeMsg(
+                    0), laneChangeDuration(5), preferredLaneIndex(0), isChangeAndHold(
+                    false), smtMap(0), _pCarManager(
             NULL), _pRouting(NULL) {
     }
     virtual ~SMTMobility();
@@ -107,6 +108,8 @@ protected:
     string curRoadId;   // 用于记录当前道路的id,亦用作判定道路改变
     SMTEdge* lastEdge;  // 记录上一条道路对应Edge
     SMTEdge* curEdge;   // 记录当前道路对应Edge
+    SMTEdge* lastPrimaryEdge;
+    double enterLastPrimaryEdge;
     SMTEdge* nextPrimaryEdge;
     cMessage* laneChangeMsg;  // 用于保持车道的消息
     double laneChangeDuration;
