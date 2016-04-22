@@ -17,6 +17,10 @@
 
 Define_Module(SMTBaseRouting);
 double SMTBaseRouting::WeightLane::outCarKeepDuration = 120;
+double SMTBaseRouting::WeightLane::limitStart = 0.3;
+double SMTBaseRouting::WeightLane::limitCap = 0.7;
+double SMTBaseRouting::WeightLane::limitFix = 0.69;
+
 SMTBaseRouting::~SMTBaseRouting() {
     // 回收 dijkstra's algorithm 算法部分
     for (map<SMTEdge*, WeightEdge*>::iterator it = weightEdgeMap.begin();
@@ -48,9 +52,7 @@ void SMTBaseRouting::initialize(int stage) {
                     it->first->viaVecMap.begin();
                     vIt != it->first->viaVecMap.end(); ++vIt) {
                 WeightLane* wLane = new WeightLane();
-                wLane->cost = 0;
                 // initialize occupation and occStep information
-                wLane->occupation = 0;
                 wLane->occStep = 1 / it->first->length();
                 wLane->to = weightEdgeMap[vIt->first];
                 if (it->second->w2NextMap.find(vIt->first)
@@ -215,8 +217,8 @@ double SMTBaseRouting::getSmallerOne(double a, double b) {
 void SMTBaseRouting::updatePassTime(SMTEdge* from, SMTEdge* to, double w,
         double curTime, SMTCarInfo* car) {
     // FIXME removed function
-    WeightEdge* wEdge = weightEdgeMap[from];
-    wEdge->w2NextMap[to]->cost = w;
+//    WeightEdge* wEdge = weightEdgeMap[from];
+//    wEdge->w2NextMap[to]->recentCost = w;
 }
 
 void SMTBaseRouting::getFastestRoute(SMTEdge* origin, SMTEdge* destination,
@@ -307,22 +309,32 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         // itWL will never equal to from->w2NextMap.end()
         ASSERT2(itWL != from->w2NextMap.end(),
                 "w2NextMap initialized abnormally");
-        if (itWL->second->cost > 0) {
-            deltaW = itWL->second->cost;
+        if (itWL->second->getCost(simTime().dbl()) > 0) {
+            deltaW = itWL->second->getCost(simTime().dbl());
         } else {
             deltaW = (from->edge->length()
                     + from->edge->viaVecMap[to->edge][0]->getViaLength())
                     / carInfo->maxSpeed;
         }
-        // fix deltaW by occupation if occupation is bigger than half
-        if (itWL->second->occupation > 0.4) {
-            std::cout << "occupation from " << from->edge->id << " to "
-                    << to->edge->id << " is " << itWL->second->occupation
-                    << std::endl;
-            if (itWL->second->occupation < 0.79) {
-                deltaW = deltaW / (0.8 - itWL->second->occupation);
-            } else {
-                deltaW = deltaW * 10000;
+        {
+            // fix deltaW by occupation if occupation is bigger than half
+            // fix deltaW only when cars in this lane cannot pass in one green time
+            // and the occupation reach the limit
+            if (itWL->second->occupation > WeightLane::limitStart
+                    && itWL->second->occupation / itWL->second->occStep
+                            > 5 * 20) {
+                if (itWL->second->occupaChangeFlag) {
+                    itWL->second->occupaChangeFlag = false;
+                    std::cout << "occupation from " << from->edge->id << " to "
+                            << to->edge->id << " is "
+                            << itWL->second->occupation << std::endl;
+                }
+                if (itWL->second->occupation < WeightLane::limitFix) {
+                    deltaW = deltaW
+                            / (WeightLane::limitCap - itWL->second->occupation);
+                } else {
+                    deltaW = deltaW * 10000;
+                }
             }
         }
         if (deltaW < 0) {
@@ -366,33 +378,44 @@ void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
     enterTimeMap.insert(std::make_pair(t, car));
     // update occupation information
     occupation += occStep * (car->length + car->minGap);
+    occupaChangeFlag = true;
+}
+
+double SMTBaseRouting::WeightLane::getCost(double time) {
+    updateCost(time);
+    return recentCost;
 }
 
 void SMTBaseRouting::WeightLane::updateCost(double time) {
-    // remove invalid outed car
-    for (multimap<double, CarTime>::iterator it = recentOutCars.begin();
-            it != recentOutCars.end(); ++it) {
-        // keep at least one car
-        if (it->first < time - outCarKeepDuration && recentOutCars.size() > 1) {
-            totalCost -= it->second.cost;
-            recentOutCars.erase(it);
-            refreshFlag = true;
-        } else {
-            break;
+    // update outed car map when new car out or time pass
+    if (time > recentCostLastupdateTime || recentCostRefreshFlag) {
+        // remove invalid outed car
+        for (multimap<double, CarTime>::iterator it = recentOutCars.begin();
+                it != recentOutCars.end(); ++it) {
+            // keep at least three cars
+            if (it->first < time - outCarKeepDuration
+                    && recentOutCars.size() > 3) {
+                totalRecentCost -= it->second.cost;
+                recentOutCars.erase(it);
+                recentCostRefreshFlag = true;
+            } else {
+                break;
+            }
         }
     }
     // update cost value
-    if (refreshFlag) {
-        cost = totalCost / recentOutCars.size();
-        refreshFlag = false;
+    if (recentCostRefreshFlag) {
+        recentCost = totalRecentCost / recentOutCars.size();
+        recentCostLastupdateTime = time;
+        recentCostRefreshFlag = false;
     }
 }
 
 void SMTBaseRouting::WeightLane::carGetOut(SMTCarInfo* car, const double& t,
         const double& cost) {
     recentOutCars.insert(make_pair(t, CarTime(car, cost)));
-    totalCost += cost;
-    refreshFlag = true;
+    totalRecentCost += cost;
+    recentCostRefreshFlag = true;
 }
 
 SMTBaseRouting::WeightLane::~WeightLane() {
@@ -412,6 +435,7 @@ void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
     carMap.erase(itCar);
     // update occupation information
     occupation -= occStep * (car->length + car->minGap);
+    occupaChangeFlag = true;
 }
 
 SMTBaseRouting::WeightEdge::~WeightEdge() {

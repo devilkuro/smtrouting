@@ -44,28 +44,34 @@ public:
             double cost;
         };
         WeightLane() :
-                cost(-1), occupation(0), occStep(0), to(NULL), refreshFlag(
-                        false), totalCost(0) {
+                occupation(0), occStep(0), occupaChangeFlag(false), to(NULL), recentCost(
+                        -1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
+                        false), totalRecentCost(0) {
         }
         virtual ~WeightLane();
-        double cost;    // stand for pass through time
         double occupation;
         double occStep;
+        bool occupaChangeFlag;
         static double outCarKeepDuration;
+        static double limitStart;
+        static double limitCap;
+        static double limitFix;
         WeightEdge* to; // FIXME may lead to multiple edges
         map<SMTCarInfo*, double> carMap;
         multimap<double, SMTCarInfo*> enterTimeMap;
         multimap<double, CarTime> recentOutCars;
-
-        virtual void updateCost(double time);
+        virtual double getCost(double time);
         virtual void carGetOut(SMTCarInfo* car, const double &t,
                 const double &cost);
         void insertCar(SMTCarInfo* car, double t);
         void removeCar(SMTCarInfo* car, double t);
     protected:
         // set to true when recentOutCars or totalCost changed
-        bool refreshFlag;
-        double totalCost;
+        double recentCost;    // stand for pass through time
+        double recentCostLastupdateTime;
+        bool recentCostRefreshFlag;
+        double totalRecentCost;
+        virtual void updateCost(double time);
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
