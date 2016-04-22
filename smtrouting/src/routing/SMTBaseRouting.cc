@@ -238,21 +238,36 @@ void SMTBaseRouting::getAIRRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
-void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
-        double time, SMTCarInfo* car) {
-    // update pass time and remove car from weightEdge 'from'
-    map<SMTEdge*, WeightEdge*>::iterator itEdge = weightEdgeMap.find(from);
-    map<SMTEdge*, WeightLane*>::iterator itLane =
-            itEdge->second->w2NextMap.find(to);
-    itLane->second->removeCar(car, time);
-}
-
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
     while (wEdge != NULL) {
         route.push_front(wEdge->edge);
         wEdge = wEdge->previous;
+    }
+}
+
+void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
+        double time, SMTCarInfo* car) {
+    // update pass time and remove car from weightEdge 'from'
+    if (from != NULL) {
+        map<SMTEdge*, WeightEdge*>::iterator itFromEdge = weightEdgeMap.find(
+                from);
+        map<SMTEdge*, WeightLane*>::iterator itFromLane =
+                itFromEdge->second->w2NextMap.find(to);
+        itFromLane->second->removeCar(car, time);
+    }
+    // add car into weightEdge 'to'
+    if (toLane != -1) {
+        map<SMTEdge*, WeightEdge*>::iterator itToEdge = weightEdgeMap.find(to);
+        if (itToEdge->first->laneVector[toLane]->nextVector.size() > 1) {
+            std::cout << "system does not support multiple link for now@"
+                    << itToEdge->first->laneVector[toLane]->id << std::endl;
+        }
+        SMTEdge* next = itToEdge->first->laneVector[toLane]->nextVector[0]->edge;
+        map<SMTEdge*, WeightLane*>::iterator itToLane =
+                itToEdge->second->w2NextMap.find(next);
+        itToLane->second->insertCar(car, time);
     }
 }
 
@@ -301,7 +316,14 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         }
         // fix deltaW by occupation if occupation is bigger than half
         if (itWL->second->occupation > 0.5) {
-            deltaW = deltaW / (1 - itWL->second->occupation);
+            std::cout << "occupation from " << from->edge->id << " to "
+                    << to->edge->id << " is " << itWL->second->occupation
+                    << std::endl;
+            if (itWL->second->occupation < 0.99) {
+                deltaW = deltaW / (1 - itWL->second->occupation);
+            } else {
+                deltaW = deltaW * 100;
+            }
         }
         if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
@@ -343,7 +365,7 @@ void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
     carMap[car] = t;
     enterTimeMap.insert(std::make_pair(t, car));
     // update occupation information
-    occupation += occStep;
+    occupation += occStep * (car->length + car->minGap);
 }
 
 void SMTBaseRouting::WeightLane::updateCost(double time) {
@@ -389,7 +411,7 @@ void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
     enterTimeMap.erase(itT);
     carMap.erase(itCar);
     // update occupation information
-    occupation -= occStep;
+    occupation -= occStep * (car->length + car->minGap);
 }
 
 SMTBaseRouting::WeightEdge::~WeightEdge() {
