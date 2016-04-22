@@ -428,7 +428,10 @@ void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
             itCar->second);
     while (itT->second != car) {
         ++itT;
-        ASSERT2(itT->first != itCar->second, "try to remove inexistent car");
+        if (itT->first != itCar->second) {
+            std::cout << "try to remove inexistent car " << itCar->first->id
+                    << ", but find car " << itT->second->id << std::endl;
+        }
     }
     carGetOut(car, t, t - itCar->second);
     enterTimeMap.erase(itT);
