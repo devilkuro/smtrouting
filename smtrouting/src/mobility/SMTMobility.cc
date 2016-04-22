@@ -169,7 +169,7 @@ void SMTMobility::processWhenChangeRoad() {
             if (curEdge->viaVecMap.find(next) != curEdge->viaVecMap.end()) {
                 // FIXME may not always use via 0.
                 preferredLaneIndex = curEdge->viaVecMap[next][0]->fromLane;
-                startChangeLane(preferredLaneIndex, 0.1);
+                startChangeLane(preferredLaneIndex, 0.5);
             } else {
                 std::cout << "next edges " << carRoute.front()->id
                         << " is unlinked at " << curEdge->id << std::endl;
