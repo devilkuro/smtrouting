@@ -17,7 +17,7 @@
 
 Define_Module(SMTBaseRouting);
 double SMTBaseRouting::WeightLane::outCarKeepDuration = 120;
-double SMTBaseRouting::WeightLane::limitStart = 0.3;
+double SMTBaseRouting::WeightLane::limitStart = 0.1;
 double SMTBaseRouting::WeightLane::limitCap = 0.7;
 double SMTBaseRouting::WeightLane::limitFix = 0.69;
 
