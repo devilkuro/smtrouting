@@ -47,7 +47,7 @@ public:
                 cost(-1), occupation(0), occStep(0), to(NULL), refreshFlag(
                         false), totalCost(0) {
         }
-
+        virtual ~WeightLane();
         double cost;    // stand for pass through time
         double occupation;
         double occStep;
@@ -124,10 +124,6 @@ protected:
     // weightEdgeMap用于存储所有WeightEdge便于回收内存
     map<SMTEdge*, WeightEdge*> weightEdgeMap;
     multimap<double, WeightEdge*> processMap;
-    // the untouched edges, maybe useless
-    // map<SMTEdge*, WeightEdge*> unSet;
-    // the finished edges, maybe useless
-    // map<SMTEdge*, WeightEdge*> outSet;
     map<SMTEdge*, double> suppressedEdges;
     double suppressLength;
 

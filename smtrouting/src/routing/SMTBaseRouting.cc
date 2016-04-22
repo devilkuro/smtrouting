@@ -130,9 +130,6 @@ void SMTBaseRouting::changeDijkstraWeight(WeightEdge* from, WeightEdge* to,
     }
     if (to->w == -1) {
         // if wEdge->w == -1, it is an untouched edge.
-        // move it out of unSet before modify processMap
-        // FIXME unSet may be useless
-        // unSet.erase(to->edge);
     }
     to->previous = from;
     to->w = w;
@@ -267,6 +264,7 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         std::cout << "processDijkstralNeighbors:" << "No edge " << to->edge->id
                 << " in weightEdgeMap" << std::endl;
     }
+    map<SMTEdge*, WeightLane*>::iterator itWL;
     switch (routeType) {
     case SMT_RT_SHOREST:
         for (unsigned int i = 0; i < from->edge->viaVecMap[to->edge].size();
@@ -289,8 +287,7 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
     case SMT_RT_FAST:
         // FIXME since w2NextMap is initialized in initialize()
         // the cost fix function needs change here
-        map<SMTEdge*, WeightLane*>::iterator itWL = from->w2NextMap.find(
-                to->edge);
+        itWL = from->w2NextMap.find(to->edge);
         if (itWL != from->w2NextMap.end()) {
             if (itWL->second->cost > 0) {
                 deltaW = itWL->second->cost;
@@ -308,6 +305,9 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                     << " to " << to->edge->id << std::endl;
         }
         changeDijkstraWeight(from, to, deltaW + from->w);
+        break;
+    case SMT_RT_CORP:
+        // TODO add cooperative route plan method
         break;
     default:
         break;
@@ -347,7 +347,7 @@ void SMTBaseRouting::WeightLane::updateCost(double time) {
     for (multimap<double, CarTime>::iterator it = recentOutCars.begin();
             it != recentOutCars.end(); ++it) {
         // keep at least one car
-        if (it->first < time - outCarKeepDuration && recentOutCars > 1) {
+        if (it->first < time - outCarKeepDuration && recentOutCars.size() > 1) {
             totalCost -= it->second.cost;
             recentOutCars.erase(it);
             refreshFlag = true;
@@ -367,6 +367,10 @@ void SMTBaseRouting::WeightLane::carGetOut(SMTCarInfo* car, const double& t,
     recentOutCars.insert(make_pair(t, CarTime(car, cost)));
     totalCost += cost;
     refreshFlag = true;
+}
+
+SMTBaseRouting::WeightLane::~WeightLane() {
+    // do nothing
 }
 
 void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
