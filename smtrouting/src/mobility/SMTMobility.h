@@ -109,7 +109,7 @@ protected:
     SMTEdge* lastEdge;  // 记录上一条道路对应Edge
     SMTEdge* curEdge;   // 记录当前道路对应Edge
     SMTEdge* lastPrimaryEdge;
-    double enterLastPrimaryEdge;
+//    double enterLastPrimaryEdge;
     SMTEdge* nextPrimaryEdge;
     cMessage* laneChangeMsg;  // 用于保持车道的消息
     double laneChangeDuration;

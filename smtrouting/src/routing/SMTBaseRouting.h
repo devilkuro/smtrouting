@@ -31,22 +31,41 @@ class SMTBaseRouting: public cSimpleModule {
 public:
     // 内部class
     // WEIGHTLANE: use for record car queue of lane
+    class WeightEdge;
     class WeightLane {
 
     public:
-        class WeightEdge;
+        class CarTime {
+        public:
+            CarTime(SMTCarInfo* _car, double _cost) :
+                    car(_car), cost(_cost) {
+            }
+            SMTCarInfo* car;
+            double cost;
+        };
         WeightLane() :
-                cost(-1), occupation(0), to(NULL) {
+                cost(-1), occupation(0), occStep(0), to(NULL), refreshFlag(
+                        false), totalCost(0) {
         }
 
         double cost;    // stand for pass through time
         double occupation;
+        double occStep;
+        static double outCarKeepDuration;
         WeightEdge* to; // FIXME may lead to multiple edges
         map<SMTCarInfo*, double> carMap;
         multimap<double, SMTCarInfo*> enterTimeMap;
+        multimap<double, CarTime> recentOutCars;
 
+        virtual void updateCost(double time);
+        virtual void carGetOut(SMTCarInfo* car, const double &t,
+                const double &cost);
         void insertCar(SMTCarInfo* car, double t);
         void removeCar(SMTCarInfo* car, double t);
+    protected:
+        // set to true when recentOutCars or totalCost changed
+        bool refreshFlag;
+        double totalCost;
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
@@ -84,7 +103,7 @@ public:
 
     // routing functions
     // TODO 添加基本的寻路方法
-    virtual void changeRoad(SMTEdge* from, SMTEdge* to, int toLane, double t,
+    virtual void changeRoad(SMTEdge* from, SMTEdge* to, int toLane, double time,
             SMTCarInfo* car);
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
@@ -135,7 +154,7 @@ private:
     void changeDijkstraWeight(WeightEdge* from, WeightEdge* to, double w);
     int processDijkstraLoop(SMTEdge* destination);
     SMTEdge* processDijkstralNode(SMTEdge* destination);
-    virtual void processDijkstralNeighbors(WeightEdge* wEdge);
+    void processDijkstralNeighbors(WeightEdge* wEdge);
     void getDijkstralResult(SMTEdge* destination, list<SMTEdge*> &route);
 };
 

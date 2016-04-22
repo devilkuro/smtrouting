@@ -16,7 +16,7 @@
 #include "SMTBaseRouting.h"
 
 Define_Module(SMTBaseRouting);
-
+double SMTBaseRouting::WeightLane::outCarKeepDuration = 120;
 SMTBaseRouting::~SMTBaseRouting() {
     // 回收 dijkstra's algorithm 算法部分
     for (map<SMTEdge*, WeightEdge*>::iterator it = weightEdgeMap.begin();
@@ -49,8 +49,10 @@ void SMTBaseRouting::initialize(int stage) {
                     vIt != it->first->viaVecMap.end(); ++vIt) {
                 WeightLane* wLane = new WeightLane();
                 wLane->cost = 0;
+                // initialize occupation and occStep information
                 wLane->occupation = 0;
-                wLane->to = vIt->first;
+                wLane->occStep = 1 / it->first->length();
+                wLane->to = weightEdgeMap[vIt->first];
                 if (it->second->w2NextMap.find(vIt->first)
                         == it->second->w2NextMap.end()) {
                     it->second->w2NextMap[vIt->first] = wLane;
@@ -212,8 +214,10 @@ double SMTBaseRouting::getSmallerOne(double a, double b) {
     }
 }
 
+//@Removed function
 void SMTBaseRouting::updatePassTime(SMTEdge* from, SMTEdge* to, double w,
         double curTime, SMTCarInfo* car) {
+    // FIXME removed function
     WeightEdge* wEdge = weightEdgeMap[from];
     wEdge->w2NextMap[to]->cost = w;
 }
@@ -238,11 +242,12 @@ void SMTBaseRouting::getAIRRoute(SMTEdge* origin, SMTEdge* destination,
 }
 
 void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
-        double t, SMTCarInfo* car) {
+        double time, SMTCarInfo* car) {
     // update pass time and remove car from weightEdge 'from'
     map<SMTEdge*, WeightEdge*>::iterator itEdge = weightEdgeMap.find(from);
-    map<SMTEdge*, WeightLane*>::iterator itLane = itEdge->second->w2NextMap.find(to);
-    itLane->second->removeCar(car);
+    map<SMTEdge*, WeightLane*>::iterator itLane =
+            itEdge->second->w2NextMap.find(to);
+    itLane->second->removeCar(car, time);
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
@@ -282,12 +287,20 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         changeDijkstraWeight(from, to, deltaW + from->w);
         break;
     case SMT_RT_FAST:
-        if (from->w2NextMap.find(to->edge) != from->w2NextMap.end()) {
-            deltaW = from->w2NextMap[to->edge]->cost;
+        // FIXME since w2NextMap is initialized in initialize()
+        // the cost fix function needs change here
+        map<SMTEdge*, WeightLane*>::iterator itWL = from->w2NextMap.find(
+                to->edge);
+        if (itWL != from->w2NextMap.end()) {
+            if (itWL->second->cost > 0) {
+                deltaW = itWL->second->cost;
+            } else {
+                deltaW = (from->edge->length()
+                        + from->edge->viaVecMap[to->edge][0]->getViaLength())
+                        / carInfo->maxSpeed;
+            }
         } else {
-            deltaW = (from->edge->length()
-                    + from->edge->viaVecMap[to->edge][0]->getViaLength())
-                    / carInfo->maxSpeed;
+            error("w2NextMap initialized abnormally");
         }
         if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
@@ -325,6 +338,35 @@ void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
             "car has been already in this lane");
     carMap[car] = t;
     enterTimeMap.insert(std::make_pair(t, car));
+    // update occupation information
+    occupation += occStep;
+}
+
+void SMTBaseRouting::WeightLane::updateCost(double time) {
+    // remove invalid outed car
+    for (multimap<double, CarTime>::iterator it = recentOutCars.begin();
+            it != recentOutCars.end(); ++it) {
+        // keep at least one car
+        if (it->first < time - outCarKeepDuration && recentOutCars > 1) {
+            totalCost -= it->second.cost;
+            recentOutCars.erase(it);
+            refreshFlag = true;
+        } else {
+            break;
+        }
+    }
+    // update cost value
+    if (refreshFlag) {
+        cost = totalCost / recentOutCars.size();
+        refreshFlag = false;
+    }
+}
+
+void SMTBaseRouting::WeightLane::carGetOut(SMTCarInfo* car, const double& t,
+        const double& cost) {
+    recentOutCars.insert(make_pair(t, CarTime(car, cost)));
+    totalCost += cost;
+    refreshFlag = true;
 }
 
 void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
@@ -335,8 +377,11 @@ void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
         ++itT;
         ASSERT2(itT->first != itCar->second, "try to remove inexistent car");
     }
+    carGetOut(car, t, t - itCar->second);
     enterTimeMap.erase(itT);
     carMap.erase(itCar);
+    // update occupation information
+    occupation -= occStep;
 }
 
 SMTBaseRouting::WeightEdge::~WeightEdge() {

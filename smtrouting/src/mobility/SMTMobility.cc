@@ -182,14 +182,14 @@ void SMTMobility::processWhenChangeRoad() {
     }
     // update pass time to routing system
     // FIXME try to move this function into routing class by changeRoad()
-    if (!curEdge->isInternal) {
-        if (lastPrimaryEdge != NULL) {
-            getRouting()->updatePassTime(lastPrimaryEdge, curEdge,
-                    simTime().dbl() - enterLastPrimaryEdge, simTime().dbl(),
-                    carInfo);
-        }
-        enterLastPrimaryEdge = simTime().dbl();
-    }
+//    if (!curEdge->isInternal) {
+//        if (lastPrimaryEdge != NULL) {
+//            getRouting()->updatePassTime(lastPrimaryEdge, curEdge,
+//                    simTime().dbl() - enterLastPrimaryEdge, simTime().dbl(),
+//                    carInfo);
+//        }
+//        enterLastPrimaryEdge = simTime().dbl();
+//    }
 }
 
 void SMTMobility::processWhenInitializingRoad() {
