@@ -323,16 +323,16 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
             if (itWL->second->occupation > WeightLane::limitStart
                     && itWL->second->occupation / itWL->second->occStep
                             > 5 * 20) {
-                if (itWL->second->occupaChangeFlag) {
-                    itWL->second->occupaChangeFlag = false;
-                    std::cout << "occupation from " << from->edge->id << " to "
-                            << to->edge->id << " is "
-                            << itWL->second->occupation << std::endl;
-                }
                 if (itWL->second->occupation < WeightLane::limitFix) {
                     deltaW = deltaW
                             / (WeightLane::limitCap - itWL->second->occupation);
                 } else {
+                    if (itWL->second->occupaChangeFlag) {
+                        itWL->second->occupaChangeFlag = false;
+                        std::cout << "occupation from " << from->edge->id
+                                << " to " << to->edge->id << " is "
+                                << itWL->second->occupation << std::endl;
+                    }
                     deltaW = deltaW * 10000;
                 }
             }
