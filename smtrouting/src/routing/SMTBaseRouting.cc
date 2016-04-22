@@ -288,16 +288,20 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         // FIXME since w2NextMap is initialized in initialize()
         // the cost fix function needs change here
         itWL = from->w2NextMap.find(to->edge);
-        if (itWL != from->w2NextMap.end()) {
-            if (itWL->second->cost > 0) {
-                deltaW = itWL->second->cost;
-            } else {
-                deltaW = (from->edge->length()
-                        + from->edge->viaVecMap[to->edge][0]->getViaLength())
-                        / carInfo->maxSpeed;
-            }
+        // since w2NextMap is initialized in initialize()
+        // itWL will never equal to from->w2NextMap.end()
+        ASSERT2(itWL != from->w2NextMap.end(),
+                "w2NextMap initialized abnormally");
+        if (itWL->second->cost > 0) {
+            deltaW = itWL->second->cost;
         } else {
-            error("w2NextMap initialized abnormally");
+            deltaW = (from->edge->length()
+                    + from->edge->viaVecMap[to->edge][0]->getViaLength())
+                    / carInfo->maxSpeed;
+        }
+        // fix deltaW by occupation if occupation is bigger than half
+        if (itWL->second->occupation > 0.5) {
+            deltaW = deltaW / (1 - itWL->second->occupation);
         }
         if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
