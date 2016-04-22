@@ -2,6 +2,7 @@
 /src/Makefile
 /src/smtrouting
 /simulations/results/
+/simulations/.tkenvrc
 *.exe
 Makefile
 Makefile.vc
