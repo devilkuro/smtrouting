@@ -141,7 +141,7 @@ void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
     switch (car->type) {
     case SMTCarInfo::SMTCARINFO_ROUTETYPE_OD:
         if (!getComIf()->addVehicle(car->id, car->vtype, car->origin, -1, -4,
-                0, 1)) {
+                0, 0)) {
             if (debug) {
                 cout << "add car failed: car id: " << car->id << ", road: "
                         << car->origin << ", @" << car->time << endl;
