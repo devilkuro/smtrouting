@@ -315,14 +315,14 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                     / carInfo->maxSpeed;
         }
         // fix deltaW by occupation if occupation is bigger than half
-        if (itWL->second->occupation > 0.5) {
+        if (itWL->second->occupation > 0.4) {
             std::cout << "occupation from " << from->edge->id << " to "
                     << to->edge->id << " is " << itWL->second->occupation
                     << std::endl;
-            if (itWL->second->occupation < 0.99) {
-                deltaW = deltaW / (1 - itWL->second->occupation);
+            if (itWL->second->occupation < 0.79) {
+                deltaW = deltaW / (0.8 - itWL->second->occupation);
             } else {
-                deltaW = deltaW * 100;
+                deltaW = deltaW * 10000;
             }
         }
         if (deltaW < 0) {
