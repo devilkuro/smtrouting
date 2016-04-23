@@ -26,6 +26,7 @@ simple SMTCarManager
         @labels("SMTCarManager");
 
         bool debug = default(false);
+        bool generatorCarFlowFile = default(false);
         bool endAfterGenerateCarFlowFile = default(true);
         string carPrefix = default("car");
         string XMLPrefix = default("smt");
