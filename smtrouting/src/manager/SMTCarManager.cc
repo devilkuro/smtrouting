@@ -103,10 +103,10 @@ void SMTCarManager::generateCarFlowFile(const string& path) {
     double curTime = 0;
     double remain = 0;
     int n = getGenCarNumAtTime(curTime, remain);
-    int intpart;
+    double intpart;
     while (n >= 0) {
-        std::modf(curTime, intpart);
-        if (intpart % 120 == 0) {
+        std::modf(curTime, &intpart);
+        if (((int) intpart) % 120 == 0) {
             std::cout << "@" << intpart << "s, generated car number:"
                     << genPar.lastVechileIndex << std::endl;
         }

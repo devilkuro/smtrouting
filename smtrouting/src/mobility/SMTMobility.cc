@@ -262,7 +262,7 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                         hasSuppressEdge = getRouting()->suppressEdge(curEdge,
                                 pos);
                         // FIXME make slow down configurable
-                        cmdSpeedDown(carInfo->maxSpeed / 5);
+                        cmdSpeedDown(0.1);
                     }
                 }
             } else {

@@ -203,9 +203,9 @@ list<string> CarFlowXMLHelper::getAllCars() {
     return idList;
 }
 
-void CarFlowXMLHelper::clear(bool save) {
+void CarFlowXMLHelper::clear(bool saveXML) {
     initXML();
-    if (save) {
+    if (saveXML) {
         this->save();
         loadXML(carXMLPath);
     }
@@ -228,8 +228,8 @@ SMTCarInfo* CarFlowXMLHelper::getCar(string id) {
     return getCar(e);
 }
 
-void CarFlowXMLHelper::finish(bool save) {
-    if (save && notSaved) {
+void CarFlowXMLHelper::finish(bool saveXML) {
+    if (saveXML && notSaved) {
         save();
     }
     if (doc) {
