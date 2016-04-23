@@ -37,8 +37,9 @@ public:
     SMTMobility() :
             carInfo(NULL), origin(NULL), destination(
             NULL), hasRouted(false), hasInitialized(false), arrivedMsg(
-            NULL), beSuppressed(false), hasSuppressEdge(false), checkSuppressInterval(
-                    10), checkSuppressedEdgesMsg(NULL), lastEdge(0), curEdge(
+            NULL), beSuppressed(false), hasSuppressEdge(false), isSlowDown(
+                    false), checkSuppressInterval(10), checkSuppressedEdgesMsg(
+                    NULL), lastEdge(0), curEdge(
             NULL), lastPrimaryEdge(NULL), nextPrimaryEdge(NULL), laneChangeMsg(
                     0), laneChangeDuration(5), preferredLaneIndex(0), isChangeAndHold(
                     false), smtMap(0), _pCarManager(
@@ -95,6 +96,7 @@ protected:
 
     bool beSuppressed;  // 是否被其他车辆压制
     bool hasSuppressEdge;   // 是否压制其他车辆
+    bool isSlowDown;
     double checkSuppressInterval;   // 压制状态判定间隔
     cMessage* checkSuppressedEdgesMsg;
 
@@ -140,7 +142,8 @@ protected:
     double cmdGetLanePosition();
     void cmdVehicleArrived();
     void cmdBrake();
-    void cmdSpeedUp();
+    void cmdSpeedDown(double speed = 0);
+    void cmdSpeedUp(double speed = -1);
 private:
     SMTMap* smtMap;
     SMTCarManager* _pCarManager;

@@ -228,15 +228,18 @@ SMTCarInfo* CarFlowXMLHelper::getCar(string id) {
     return getCar(e);
 }
 
-void CarFlowXMLHelper::finish() {
-    if (notSaved) {
+void CarFlowXMLHelper::finish(bool save) {
+    if (save && notSaved) {
         save();
     }
     if (doc) {
         doc->Clear();
         doc = NULL;
         root = NULL;
+        curCarElement = NULL;
     }
+    carXMLPath = "";
+    notSaved = false;
 }
 
 void CarFlowXMLHelper::setPrecisionOfTime(int precision) {
@@ -334,8 +337,8 @@ SMTCarInfo* CarFlowXMLHelper::getFirstCar() {
 
 void CarFlowXMLHelper::setCurrentCar(string id) {
     curCarElement = seekCarByAttribute("id", id);
-    if(curCarElement==NULL){
-        cout<<"cannot set current car to "<< id << endl;
+    if (curCarElement == NULL) {
+        cout << "cannot set current car to " << id << endl;
     }
 }
 

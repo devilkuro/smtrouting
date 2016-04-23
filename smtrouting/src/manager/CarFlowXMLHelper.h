@@ -22,7 +22,6 @@
 #include "SMTCarInfo.h"
 #include "StringHelper.h"
 
-
 using namespace std;
 using namespace tinyxml2;
 
@@ -31,9 +30,10 @@ public:
     CarFlowXMLHelper();
     virtual ~CarFlowXMLHelper();
 
-    bool addODCar(string id, string origin, string destination, double departTime,
+    bool addODCar(string id, string origin, string destination,
+            double departTime, string vtype);
+    bool addLoopCar(string id, list<string> loop, double departTime,
             string vtype);
-    bool addLoopCar(string id, list<string> loop, double departTime, string vtype);
 
     list<string> getAllCars();
     SMTCarInfo* getCar(string id);
@@ -59,6 +59,7 @@ public:
     // path should have '.xml' as suffix
     int loadXML(const string &path);
     void clear(bool save = false);
+    void finish(bool save = false);
     // path should have '.xml' as suffix
     void save(string path = "");
 
@@ -77,7 +78,6 @@ protected:
 
     XMLElement* seekCarByAttribute(string name, string value);
     list<string> splitStringToWordsList(string str);
-    void finish();
 
     // xml related functions
     SMTCarInfo* getCar(XMLElement* e);

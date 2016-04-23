@@ -61,7 +61,7 @@ void SMTCarManager::initialize(int stage) {
         mapPar.maxInnerIndex = getMap()->innerPrimaryEdges.size();
         mapPar.maxEnterIndex = getMap()->enterPrimaryEdges.size();
         mapPar.maxOutIndex = getMap()->outPrimaryEdges.size();
-        if(par("generatorCarFlowFile").boolValue()){
+        if (par("generatorCarFlowFile").boolValue()) {
             generateCarFlowFile(carFlowXMLFileName);
         }
         loadCarFlowFile(carFlowXMLFileName);
@@ -103,14 +103,22 @@ void SMTCarManager::generateCarFlowFile(const string& path) {
     double curTime = 0;
     double remain = 0;
     int n = getGenCarNumAtTime(curTime, remain);
+    int intpart;
     while (n >= 0) {
+        std::modf(curTime, intpart);
+        if (intpart % 120 == 0) {
+            std::cout << "@" << intpart << "s, generated car number:"
+                    << genPar.lastVechileIndex << std::endl;
+        }
         addRandomInnerVehicleIntoXML(curTime, n);
         curTime += genPar.generateInterval;
         n = getGenCarNumAtTime(curTime, remain);
     }
     carFlowHelper.save(path);
+    carFlowHelper.finish();
     if (endAfterGenerateCarFlowFile) {
-        endSimulation();
+        endMsg = new cMessage("end the simulation");
+        scheduleAt(simTime(), endMsg);
     }
 }
 
@@ -127,7 +135,11 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
     SMTCarInfo* car = carFlowHelper.getFirstCar();
     if (car == NULL) {
         generateCarFlowFile(xmlpath);
+        if (endAfterGenerateCarFlowFile) {
+            return;
+        }
         carFlowHelper.loadXML(xmlpath);
+        car = carFlowHelper.getFirstCar();
     }
     while (car != NULL) {
         if (carMapByID.find(car->id) == carMapByID.end()) {

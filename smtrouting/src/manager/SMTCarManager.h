@@ -60,8 +60,9 @@ public:
     };
 public:
     SMTCarManager() :
-            debug(false), endAfterGenerateCarFlowFile(false), genSetpMsg(NULL), _pMap(
-                    NULL), _pComIf(
+            debug(false), endAfterGenerateCarFlowFile(false), genSetpMsg(NULL), endMsg(
+                    NULL), _pMap(
+            NULL), _pComIf(
             NULL) {
     }
     virtual ~SMTCarManager();
@@ -87,6 +88,7 @@ protected:
     vector<SMTCarInfo*> carInfoVec;
     GeneratorParameter genPar;
     cMessage* genSetpMsg;
+    cMessage* endMsg;
 
     // use for get random edge
     MapParameter mapPar;
