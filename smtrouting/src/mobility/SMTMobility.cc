@@ -98,6 +98,12 @@ void SMTMobility::nextPosition(const Coord& position, std::string road_id,
                 lastPrimaryEdge = lastEdge;
             }
         }
+
+        if (smtStat.enterEdgeTime > 0) {
+            smtStat.enterLastEdgeTime = smtStat.enterEdgeTime;
+        }
+        smtStat.enterEdgeTime = simTime().dbl();
+
         curEdge = getMap()->getSMTEdgeById(road_id);
         // when road changed
         processWhenChangeRoad();
@@ -155,10 +161,9 @@ void SMTMobility::processWhenChangeRoad() {
         scheduleAt(simTime() + 1, arrivedMsg);
         // change to lane -1 means car arriving
         getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, simTime().dbl(),
-                carInfo);
+                carInfo, simTime().dbl() - smtStat.outPrimaryEdgeTime);
     } else {
         if (!curEdge->isInternal) {
-            // TODO 进行Lane控制算法
             while ((*carRoute.begin()) != curEdge) {
                 std::cout << "redundant edges in route : "
                         << carRoute.front()->id << std::endl;
@@ -177,19 +182,17 @@ void SMTMobility::processWhenChangeRoad() {
             }
             // change road in routing system
             getRouting()->changeRoad(lastPrimaryEdge, curEdge,
-                    preferredLaneIndex, simTime().dbl(), carInfo);
+                    preferredLaneIndex, simTime().dbl(), carInfo,
+                    simTime().dbl() - smtStat.outPrimaryEdgeTime);
+        } else {
+            // enter internal edge
+            ASSERT2(lastEdge!=NULL,
+                    "last edge must be primary edge if current edge is internal");
+            if (!lastEdge->isInternal) {
+                smtStat.outPrimaryEdgeTime = simTime().dbl();
+            }
         }
     }
-    // update pass time to routing system
-    // FIXME try to move this function into routing class by changeRoad()
-//    if (!curEdge->isInternal) {
-//        if (lastPrimaryEdge != NULL) {
-//            getRouting()->updatePassTime(lastPrimaryEdge, curEdge,
-//                    simTime().dbl() - enterLastPrimaryEdge, simTime().dbl(),
-//                    carInfo);
-//        }
-//        enterLastPrimaryEdge = simTime().dbl();
-//    }
 }
 
 void SMTMobility::processWhenInitializingRoad() {
@@ -294,7 +297,6 @@ void SMTMobility::cmdVehicleArrived() {
 
 void SMTMobility::cmdBrake() {
     getComIf()->setSpeed(getExternalId(), 0);
-
 }
 
 void SMTMobility::checkSuppressState() {

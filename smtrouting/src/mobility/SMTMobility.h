@@ -26,19 +26,13 @@ public:
     class SMTStat {
     public:
         SMTStat() :
-                lastDroveAt(0), enterEdgeTime(0), enterQueueTime(0), outQueueTime(
-                        0), outEdgeTime(0), enterNextEdgeTime(0) {
-
+                enterEdgeTime(-1), enterLastEdgeTime(-1), outPrimaryEdgeTime(-1) {
         }
 
         // 统计相关
-        double lastDroveAt; // 用于记录上一次停车的时间
-        double lastStopAt;
         double enterEdgeTime; // 进入edge时间
-        double enterQueueTime;    // 进入队列区时间
-        double outQueueTime;  // 启动准备离开队列区
-        double outEdgeTime;   // 离开edge时间
-        double enterNextEdgeTime; // 进入下一条edge时间
+        double enterLastEdgeTime;   // 进入上一条edge的时间
+        double outPrimaryEdgeTime;  // 离开上一条primary道路的时间
     };
     SMTMobility() :
             carInfo(NULL), origin(NULL), destination(

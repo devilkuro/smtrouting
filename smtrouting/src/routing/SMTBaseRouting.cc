@@ -36,6 +36,7 @@ int SMTBaseRouting::numInitStages() const {
 void SMTBaseRouting::initialize(int stage) {
     if (stage == 0) {
         suppressLength = par("suppressLength").doubleValue();
+        debug = par("debug").boolValue();
     }
     if (stage == 1) {
         // needs to init weightEdgeMap here
@@ -52,6 +53,9 @@ void SMTBaseRouting::initialize(int stage) {
                     it->first->viaVecMap.begin();
                     vIt != it->first->viaVecMap.end(); ++vIt) {
                 WeightLane* wLane = new WeightLane();
+                // initialize via length
+                // FIXME may need support multiple link
+                wLane->viaLen = vIt->second[0]->getViaLength();
                 // initialize occupation and occStep information
                 wLane->occStep = 1 / it->first->length();
                 wLane->to = weightEdgeMap[vIt->first];
@@ -64,10 +68,44 @@ void SMTBaseRouting::initialize(int stage) {
                 }
             }
         }
+        if (debug) {
+            debugMsg = new cMessage();
+            scheduleAt(simTime() + 120, debugMsg);
+        }
     }
 }
 
 void SMTBaseRouting::handleMessage(cMessage* msg) {
+    if (msg == debugMsg) {
+        if (debug) {
+            scheduleAt(simTime() + 120, debugMsg);
+            for (map<SMTEdge*, WeightEdge*>::iterator itWE =
+                    weightEdgeMap.begin(); itWE != weightEdgeMap.end();
+                    ++itWE) {
+                for (map<SMTEdge*, WeightLane*>::iterator itWL =
+                        itWE->second->w2NextMap.begin();
+                        itWL != itWE->second->w2NextMap.end(); ++itWL) {
+                    if (itWL->second->statistic.passedCarNum > 0) {
+                        std::cout << "via from edge " << itWE->first->id
+                                << " to " << itWL->first->id << std::endl;
+                        std::cout << "Avg speed: "
+                                << itWL->second->viaLen
+                                        * itWL->second->statistic.passedCarNum
+                                        / itWL->second->statistic.totalPassTime
+                                << ", Max Speed: "
+                                << itWL->second->viaLen
+                                        / itWL->second->statistic.minPassTime
+                                << ", Min Speed: "
+                                << itWL->second->viaLen
+                                        / itWL->second->statistic.maxPassTime
+                                << ", car number: "
+                                << itWL->second->statistic.passedCarNum
+                                << std::endl;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void SMTBaseRouting::finish() {
@@ -213,14 +251,6 @@ double SMTBaseRouting::getSmallerOne(double a, double b) {
     }
 }
 
-//@Removed function
-void SMTBaseRouting::updatePassTime(SMTEdge* from, SMTEdge* to, double w,
-        double curTime, SMTCarInfo* car) {
-    // FIXME removed function
-//    WeightEdge* wEdge = weightEdgeMap[from];
-//    wEdge->w2NextMap[to]->recentCost = w;
-}
-
 void SMTBaseRouting::getFastestRoute(SMTEdge* origin, SMTEdge* destination,
         list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
     // 最短路径使用迪杰斯特拉算法
@@ -240,6 +270,16 @@ void SMTBaseRouting::getAIRRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
+void SMTBaseRouting::getCOOPRoute(SMTEdge* origin, SMTEdge* destination,
+        list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
+    routeType = SMT_RT_CORP;
+    startTime = time;
+    carInfo = car;
+    rou.clear();
+    runDijkstraAlgorithm(origin, destination, rou);
+
+}
+
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
@@ -250,7 +290,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
 }
 
 void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
-        double time, SMTCarInfo* car) {
+        double time, SMTCarInfo* car, double viaTime) {
     // update pass time and remove car from weightEdge 'from'
     if (from != NULL) {
         map<SMTEdge*, WeightEdge*>::iterator itFromEdge = weightEdgeMap.find(
@@ -258,6 +298,9 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
         map<SMTEdge*, WeightLane*>::iterator itFromLane =
                 itFromEdge->second->w2NextMap.find(to);
         itFromLane->second->removeCar(car, time);
+        if (viaTime > 0) {
+            itFromLane->second->carPassVia(viaTime);
+        }
     }
     // add car into weightEdge 'to'
     if (toLane != -1) {
@@ -344,13 +387,14 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         }
         changeDijkstraWeight(from, to, deltaW + from->w);
         break;
+    case SMT_RT_AIR:
+        break;
     case SMT_RT_CORP:
         // TODO add cooperative route plan method
         break;
     default:
         break;
     }
-
     return deltaW;
 }
 
@@ -446,4 +490,15 @@ SMTBaseRouting::WeightEdge::~WeightEdge() {
             it != w2NextMap.end(); ++it) {
         delete it->second;
     }
+}
+
+void SMTBaseRouting::WeightLane::carPassVia(double time) {
+    if (statistic.maxPassTime < time) {
+        statistic.maxPassTime = time;
+    }
+    if (statistic.minPassTime > time || statistic.minPassTime < 0) {
+        statistic.minPassTime = time;
+    }
+    ++statistic.passedCarNum;
+    statistic.totalPassTime += time;
 }

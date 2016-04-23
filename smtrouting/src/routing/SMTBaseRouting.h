@@ -43,12 +43,27 @@ public:
             SMTCarInfo* car;
             double cost;
         };
+        class laneState {
+        public:
+            laneState() :
+                    minPassTime(-1), maxPassTime(-1), totalPassTime(0), passedCarNum(
+                            0) {
+
+            }
+            double minPassTime;
+            double maxPassTime;
+            double totalPassTime;
+            int passedCarNum;
+        };
         WeightLane() :
-                occupation(0), occStep(0), occupaChangeFlag(false), to(NULL), recentCost(
-                        -1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
+                viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(false), to(
+                NULL), recentCost(-1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
                         false), totalRecentCost(0) {
         }
+
         virtual ~WeightLane();
+        laneState statistic;
+        double viaLen;
         double occupation;
         double occStep;
         bool occupaChangeFlag;
@@ -63,6 +78,7 @@ public:
         virtual double getCost(double time);
         virtual void carGetOut(SMTCarInfo* car, const double &t,
                 const double &cost);
+        virtual void carPassVia(double time);
         void insertCar(SMTCarInfo* car, double t);
         void removeCar(SMTCarInfo* car, double t);
     protected:
@@ -100,8 +116,8 @@ public:
     };
 public:
     SMTBaseRouting() :
-            suppressLength(40), startTime(-1), carInfo(NULL), routeType(
-                    SMT_RT_FAST), _pMap(NULL) {
+            suppressLength(40), debug(false), debugMsg(NULL), startTime(-1), carInfo(
+                    NULL), routeType(SMT_RT_FAST), _pMap(NULL) {
     }
     virtual ~SMTBaseRouting();
 
@@ -110,15 +126,16 @@ public:
     // routing functions
     // TODO 添加基本的寻路方法
     virtual void changeRoad(SMTEdge* from, SMTEdge* to, int toLane, double time,
-            SMTCarInfo* car);
+            SMTCarInfo* car, double viaTime = -1);
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getFastestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getAIRRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual void updatePassTime(SMTEdge* from, SMTEdge* to, double w,
-            double curTime = -1, SMTCarInfo* car = NULL);
+    virtual void getCOOPRoute(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+
     // try to change to corrected lane by suppress cars prevent this car
     virtual bool suppressEdge(SMTEdge* edge, double pos = -1);
     virtual void releaseEdge(SMTEdge* edge);
@@ -132,6 +149,9 @@ protected:
     multimap<double, WeightEdge*> processMap;
     map<SMTEdge*, double> suppressedEdges;
     double suppressLength;
+
+    bool debug;
+    cMessage* debugMsg;
 
     double startTime;
     SMTCarInfo* carInfo;

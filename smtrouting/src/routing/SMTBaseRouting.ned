@@ -21,9 +21,10 @@ package smt.routing;
 simple SMTBaseRouting
 {
     parameters:
-	    @class(SMTBaseRouting);
+        @class(SMTBaseRouting);
         @display("i=block/network2");
         @labels("SMTBaseRouting");
-        
-        double suppressLength@unit(m) = default(20m);
+
+        double suppressLength @unit(m) = default(20m);
+        bool debug = default(false);
 }
