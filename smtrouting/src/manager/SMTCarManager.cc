@@ -110,6 +110,7 @@ void SMTCarManager::generateCarFlowFile(const string& path) {
     unsigned int intpart;
     while (nInner >= 0 || nCross >= 0) {
         // add inner vehicle
+        ++intpart;
         if (intpart % 120 == 0) {
             std::cout << "@" << curTime << "s, generated inner car number:"
                     << genPar.lastVechileIndex << std::endl;

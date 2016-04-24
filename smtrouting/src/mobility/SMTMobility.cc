@@ -164,7 +164,8 @@ void SMTMobility::processWhenChangeRoad() {
         scheduleAt(simTime() + 1, arrivedMsg);
         // change to lane -1 means car arriving
         getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, simTime().dbl(),
-                carInfo, simTime().dbl() - smtStat.outPrimaryEdgeTime);
+                carInfo, simTime().dbl() - smtStat.outPrimaryEdgeTime,
+                smtStat.enterPrimaryEdgeTime - smtStat.outPrimaryEdgeTime);
     } else {
         if (!curEdge->isInternal) {
             while ((*carRoute.begin()) != curEdge) {
@@ -186,11 +187,13 @@ void SMTMobility::processWhenChangeRoad() {
             // change road in routing system
             getRouting()->changeRoad(lastPrimaryEdge, curEdge,
                     preferredLaneIndex, simTime().dbl(), carInfo,
-                    simTime().dbl() - smtStat.outPrimaryEdgeTime);
+                    simTime().dbl() - smtStat.outPrimaryEdgeTime,
+                    smtStat.enterPrimaryEdgeTime - smtStat.outPrimaryEdgeTime);
+            smtStat.enterPrimaryEdgeTime = simTime().dbl();
         } else {
             // enter internal edge
             ASSERT2(lastEdge!=NULL,
-                    "last edge must be primary edge if current edge is internal");
+                    "last edge must not be NULL if current edge is internal");
             if (!lastEdge->isInternal) {
                 smtStat.outPrimaryEdgeTime = simTime().dbl();
             }
@@ -202,6 +205,7 @@ void SMTMobility::processWhenInitializingRoad() {
     // 车辆首次出现在地图上时执行
     checkSuppressedEdgesMsg = new cMessage();
     scheduleAt(simTime() + checkSuppressInterval, checkSuppressedEdgesMsg);
+    smtStat.enterPrimaryEdgeTime = carInfo->time;
 }
 
 void SMTMobility::processWhenNextPosition() {

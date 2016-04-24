@@ -99,6 +99,9 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
                                 << ", Min Speed: "
                                 << itWL->second->viaLen
                                         / itWL->second->statistic.maxViaPassTime
+                                << ", Min Lane Speed"
+                                << itWL->second->viaLen
+                                        / itWL->second->statistic.minLanePassTime
                                 << ", car number: "
                                 << itWL->second->statistic.passedCarNum
                                 << std::endl;
@@ -291,7 +294,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
 }
 
 void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
-        double time, SMTCarInfo* car, double viaTime) {
+        double time, SMTCarInfo* car, double viaTime, double laneTime) {
     // update pass time and remove car from weightEdge 'from'
     if (from != NULL) {
         map<SMTEdge*, WeightEdge*>::iterator itFromEdge = weightEdgeMap.find(
@@ -301,7 +304,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
         itFromLane->second->removeCar(car, time);
         if (viaTime > 0) {
             itFromLane->second->carPassVia(viaTime);
-            itFromLane->second->carPassLane(0);
+            itFromLane->second->carPassLane(laneTime);
         }
     }
     // add car into weightEdge 'to'
@@ -433,6 +436,13 @@ double SMTBaseRouting::WeightLane::getCost(double time) {
 }
 
 void SMTBaseRouting::WeightLane::carPassLane(double time) {
+    if (statistic.maxLanePassTime < time) {
+        statistic.maxLanePassTime = time;
+    }
+    if (statistic.minLanePassTime > time || statistic.minLanePassTime < 0) {
+        statistic.minLanePassTime = time;
+    }
+    statistic.totalLanePassTime += time;
 }
 
 void SMTBaseRouting::WeightLane::updateCost(double time) {

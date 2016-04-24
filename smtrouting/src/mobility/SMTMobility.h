@@ -26,12 +26,13 @@ public:
     class SMTStat {
     public:
         SMTStat() :
-                enterEdgeTime(-1), enterLastEdgeTime(-1), outPrimaryEdgeTime(-1) {
+                enterEdgeTime(-1), enterLastEdgeTime(-1), enterPrimaryEdgeTime(
+                        -1), outPrimaryEdgeTime(-1) {
         }
-
         // 统计相关
         double enterEdgeTime; // 进入edge时间
         double enterLastEdgeTime;   // 进入上一条edge的时间
+        double enterPrimaryEdgeTime;
         double outPrimaryEdgeTime;  // 离开上一条primary道路的时间
     };
     SMTMobility() :
@@ -39,7 +40,7 @@ public:
             NULL), hasRouted(false), hasInitialized(false), arrivedMsg(
             NULL), beSuppressed(false), hasSuppressEdge(false), isSlowDown(
                     false), checkSuppressInterval(10), checkSuppressedEdgesMsg(
-                    NULL), lastEdge(0), curEdge(
+            NULL), lastEdge(0), curEdge(
             NULL), lastPrimaryEdge(NULL), nextPrimaryEdge(NULL), laneChangeMsg(
                     0), laneChangeDuration(5), preferredLaneIndex(0), isChangeAndHold(
                     false), smtMap(0), _pCarManager(
@@ -105,7 +106,7 @@ protected:
     SMTEdge* lastEdge;  // 记录上一条道路对应Edge
     SMTEdge* curEdge;   // 记录当前道路对应Edge
     SMTEdge* lastPrimaryEdge;
-//    double enterLastPrimaryEdge;
+    // double enterLastPrimaryEdge;
     SMTEdge* nextPrimaryEdge;
     cMessage* laneChangeMsg;  // 用于保持车道的消息
     double laneChangeDuration;

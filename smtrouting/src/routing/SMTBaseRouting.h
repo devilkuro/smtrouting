@@ -132,7 +132,7 @@ public:
     // routing functions
     // TODO 添加基本的寻路方法
     virtual void changeRoad(SMTEdge* from, SMTEdge* to, int toLane, double time,
-            SMTCarInfo* car, double viaTime = -1);
+            SMTCarInfo* car, double viaTime = -1, double laneTime = -1);
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getFastestRoute(SMTEdge* origin, SMTEdge* destination,
