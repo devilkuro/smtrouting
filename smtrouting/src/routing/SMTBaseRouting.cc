@@ -55,6 +55,7 @@ void SMTBaseRouting::initialize(int stage) {
                 WeightLane* wLane = new WeightLane();
                 // initialize via length
                 // FIXME may need support multiple link
+                wLane->via = vIt->second[0];
                 wLane->viaLen = vIt->second[0]->getViaLength();
                 // initialize occupation and occStep information
                 wLane->occStep = 1 / it->first->length();
@@ -91,13 +92,13 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
                         std::cout << "Avg speed: "
                                 << itWL->second->viaLen
                                         * itWL->second->statistic.passedCarNum
-                                        / itWL->second->statistic.totalPassTime
+                                        / itWL->second->statistic.totalViaPassTime
                                 << ", Max Speed: "
                                 << itWL->second->viaLen
-                                        / itWL->second->statistic.minPassTime
+                                        / itWL->second->statistic.minViaPassTime
                                 << ", Min Speed: "
                                 << itWL->second->viaLen
-                                        / itWL->second->statistic.maxPassTime
+                                        / itWL->second->statistic.maxViaPassTime
                                 << ", car number: "
                                 << itWL->second->statistic.passedCarNum
                                 << std::endl;
@@ -300,6 +301,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
         itFromLane->second->removeCar(car, time);
         if (viaTime > 0) {
             itFromLane->second->carPassVia(viaTime);
+            itFromLane->second->carPassLane(0);
         }
     }
     // add car into weightEdge 'to'
@@ -430,6 +432,9 @@ double SMTBaseRouting::WeightLane::getCost(double time) {
     return recentCost;
 }
 
+void SMTBaseRouting::WeightLane::carPassLane(double time) {
+}
+
 void SMTBaseRouting::WeightLane::updateCost(double time) {
     // update outed car map when new car out or time pass
     if (time > recentCostLastupdateTime || recentCostRefreshFlag) {
@@ -493,12 +498,12 @@ SMTBaseRouting::WeightEdge::~WeightEdge() {
 }
 
 void SMTBaseRouting::WeightLane::carPassVia(double time) {
-    if (statistic.maxPassTime < time) {
-        statistic.maxPassTime = time;
+    if (statistic.maxViaPassTime < time) {
+        statistic.maxViaPassTime = time;
     }
-    if (statistic.minPassTime > time || statistic.minPassTime < 0) {
-        statistic.minPassTime = time;
+    if (statistic.minViaPassTime > time || statistic.minViaPassTime < 0) {
+        statistic.minViaPassTime = time;
     }
     ++statistic.passedCarNum;
-    statistic.totalPassTime += time;
+    statistic.totalViaPassTime += time;
 }

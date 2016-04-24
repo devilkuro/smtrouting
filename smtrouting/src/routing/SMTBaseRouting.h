@@ -46,23 +46,28 @@ public:
         class laneState {
         public:
             laneState() :
-                    minPassTime(-1), maxPassTime(-1), totalPassTime(0), passedCarNum(
+                    minViaPassTime(-1), maxViaPassTime(-1), totalViaPassTime(0), passedCarNum(
+                            0), minLanePassTime(-1), maxLanePassTime(-1), totalLanePassTime(
                             0) {
 
             }
-            double minPassTime;
-            double maxPassTime;
-            double totalPassTime;
+            double minViaPassTime;
+            double maxViaPassTime;
+            double totalViaPassTime;
+            double minLanePassTime;
+            double maxLanePassTime;
+            double totalLanePassTime;
             int passedCarNum;
         };
         WeightLane() :
-                viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(false), to(
-                NULL), recentCost(-1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
-                        false), totalRecentCost(0) {
+                via(NULL), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
+                        false), to(NULL), recentCost(-1), recentCostLastupdateTime(
+                        -1), recentCostRefreshFlag(false), totalRecentCost(0) {
         }
 
         virtual ~WeightLane();
         laneState statistic;
+        SMTVia* via;
         double viaLen;
         double occupation;
         double occStep;
@@ -79,6 +84,7 @@ public:
         virtual void carGetOut(SMTCarInfo* car, const double &t,
                 const double &cost);
         virtual void carPassVia(double time);
+        virtual void carPassLane(double time);
         void insertCar(SMTCarInfo* car, double t);
         void removeCar(SMTCarInfo* car, double t);
     protected:
@@ -117,7 +123,7 @@ public:
 public:
     SMTBaseRouting() :
             suppressLength(40), debug(false), debugMsg(NULL), startTime(-1), carInfo(
-                    NULL), routeType(SMT_RT_FAST), _pMap(NULL) {
+            NULL), routeType(SMT_RT_FAST), _pMap(NULL) {
     }
     virtual ~SMTBaseRouting();
 
