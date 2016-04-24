@@ -177,7 +177,7 @@ void SMTMobility::processWhenChangeRoad() {
             if (curEdge->viaVecMap.find(next) != curEdge->viaVecMap.end()) {
                 // FIXME may not always use via 0.
                 preferredLaneIndex = curEdge->viaVecMap[next][0]->fromLane;
-                startChangeLane(preferredLaneIndex, 0.5);
+                startChangeLane(preferredLaneIndex, 2);
             } else {
                 std::cout << "next edges " << carRoute.front()->id
                         << " is unlinked at " << curEdge->id << std::endl;
@@ -268,7 +268,7 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                         hasSuppressEdge = getRouting()->suppressEdge(curEdge,
                                 pos);
                         // FIXME make slow down configurable
-                        cmdSpeedDown(0.1);
+                        cmdSpeedDown(0.1 + 2 * curLaneIndex);
                     }
                 }
             } else {
