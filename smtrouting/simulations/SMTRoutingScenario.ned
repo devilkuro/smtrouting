@@ -31,6 +31,8 @@ network SMTRoutingScenario
         double playgroundSizeY @unit(m); // y size of the area the nodes are in (in meters)
         double playgroundSizeZ @unit(m); // z size of the area the nodes are in (in meters)
         @display("bgb=500,500");
+
+        string routingType = default("SMTBaseRouting");
     submodules:
         obstacles: ObstacleControl {
             @display("p=172,24");
@@ -59,7 +61,7 @@ network SMTRoutingScenario
         carmanager: SMTCarManager {
             @display("p=45,136");
         }
-        routingMethod: SMTBaseRouting {
+        routingMethod: <routingType> like smt.routing.IBaseRouting {
             @display("p=45,194");
         }
     connections allowunconnected:

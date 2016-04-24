@@ -16,7 +16,7 @@
 #ifndef __SMTBASEROUTING_H_
 #define __SMTBASEROUTING_H_
 
-#include <csimplemodule.h>
+#include <omnetpp.h>
 #include "SMTMap.h"
 #include "SMTCarInfo.h"
 #include <set>
@@ -124,10 +124,11 @@ public:
     class RoutingState {
     public:
         RoutingState() :
-                TTS(0) {
+                TTS(0), activeCarNum(0) {
 
         }
         double TTS;
+        unsigned int activeCarNum;
 
     };
 public:

@@ -18,7 +18,7 @@ package smt.routing;
 //
 // TODO auto-generated module
 //
-simple SMTBaseRouting
+simple SMTBaseRouting like IBaseRouting
 {
     parameters:
         @class(SMTBaseRouting);
