@@ -227,7 +227,7 @@ void SMTMobility::startChangeLane(uint8_t laneIndex, double delay) {
 
 void SMTMobility::cmdSetNoOvertake() {
     getComIf()->setLaneChangeMode(external_id,
-            SMTComInterface::LANEMODE_FC_NSG_NDOE_ETBS);
+            SMTComInterface::LANEMODE_FC_NSG_NDOR_ETBS);
     if (debug) {
         std::cout << "car " << external_id << " will not make overtake."
                 << std::endl;
@@ -264,11 +264,15 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                     // slow down and wait to change lane
                     double pos = cmdGetLanePosition();
                     //
-                    if (pos > 20) {
+                    if (pos > 35 && pos > curEdge->length() * 0.2) {
                         hasSuppressEdge = getRouting()->suppressEdge(curEdge,
                                 pos);
                         // FIXME make slow down configurable
-                        cmdSpeedDown(0.1 + 2 * curLaneIndex);
+                        if (hasSuppressEdge) {
+                            cmdSpeedDown(0);
+                        } else {
+                            cmdSpeedDown(1 + 2 * curLaneIndex);
+                        }
                     }
                 }
             } else {
@@ -332,7 +336,7 @@ void SMTMobility::checkSuppressState() {
             speedUpFlag = true;
         } else {
             double lanePos = cmdGetLanePosition();
-            if (lanePos > it->second - 3) {
+            if (lanePos > it->second - 10) {
                 // get out of the suppressed area
                 speedUpFlag = true;
             }
@@ -351,8 +355,8 @@ void SMTMobility::checkSuppressState() {
                 if (it != suppreseedEdgesRef.end()) {
                     double lanePos = cmdGetLanePosition();
                     // FIXME make brake distance configurable
-                    if (lanePos > it->second - 20
-                            && lanePos < it->second - 10) {
+                    if (lanePos > it->second - 30
+                            && lanePos < it->second - 15) {
                         cmdBrake();
                         beSuppressed = true;
                     }

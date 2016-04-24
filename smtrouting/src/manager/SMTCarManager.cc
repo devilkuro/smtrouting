@@ -116,6 +116,8 @@ void SMTCarManager::generateCarFlowFile(const string& path) {
     }
     carFlowHelper.save(path);
     carFlowHelper.finish();
+    std::cout << "generated " << genPar.lastVechileIndex << " cars in "
+            << curTime << " seconds." << std::endl;
     if (endAfterGenerateCarFlowFile) {
         endMsg = new cMessage("end the simulation");
         scheduleAt(simTime(), endMsg);
@@ -141,8 +143,12 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
         carFlowHelper.loadXML(xmlpath);
         car = carFlowHelper.getFirstCar();
     }
+    genPar.lastVechileIndex = 0;
+    double curTime = 0;
     while (car != NULL) {
         if (carMapByID.find(car->id) == carMapByID.end()) {
+            car->index = genPar.lastVechileIndex++;
+            curTime = car->time;
             carMapByID[car->id] = car;
             carMapByTime.insert(std::make_pair(car->time, car));
         } else {
@@ -150,6 +156,8 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
         }
         car = carFlowHelper.getNextCar();
     }
+    std::cout << "load " << genPar.lastVechileIndex << " cars in " << curTime
+            << " seconds." << std::endl;
 }
 
 void SMTCarManager::addOneVehicle(SMTCarInfo* car) {

@@ -13,6 +13,7 @@ XMLDocument* SMTCarInfo::doc = NULL;
 map<string, SMTCarInfo*> SMTCarInfo::defaultVTypeMap;
 SMTCarInfo::SMTCarInfo() {
     id = "";
+    index = 0;
     type = SMTCARINFO_ROUTETYPE_LAST_TYPE;
     origin = "";
     destination = "";

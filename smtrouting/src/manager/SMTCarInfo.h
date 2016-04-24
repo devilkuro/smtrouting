@@ -43,6 +43,7 @@ public:
     string toString();
 public:
     string id;
+    unsigned int index;
     RouteType type;
     string origin;
     string destination;
