@@ -435,10 +435,10 @@ void SMTBaseRouting::WeightLane::updateCost(double time) {
     if (time > recentCostLastupdateTime || recentCostRefreshFlag) {
         // remove invalid outed car
         for (multimap<double, CarTime>::iterator it = recentOutCars.begin();
-                it != recentOutCars.end(); ++it) {
+                it != recentOutCars.end(); it = recentOutCars.begin()) {
             // keep at least three cars
-            if (it->first < time - outCarKeepDuration
-                    && recentOutCars.size() > 3) {
+            if (recentOutCars.size() > 3
+                    && it->first < time - outCarKeepDuration) {
                 totalRecentCost -= it->second.cost;
                 recentOutCars.erase(it);
                 recentCostRefreshFlag = true;

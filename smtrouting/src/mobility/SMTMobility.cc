@@ -240,12 +240,18 @@ void SMTMobility::cmdChangeLane(uint8_t laneIndex, uint32_t duration) {
 
 void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
     if (msg == laneChangeMsg) {
-        uint8_t curLaneIndex = commandGetLaneIndex();
-        uint8_t targetLaneIndex = laneChangeMsg->getKind();
         string msgName = laneChangeMsg->getName();
-        if (msgName == road_id
-                && (isChangeAndHold || curLaneIndex != targetLaneIndex)) {
+        if (getExternalId() == "car1691") {
+            laneChangeMsg = msg;
+        }
+        if (msgName == road_id) {
+            uint8_t curLaneIndex = commandGetLaneIndex();
+            uint8_t targetLaneIndex = laneChangeMsg->getKind();
             // 当道路没有改变时,如果需要保持车道或者车道更换为成功则继续尝试
+            if (isChangeAndHold || curLaneIndex != targetLaneIndex) {
+                scheduleAt(simTime() + laneChangeDuration + updateInterval,
+                        laneChangeMsg);
+            }
             if (curLaneIndex != targetLaneIndex) {
                 // 仅在不在目标车道时进行更改车道的尝试
                 cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
@@ -271,10 +277,9 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                 }
                 if (hasSuppressEdge) {
                     getRouting()->releaseEdge(curEdge);
+                    hasSuppressEdge = false;
                 }
             }
-            scheduleAt(simTime() + laneChangeDuration + updateInterval,
-                    laneChangeMsg);
         } else {
             // 若道路变化,或已成功变道且不需保持车道则不在继续改变车道
             // cancel and delete the message if lane changed successfully.
@@ -311,10 +316,6 @@ void SMTMobility::cmdVehicleArrived() {
     getMap()->getLaunchd()->setVehicleArrived(external_id);
 }
 
-void SMTMobility::cmdBrake() {
-    getComIf()->setSpeed(getExternalId(), 0);
-}
-
 void SMTMobility::checkSuppressState() {
     // 判定退出压制状态
     if (beSuppressed) {
@@ -331,7 +332,7 @@ void SMTMobility::checkSuppressState() {
             speedUpFlag = true;
         } else {
             double lanePos = cmdGetLanePosition();
-            if (lanePos > it->second) {
+            if (lanePos > it->second - 3) {
                 // get out of the suppressed area
                 speedUpFlag = true;
             }
@@ -350,7 +351,8 @@ void SMTMobility::checkSuppressState() {
                 if (it != suppreseedEdgesRef.end()) {
                     double lanePos = cmdGetLanePosition();
                     // FIXME make brake distance configurable
-                    if (lanePos < it->second - 5) {
+                    if (lanePos > it->second - 20
+                            && lanePos < it->second - 10) {
                         cmdBrake();
                         beSuppressed = true;
                     }
@@ -377,4 +379,8 @@ void SMTMobility::cmdSpeedUp(double speed) {
         isSlowDown = false;
     }
     getComIf()->setSpeed(getExternalId(), speed);
+}
+
+void SMTMobility::cmdBrake() {
+    getComIf()->setSpeed(getExternalId(), 0);
 }
