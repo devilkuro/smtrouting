@@ -61,7 +61,7 @@ public:
         };
         WeightLane() :
                 via(NULL), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
-                        false), to(NULL), recentCost(-1), recentCostLastupdateTime(
+                        false), airFix(0), to(NULL), recentCost(-1), recentCostLastupdateTime(
                         -1), recentCostRefreshFlag(false), totalRecentCost(0) {
         }
 
@@ -72,6 +72,7 @@ public:
         double occupation;
         double occStep;
         bool occupaChangeFlag;
+        double airFix;
         static double outCarKeepDuration;
         static double limitStart;
         static double limitCap;
@@ -120,6 +121,15 @@ public:
     enum SMT_ROUTING_TYPE {
         SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
     };
+    class RoutingState {
+    public:
+        RoutingState() :
+                TTS(0) {
+
+        }
+        double TTS;
+
+    };
 public:
     SMTBaseRouting() :
             suppressLength(40), debug(false), debugMsg(NULL), startTime(-1), carInfo(
@@ -162,6 +172,7 @@ protected:
     double startTime;
     SMTCarInfo* carInfo;
     SMT_ROUTING_TYPE routeType;
+    RoutingState rouState;
     // functions
     virtual int numInitStages() const;
     virtual void initialize(int stage);

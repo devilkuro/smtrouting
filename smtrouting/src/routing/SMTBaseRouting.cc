@@ -113,6 +113,33 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
 }
 
 void SMTBaseRouting::finish() {
+    for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
+            itWE != weightEdgeMap.end(); ++itWE) {
+        for (map<SMTEdge*, WeightLane*>::iterator itWL =
+                itWE->second->w2NextMap.begin();
+                itWL != itWE->second->w2NextMap.end(); ++itWL) {
+            if (itWL->second->statistic.passedCarNum > 0) {
+                std::cout << "via from edge " << itWE->first->id << " to "
+                        << itWL->first->id << std::endl;
+                std::cout << "Avg speed: "
+                        << itWL->second->viaLen
+                                * itWL->second->statistic.passedCarNum
+                                / itWL->second->statistic.totalViaPassTime
+                        << ", Max Speed: "
+                        << itWL->second->viaLen
+                                / itWL->second->statistic.minViaPassTime
+                        << ", Min Speed: "
+                        << itWL->second->viaLen
+                                / itWL->second->statistic.maxViaPassTime
+                        << ", Min Lane Speed"
+                        << itWL->second->viaLen
+                                / itWL->second->statistic.minLanePassTime
+                        << ", car number: "
+                        << itWL->second->statistic.passedCarNum << std::endl;
+            }
+        }
+    }
+    std::cout << "TTS:" << rouState.TTS << std::endl;
 }
 
 SMTMap* SMTBaseRouting::getMap() {
@@ -318,6 +345,9 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
         map<SMTEdge*, WeightLane*>::iterator itToLane =
                 itToEdge->second->w2NextMap.find(next);
         itToLane->second->insertCar(car, time);
+    } else {
+        // car reaches destination
+        rouState.TTS += time - carInfo->time;
     }
 }
 
