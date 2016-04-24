@@ -46,8 +46,8 @@ public:
         class laneState {
         public:
             laneState() :
-                    minViaPassTime(-1), maxViaPassTime(-1), totalViaPassTime(0), passedCarNum(
-                            0), minLanePassTime(-1), maxLanePassTime(-1), totalLanePassTime(
+                    minViaPassTime(-1), maxViaPassTime(-1), totalViaPassTime(0), minLanePassTime(
+                            -1), maxLanePassTime(-1), totalLanePassTime(0), passedCarNum(
                             0) {
 
             }

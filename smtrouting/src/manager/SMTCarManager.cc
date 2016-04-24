@@ -52,6 +52,8 @@ void SMTCarManager::initialize(int stage) {
         genPar.decreasePeriod = par("decreasePeriod").doubleValue();
         genPar.sufPeriod = par("sufPeriod").doubleValue();
         genPar.generateInterval = par("generateInterval").doubleValue();
+        genPar.crossRatio = par("crossRatio").doubleValue();
+        genPar.innerRatio = par("innerRatio").doubleValue();
 
         SMTCarInfo::loadVehicleTypeXML(rouXMLFileName);
         carInfoVec = SMTCarInfo::getDefaultVehicleTypeVector();
@@ -101,18 +103,27 @@ SMTComInterface* SMTCarManager::getComIf() {
 void SMTCarManager::generateCarFlowFile(const string& path) {
     // add generating car flow file process
     double curTime = 0;
-    double remain = 0;
-    int n = getGenCarNumAtTime(curTime, remain);
-    double intpart;
-    while (n >= 0) {
-        std::modf(curTime, &intpart);
-        if (((int) intpart) % 120 == 0) {
-            std::cout << "@" << intpart << "s, generated car number:"
+    double remainInner = 0;
+    int nInner = getGenCarNumAtTime(curTime, remainInner, genPar.innerRatio);
+    double remainCross = 0;
+    int nCross = getGenCarNumAtTime(curTime, remainCross, genPar.crossRatio);
+    unsigned int intpart;
+    while (nInner >= 0 || nCross >= 0) {
+        // add inner vehicle
+        if (intpart % 120 == 0) {
+            std::cout << "@" << curTime << "s, generated inner car number:"
                     << genPar.lastVechileIndex << std::endl;
         }
-        addRandomInnerVehicleIntoXML(curTime, n);
+        addRandomInnerVehicleIntoXML(curTime, nInner);
+        if (intpart % 120 == 0) {
+            std::cout << "@" << curTime << "s, generated cross car number:"
+                    << genPar.lastVechileIndex << std::endl;
+        }
+        // add cross vehicle
+        addRandomThroughVehicleIntoXML(curTime, nCross);
         curTime += genPar.generateInterval;
-        n = getGenCarNumAtTime(curTime, remain);
+        nInner = getGenCarNumAtTime(curTime, remainInner, genPar.innerRatio);
+        nCross = getGenCarNumAtTime(curTime, remainCross, genPar.crossRatio);
     }
     carFlowHelper.save(path);
     carFlowHelper.finish();
@@ -184,7 +195,8 @@ void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
     }
 }
 
-int SMTCarManager::getGenCarNumAtTime(double time, double &remain) {
+int SMTCarManager::getGenCarNumAtTime(double time, double &remain,
+        double percent) {
     double result = 0;
     double stageStartTime = 0;
     double douNum = 0;
@@ -192,14 +204,15 @@ int SMTCarManager::getGenCarNumAtTime(double time, double &remain) {
     if (time < stageStartTime + genPar.startTime) {
         douNum = remain
                 + genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        douNum = douNum * percent;
         remain += douNum;
         return (int) result;
     }
     stageStartTime += genPar.startTime;
     // at previous min stage
     if (time < stageStartTime + genPar.prePeriod) {
-        douNum = remain
-                + genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        douNum = genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        douNum = remain + douNum * percent;
         remain = std::modf(douNum, &result);
         return (int) result;
     }
@@ -210,19 +223,18 @@ int SMTCarManager::getGenCarNumAtTime(double time, double &remain) {
         double minL = time - stageStartTime;
         double maxL = genPar.increasePeriod - minL;
         // (minL*max+maxL*min)/(minL+maxL)
-        douNum = remain
-                + (minL * genPar.maxGenNumPerHour
-                        + maxL * genPar.minGenNumPerHour)
-                        / genPar.increasePeriod / 3600
-                        * genPar.generateInterval;
+        douNum = (minL * genPar.maxGenNumPerHour
+                + maxL * genPar.minGenNumPerHour) / genPar.increasePeriod / 3600
+                * genPar.generateInterval;
+        douNum = remain + douNum * percent;
         remain = std::modf(douNum, &result);
         return (int) result;
     }
     stageStartTime += genPar.increasePeriod;
     // at max stage
     if (time < stageStartTime + genPar.maxPeriod) {
-        douNum = remain
-                + genPar.maxGenNumPerHour / 3600 * genPar.generateInterval;
+        douNum = genPar.maxGenNumPerHour / 3600 * genPar.generateInterval;
+        douNum = remain + douNum * percent;
         remain = std::modf(douNum, &result);
         return (int) result;
     }
@@ -232,19 +244,18 @@ int SMTCarManager::getGenCarNumAtTime(double time, double &remain) {
         double maxL = time - stageStartTime;
         double minL = genPar.decreasePeriod - maxL;
         // (minL*max+maxL*min)/(minL+maxL)
-        douNum = remain
-                + (minL * genPar.maxGenNumPerHour
-                        + maxL * genPar.minGenNumPerHour)
-                        / genPar.decreasePeriod / 3600
-                        * genPar.generateInterval;
+        douNum = (minL * genPar.maxGenNumPerHour
+                + maxL * genPar.minGenNumPerHour) / genPar.decreasePeriod / 3600
+                * genPar.generateInterval;
+        douNum = remain + douNum * percent;
         remain = std::modf(douNum, &result);
         return (int) result;
     }
     stageStartTime += genPar.decreasePeriod;
     // at later min stage
     if (time < stageStartTime + genPar.sufPeriod) {
-        douNum = remain
-                + genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        douNum = genPar.minGenNumPerHour / 3600 * genPar.generateInterval;
+        douNum = remain + douNum * percent;
         remain = std::modf(douNum, &result);
         return (int) result;
     }

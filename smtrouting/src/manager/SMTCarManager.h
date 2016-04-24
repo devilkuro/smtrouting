@@ -43,7 +43,8 @@ public:
         GeneratorParameter() :
                 minGenNumPerHour(0), maxGenNumPerHour(0), startTime(0), prePeriod(
                         0), increasePeriod(0), maxPeriod(0), decreasePeriod(0), sufPeriod(
-                        0), generateInterval(0), lastVechileIndex(0) {
+                        0), generateInterval(0), crossRatio(0), innerRatio(1), lastVechileIndex(
+                        0) {
         }
         // _-/'''\-_
         // min-increasePeriod->increase->max-maxPeriod->decrease-decreasePeriod->min
@@ -56,12 +57,14 @@ public:
         double decreasePeriod;
         double sufPeriod;
         double generateInterval;
+        double crossRatio;
+        double innerRatio;
         unsigned int lastVechileIndex;
     };
 public:
     SMTCarManager() :
             debug(false), endAfterGenerateCarFlowFile(false), genSetpMsg(NULL), endMsg(
-                    NULL), _pMap(
+            NULL), _pMap(
             NULL), _pComIf(
             NULL) {
     }
@@ -107,7 +110,7 @@ protected:
     // generating car related
     // get the car number at certain time
     // the fractional part is returned by remain
-    int getGenCarNumAtTime(double time, double &remain);
+    int getGenCarNumAtTime(double time, double &remain, double percent = 1);
     void addRandomInnerVehicleIntoXML(double departTime, unsigned int num);
     void addRandomThroughVehicleIntoXML(double departTime, unsigned int num);
     SMTCarInfo* getRandomCarType();

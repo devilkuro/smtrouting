@@ -42,4 +42,6 @@ simple SMTCarManager
         double decreasePeriod @unit(s) = default(20min);
         double sufPeriod @unit(s) = default(100min);
         double generateInterval @unit(s) = default(1s);
+        double crossRatio = default(0.5);
+        double innerRatio = default(0.5);
 }
