@@ -74,6 +74,8 @@ void SMTCarManager::initialize(int stage) {
 void SMTCarManager::handleMessage(cMessage* msg) {
     if (msg == genSetpMsg) {
         handleGenMessage(msg);
+    } else if (msg == endMsg) {
+        endSimulation();
     } else {
         std::cout << "unknown message@" << simTime().dbl() << std::endl;
     }
