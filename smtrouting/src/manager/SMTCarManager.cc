@@ -64,9 +64,6 @@ void SMTCarManager::initialize(int stage) {
         mapPar.maxInnerIndex = getMap()->innerPrimaryEdges.size();
         mapPar.maxEnterIndex = getMap()->enterPrimaryEdges.size();
         mapPar.maxOutIndex = getMap()->outPrimaryEdges.size();
-        if (genPar.forceGenerate) {
-            generateCarFlowFile(carFlowXMLFileName);
-        }
         loadCarFlowFile(carFlowXMLFileName);
         // start car generating process
         genSetpMsg = new cMessage("generate step msg");
@@ -148,7 +145,7 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
     if (carFlowHelper.loadXML(xmlpath) != 0) {
     }
     SMTCarInfo* car = carFlowHelper.getFirstCar();
-    if (car == NULL) {
+    if (car == NULL || genPar.forceGenerate) {
         generateCarFlowFile(xmlpath);
         if (endAfterGenerateCarFlowFile) {
             return;
