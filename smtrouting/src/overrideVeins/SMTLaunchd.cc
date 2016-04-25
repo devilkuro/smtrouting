@@ -64,3 +64,7 @@ void SMTLaunchd::setVehicleArrived(std::string &nodeId) {
         autoShutdownTriggered = true;
     drivingVehicleCount--;
 }
+
+unsigned int SMTLaunchd::getActiveVehicleCount() {
+    return activeVehicleCount;
+}

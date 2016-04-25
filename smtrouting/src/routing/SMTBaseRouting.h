@@ -20,6 +20,7 @@
 #include "SMTMap.h"
 #include "SMTCarInfo.h"
 #include <set>
+#include "StatisticsRecordTools.h"
 
 using std::list;
 using std::multimap;
@@ -61,8 +62,10 @@ public:
         };
         WeightLane() :
                 via(NULL), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
-                        false), airFix(0), to(NULL), recentCost(-1), recentCostLastupdateTime(
-                        -1), recentCostRefreshFlag(false), totalRecentCost(0) {
+                        false), airSI(0), from(NULL), to(
+                NULL), recentCost(-1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
+                        false), totalRecentCost(0), airCostUpdateFlag(false), airDLastUpdateTime(
+                        0), airD(0) {
         }
 
         virtual ~WeightLane();
@@ -72,11 +75,14 @@ public:
         double occupation;
         double occStep;
         bool occupaChangeFlag;
-        double airFix;
+        double airSI;
+        static double airK;
+        static double airV;
         static double outCarKeepDuration;
         static double limitStart;
         static double limitCap;
         static double limitFix;
+        WeightEdge* from;
         WeightEdge* to; // FIXME may lead to multiple edges
         map<SMTCarInfo*, double> carMap;
         multimap<double, SMTCarInfo*> enterTimeMap;
@@ -88,12 +94,19 @@ public:
         virtual void carPassLane(double time);
         void insertCar(SMTCarInfo* car, double t);
         void removeCar(SMTCarInfo* car, double t);
+        void initMinAllowedCost();
+        void updateAIRsi();
+        virtual double getAIRCost(double time);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
+        double minAllowedCost;
         double recentCostLastupdateTime;
         bool recentCostRefreshFlag;
         double totalRecentCost;
+        bool airCostUpdateFlag;
+        bool airDLastUpdateTime;
+        double airD;
         virtual void updateCost(double time);
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
@@ -134,7 +147,10 @@ public:
 public:
     SMTBaseRouting() :
             suppressLength(40), debug(false), debugMsg(NULL), startTime(-1), carInfo(
-            NULL), routeType(SMT_RT_FAST), _pMap(NULL) {
+            NULL), majorRoutingType(SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), enableAIR(
+                    false), airUpdateMsg(NULL), routeType(SMT_RT_FAST), srt(
+                    NULL), _pMap(
+            NULL) {
     }
     virtual ~SMTBaseRouting();
 
@@ -152,7 +168,10 @@ public:
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getCOOPRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-
+    virtual void getRouteByMajorMethod(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual void getRouteByMinorMethod(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     // try to change to corrected lane by suppress cars prevent this car
     virtual bool suppressEdge(SMTEdge* edge, double pos = -1);
     virtual void releaseEdge(SMTEdge* edge);
@@ -172,14 +191,21 @@ protected:
 
     double startTime;
     SMTCarInfo* carInfo;
+    SMT_ROUTING_TYPE majorRoutingType;
+    SMT_ROUTING_TYPE minorRoutingType;
+    bool enableAIR;
+    cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
     RoutingState rouState;
+    Fanjing::StatisticsRecordTools* srt;
     // functions
     virtual int numInitStages() const;
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
 
+    virtual void printStatisticInfo();
+    virtual void updateAIRInfo();
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &route);
     // independent weight modify function
@@ -187,7 +213,6 @@ protected:
     double getSmallerOne(double a, double b);
     // protected members
     SMTMap* _pMap;
-
 private:
     // dijkstra's algorithm related
     void initDijkstra(SMTEdge* origin);

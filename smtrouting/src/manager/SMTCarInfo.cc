@@ -14,6 +14,7 @@ map<string, SMTCarInfo*> SMTCarInfo::defaultVTypeMap;
 SMTCarInfo::SMTCarInfo() {
     id = "";
     index = 0;
+    isMajorType = false;
     type = SMTCARINFO_ROUTETYPE_LAST_TYPE;
     origin = "";
     destination = "";

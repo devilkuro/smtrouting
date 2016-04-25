@@ -54,6 +54,7 @@ void SMTCarManager::initialize(int stage) {
         genPar.generateInterval = par("generateInterval").doubleValue();
         genPar.crossRatio = par("crossRatio").doubleValue();
         genPar.innerRatio = par("innerRatio").doubleValue();
+        genPar.forceGenerate = par("forceGenerate").boolValue();
 
         SMTCarInfo::loadVehicleTypeXML(rouXMLFileName);
         carInfoVec = SMTCarInfo::getDefaultVehicleTypeVector();
@@ -63,7 +64,7 @@ void SMTCarManager::initialize(int stage) {
         mapPar.maxInnerIndex = getMap()->innerPrimaryEdges.size();
         mapPar.maxEnterIndex = getMap()->enterPrimaryEdges.size();
         mapPar.maxOutIndex = getMap()->outPrimaryEdges.size();
-        if (par("generatorCarFlowFile").boolValue()) {
+        if (genPar.forceGenerate) {
             generateCarFlowFile(carFlowXMLFileName);
         }
         loadCarFlowFile(carFlowXMLFileName);

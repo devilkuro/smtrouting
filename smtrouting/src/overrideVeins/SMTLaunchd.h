@@ -35,6 +35,7 @@ public:
     cXMLElement* getLaunchdConfig();
     SMTComInterface* getSMTComInterface();
     void setVehicleArrived(std::string &nodeId);
+    unsigned int getActiveVehicleCount();
 protected:
     SMTComInterface* smtComIfc;
 };

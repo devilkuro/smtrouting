@@ -44,6 +44,7 @@ public:
 public:
     string id;
     unsigned int index;
+    bool isMajorType;
     RouteType type;
     string origin;
     string destination;

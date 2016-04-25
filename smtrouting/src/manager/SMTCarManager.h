@@ -44,7 +44,7 @@ public:
                 minGenNumPerHour(0), maxGenNumPerHour(0), startTime(0), prePeriod(
                         0), increasePeriod(0), maxPeriod(0), decreasePeriod(0), sufPeriod(
                         0), generateInterval(0), crossRatio(0), innerRatio(1), lastVechileIndex(
-                        0) {
+                        0), forceGenerate(false) {
         }
         // _-/'''\-_
         // min-increasePeriod->increase->max-maxPeriod->decrease-decreasePeriod->min
@@ -60,6 +60,7 @@ public:
         double crossRatio;
         double innerRatio;
         unsigned int lastVechileIndex;
+        bool forceGenerate;
     };
 public:
     SMTCarManager() :

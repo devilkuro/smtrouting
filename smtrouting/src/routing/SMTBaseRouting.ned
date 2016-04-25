@@ -25,6 +25,14 @@ simple SMTBaseRouting like IBaseRouting
         @display("i=block/network2");
         @labels("SMTBaseRouting");
 
-        double suppressLength @unit(m) = default(20m);
         bool debug = default(false);
+        double suppressLength @unit(m) = default(20m);
+        double limitStart = default(0.5);
+        double limitFix = default(0.69);
+        double limitCap = default(0.7);
+        bool recordActiveCarNum = default(false);
+
+		// SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
+        int majorRoutingType = default(1);
+        int minorRoutingType = default(2);
 }

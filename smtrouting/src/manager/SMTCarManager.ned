@@ -26,7 +26,6 @@ simple SMTCarManager
         @labels("SMTCarManager");
 
         bool debug = default(false);
-        bool generatorCarFlowFile = default(false);
         bool endAfterGenerateCarFlowFile = default(true);
         string carPrefix = default("car");
         string XMLPrefix = default("smt");
@@ -44,4 +43,5 @@ simple SMTCarManager
         double generateInterval @unit(s) = default(1s);
         double crossRatio = default(0.5);
         double innerRatio = default(0.5);
+        bool forceGenerate = default(false);
 }
