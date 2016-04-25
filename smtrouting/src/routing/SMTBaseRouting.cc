@@ -50,6 +50,9 @@ void SMTBaseRouting::initialize(int stage) {
             enableAIR = true;
         }
         srt = Fanjing::StatisticsRecordTools::request();
+        rouState.recordActiveCarNum = par("recordActiveCarNum").boolValue();
+        rouState.recordActiveCarInterval =
+                par("recordActiveCarInterval").doubleValue();
     }
     if (stage == 1) {
         // needs to init weightEdgeMap here
@@ -92,6 +95,11 @@ void SMTBaseRouting::initialize(int stage) {
             airUpdateMsg = new cMessage("air update");
             scheduleAt(simTime() + 1.0, airUpdateMsg);
         }
+        if (rouState.recordActiveCarNum) {
+            statisticMsg = new cMessage("statisticMsg)");
+            scheduleAt(simTime() + rouState.recordActiveCarInterval,
+                    statisticMsg);
+        }
     }
 }
 
@@ -103,6 +111,8 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
         }
     } else if (msg == airUpdateMsg) {
         updateAIRInfo();
+    } else if (msg == statisticMsg) {
+        updateStatisticInfo();
     }
 }
 
@@ -356,6 +366,11 @@ void SMTBaseRouting::updateAIRInfo() {
             itWL->second->updateAIRsi();
         }
     }
+}
+
+void SMTBaseRouting::updateStatisticInfo() {
+    srt->changeName("activeCarCount", "time\tcarCount") << simTime().dbl()
+            << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,

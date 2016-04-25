@@ -137,19 +137,20 @@ public:
     class RoutingState {
     public:
         RoutingState() :
-                TTS(0), activeCarNum(0) {
+                TTS(0), recordActiveCarNum(false), recordActiveCarInterval(120) {
 
         }
         double TTS;
-        unsigned int activeCarNum;
-
+        bool recordActiveCarNum;
+        double recordActiveCarInterval;
     };
 public:
     SMTBaseRouting() :
-            suppressLength(40), debug(false), debugMsg(NULL), startTime(-1), carInfo(
+            suppressLength(40), debug(false), debugMsg(NULL), statisticMsg(
+                    NULL), startTime(-1), carInfo(
             NULL), majorRoutingType(SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), enableAIR(
                     false), airUpdateMsg(NULL), routeType(SMT_RT_FAST), srt(
-                    NULL), _pMap(
+            NULL), _pMap(
             NULL) {
     }
     virtual ~SMTBaseRouting();
@@ -188,6 +189,7 @@ protected:
 
     bool debug;
     cMessage* debugMsg;
+    cMessage* statisticMsg;
 
     double startTime;
     SMTCarInfo* carInfo;
@@ -205,6 +207,7 @@ protected:
     virtual void finish();
 
     virtual void printStatisticInfo();
+    virtual void updateStatisticInfo();
     virtual void updateAIRInfo();
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &route);

@@ -33,16 +33,20 @@ typedef std::map<string, StatisticsRecordUnitList*> GlobalStatisticsMap;
 /**
  *
  * usage:
- *  gs.changeName(name)<<value0<<value1<<...<<valueN<<gs.endl;
+ *  gs.changeName(name[,title])<<value0<<value1<<...<<valueN<<gs.endl;
  *  or
- *  gs.changeName(name);
+ *  gs.changeName(name[,title]);
  *  gs.get()<<value0;
  *  gs.get()<<value1;
  *  ...
  *  gs.get()<<valueN;
  *  gs.get()<<gs.endl;
  *
- *
+ *  out:
+ *  name:title
+ *  value0,value1,value2,...
+ *  value0,value1,value2,...
+ *  value0,value1,value2,...
  */
 
 class StatisticsRecordTools {
