@@ -193,7 +193,7 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
         curEdge = processDijkstralNode(destination);
     } while (curEdge != destination && curEdge != NULL);
     if (curEdge == NULL) {
-        std::cout << "dead end" << std::endl;
+        std::cout << "dead end for car: " << carInfo->id << std::endl;
         return -1;
     }
     return 0;
@@ -508,9 +508,11 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                     + from->edge->viaVecMap[to->edge][0]->getViaLength())
                     / carInfo->maxSpeed;
         }
+        changeDijkstraWeight(from, to, deltaW + from->w);
         break;
     case SMT_RT_CORP:
         // TODO add cooperative route plan method
+        changeDijkstraWeight(from, to, deltaW + from->w);
         break;
     default:
         break;

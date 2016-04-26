@@ -113,26 +113,33 @@ void SMTCarManager::generateCarFlowFile(const string& path) {
     double remainCross = 0;
     int nCross = getGenCarNumAtTime(curTime, remainCross, genPar.crossRatio);
     unsigned int intpart;
+    unsigned int crossCarNum = 0;
+    unsigned int innerCarNum = 0;
     while (nInner >= 0 || nCross >= 0) {
-        // add inner vehicle
         ++intpart;
-        if (intpart % 120 == 0) {
-            std::cout << "@" << curTime << "s, generated inner car number:"
-                    << genPar.lastVechileIndex << std::endl;
-        }
+        // add inner vehicle
         addRandomInnerVehicleIntoXML(curTime, nInner);
-        if (intpart % 120 == 0) {
-            std::cout << "@" << curTime << "s, generated cross car number:"
-                    << genPar.lastVechileIndex << std::endl;
-        }
+        innerCarNum += nInner;
         // add cross vehicle
         addRandomThroughVehicleIntoXML(curTime, nCross);
+        crossCarNum += nCross;
         curTime += genPar.generateInterval;
         nInner = getGenCarNumAtTime(curTime, remainInner, genPar.innerRatio);
         nCross = getGenCarNumAtTime(curTime, remainCross, genPar.crossRatio);
+        if (intpart % 120 == 0) {
+            std::cout << "AT:" << curTime << "s, generated inner car number:"
+                    << innerCarNum << std::endl;
+            std::cout << "AT:" << curTime << "s, generated cross car number:"
+                    << crossCarNum << std::endl;
+        }
     }
     carFlowHelper.save(path);
     carFlowHelper.finish();
+
+    std::cout << "AT:" << curTime << "s, generated inner car number:"
+            << innerCarNum << std::endl;
+    std::cout << "AT:" << curTime << "s, generated cross car number:"
+            << crossCarNum << std::endl;
     std::cout << "generated " << genPar.lastVechileIndex << " cars in "
             << curTime << " seconds." << std::endl;
     if (endAfterGenerateCarFlowFile) {
