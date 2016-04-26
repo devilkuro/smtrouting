@@ -132,7 +132,7 @@ public:
         list<WeightEdge*> edges;
     };
     enum SMT_ROUTING_TYPE {
-        SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
+        SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP_SELF, SMT_RT_CORP_TTS
     };
     class RoutingState {
     public:
@@ -165,7 +165,9 @@ public:
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getAIRRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual void getCOOPRoute(SMTEdge* origin, SMTEdge* destination,
+    virtual void getCORPSelfRoute(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual void getCORPTTSRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getRouteByMajorMethod(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
@@ -194,6 +196,7 @@ protected:
     SMT_ROUTING_TYPE majorRoutingType;
     SMT_ROUTING_TYPE minorRoutingType;
     bool enableAIR;
+    bool enableCoRP;
     cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
     RoutingState rouState;

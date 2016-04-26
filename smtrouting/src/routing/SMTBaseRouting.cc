@@ -49,6 +49,12 @@ void SMTBaseRouting::initialize(int stage) {
         if (majorRoutingType == SMT_RT_AIR || minorRoutingType == SMT_RT_AIR) {
             enableAIR = true;
         }
+        if (majorRoutingType == SMT_RT_CORP_SELF
+                || minorRoutingType == SMT_RT_CORP_SELF
+                || majorRoutingType == SMT_RT_CORP_TTS
+                || minorRoutingType == SMT_RT_CORP_TTS) {
+            enableCoRP = true;
+        }
         srt = Fanjing::StatisticsRecordTools::request();
         rouState.recordActiveCarNum = par("recordActiveCarNum").boolValue();
         rouState.recordActiveCarInterval =
@@ -279,14 +285,22 @@ void SMTBaseRouting::getAIRRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
-void SMTBaseRouting::getCOOPRoute(SMTEdge* origin, SMTEdge* destination,
+void SMTBaseRouting::getCORPSelfRoute(SMTEdge* origin, SMTEdge* destination,
         list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
-    routeType = SMT_RT_CORP;
+    routeType = SMT_RT_CORP_SELF;
     startTime = time;
     carInfo = car;
     rou.clear();
     runDijkstraAlgorithm(origin, destination, rou);
+}
 
+void SMTBaseRouting::getCORPTTSRoute(SMTEdge* origin, SMTEdge* destination,
+        list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
+    routeType = SMT_RT_CORP_TTS;
+    startTime = time;
+    carInfo = car;
+    rou.clear();
+    runDijkstraAlgorithm(origin, destination, rou);
 }
 
 void SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
@@ -299,8 +313,11 @@ void SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
     case SMT_RT_AIR:
         getAIRRoute(origin, destination, rou, time, car);
         break;
-    case SMT_RT_CORP:
-        getCOOPRoute(origin, destination, rou, time, car);
+    case SMT_RT_CORP_SELF:
+        getCORPSelfRoute(origin, destination, rou, time, car);
+        break;
+    case SMT_RT_CORP_TTS:
+        getCORPTTSRoute(origin, destination, rou, time, car);
         break;
     default:
         getFastestRoute(origin, destination, rou, time, car);
@@ -318,8 +335,11 @@ void SMTBaseRouting::getRouteByMinorMethod(SMTEdge* origin,
     case SMT_RT_AIR:
         getAIRRoute(origin, destination, rou, time, car);
         break;
-    case SMT_RT_CORP:
-        getCOOPRoute(origin, destination, rou, time, car);
+    case SMT_RT_CORP_SELF:
+        getCORPSelfRoute(origin, destination, rou, time, car);
+        break;
+    case SMT_RT_CORP_TTS:
+        getCORPTTSRoute(origin, destination, rou, time, car);
         break;
     default:
         getFastestRoute(origin, destination, rou, time, car);
@@ -385,7 +405,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
     // before operation
-    if (routeType == SMT_RT_CORP) {
+    if (routeType == SMT_RT_CORP_SELF) {
 
     }
     while (wEdge != NULL) {
@@ -512,7 +532,11 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         }
         changeDijkstraWeight(from, to, deltaW + from->w);
         break;
-    case SMT_RT_CORP:
+    case SMT_RT_CORP_SELF:
+        // TODO add cooperative route plan method
+        changeDijkstraWeight(from, to, deltaW + from->w);
+        break;
+    case SMT_RT_CORP_TTS:
         // TODO add cooperative route plan method
         changeDijkstraWeight(from, to, deltaW + from->w);
         break;
