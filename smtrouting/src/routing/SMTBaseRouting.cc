@@ -96,11 +96,8 @@ void SMTBaseRouting::initialize(int stage) {
             airUpdateMsg = new cMessage("air update");
             scheduleAt(simTime() + 1.0, airUpdateMsg);
         }
-        if (rouState.recordActiveCarNum) {
-            statisticMsg = new cMessage("statisticMsg)");
-            scheduleAt(simTime() + rouState.recordActiveCarInterval,
-                    statisticMsg);
-        }
+        statisticMsg = new cMessage("statisticMsg)");
+        scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
     }
 }
 
@@ -113,6 +110,7 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
     } else if (msg == airUpdateMsg) {
         updateAIRInfo();
     } else if (msg == statisticMsg) {
+        scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
         updateStatisticInfo();
     }
 }
@@ -373,10 +371,14 @@ void SMTBaseRouting::updateAIRInfo() {
 void SMTBaseRouting::updateStatisticInfo() {
     static string titleTime = "time";
     static string titleActiveCarCount = titleTime + "\t" + "carCount";
-    srt->changeName("activeCarCount", titleActiveCarCount) << simTime().dbl()
-            << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
+    if (rouState.recordActiveCarNum) {
+        srt->changeName("activeCarCount", titleActiveCarCount)
+                << simTime().dbl()
+                << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
+    }
     static string titleTTS = titleTime + "\t" + "TTS";
-    srt->changeName("TTS", titleTTS);
+    srt->changeName("TTS", titleTTS) << simTime().dbl() << rouState.TTS
+            << srt->endl;
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
