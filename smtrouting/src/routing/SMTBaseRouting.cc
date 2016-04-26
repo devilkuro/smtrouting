@@ -660,20 +660,17 @@ void SMTBaseRouting::WeightLane::updateAIRsi() {
 double SMTBaseRouting::WeightLane::getAIRCost(double time) {
     // update air cost
     if (airCostUpdateFlag && time > airDLastUpdateTime) {
-        double v = 0;
         if (airSI > 0.9999) {
-            v = 0.0001 * from->edge->length() / getCost(time);
+            airD = 10000 * getCost(time);
         } else {
-            v = (1 - airSI) * from->edge->length() / getCost(time);
+            airD = getCost(time) / (1 - airSI);
         }
-        airD = from->edge->length() / v;
         airDLastUpdateTime = time;
     }
     return airD;
 }
 
-void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car,
-        double t) {
+void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t) {
     ASSERT2(hisCarMap.find(car) == hisCarMap.end(),
             "car has been already in this lane");
     hisCarMap[car] = t;
@@ -688,8 +685,9 @@ void SMTBaseRouting::WeightLane::removehistoricalCar(SMTCarInfo* car,
     while (itT->second != car) {
         ++itT;
         if (itT->first != itCar->second) {
-            std::cout << "try to remove inexistent car " << itCar->first->id
-                    << ", but find car " << itT->second->id << std::endl;
+            std::cout << "try to remove inexistent car in hisTimeMap"
+                    << itCar->first->id << ", but find car " << itT->second->id
+                    << std::endl;
         }
     }
     hisTimeMap.erase(itT);
