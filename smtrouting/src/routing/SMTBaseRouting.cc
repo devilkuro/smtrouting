@@ -371,10 +371,11 @@ void SMTBaseRouting::updateAIRInfo() {
 }
 
 void SMTBaseRouting::updateStatisticInfo() {
-    static string titleActiveCarCount = "time" + "\t" + "carCount";
+    static string titleTime = "time";
+    static string titleActiveCarCount = titleTime + "\t" + "carCount";
     srt->changeName("activeCarCount", titleActiveCarCount) << simTime().dbl()
             << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
-    static string titleTTS = "time" + "\t" + "TTS";
+    static string titleTTS = titleTime + "\t" + "TTS";
     srt->changeName("TTS", titleTTS);
 }
 
