@@ -517,10 +517,6 @@ void SMTMap::verifyNetConfig() {
 }
 
 void SMTMap::finish() {
-    Fanjing::StatisticsRecordTools *srt =
-            Fanjing::StatisticsRecordTools::request();
-    srt->outputSeparate("trajectory.txt", "./results");
-    srt->clean();
     std::cout << "Map::finish" << std::endl;
 }
 

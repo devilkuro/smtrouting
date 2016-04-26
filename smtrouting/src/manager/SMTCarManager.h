@@ -44,7 +44,8 @@ public:
                 minGenNumPerHour(0), maxGenNumPerHour(0), startTime(0), prePeriod(
                         0), increasePeriod(0), maxPeriod(0), decreasePeriod(0), sufPeriod(
                         0), generateInterval(0), crossRatio(0), innerRatio(1), lastVechileIndex(
-                        0), forceGenerate(false) {
+                        0), forceGenerate(false), majorCarEveryCircle(1), minorCarEveryCircle(
+                        0), totalCarEveryCircle(1) {
         }
         // _-/'''\-_
         // min-increasePeriod->increase->max-maxPeriod->decrease-decreasePeriod->min
@@ -61,6 +62,10 @@ public:
         double innerRatio;
         unsigned int lastVechileIndex;
         bool forceGenerate;
+
+        unsigned int majorCarEveryCircle;
+        unsigned int minorCarEveryCircle;
+        unsigned int totalCarEveryCircle;
     };
 public:
     SMTCarManager() :

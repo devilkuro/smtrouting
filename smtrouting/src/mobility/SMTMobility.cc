@@ -141,8 +141,13 @@ bool SMTMobility::processAtRouting() {
     // 设置车道变换模式
     cmdSetNoOvertake();
     // 设置路径
-    getRouting()->getFastestRoute(getMap()->getSMTEdgeById(road_id),
-            destination, carRoute, simTime().dbl(), carInfo);
+    if(carInfo->isMajorType){
+        getRouting()->getRouteByMajorMethod(getMap()->getSMTEdgeById(road_id),
+                destination, carRoute, simTime().dbl(), carInfo);
+    }else{
+        getRouting()->getRouteByMinorMethod(getMap()->getSMTEdgeById(road_id),
+                destination, carRoute, simTime().dbl(), carInfo);
+    }
     return updateVehicleRoute();
 }
 

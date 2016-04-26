@@ -56,6 +56,11 @@ void SMTCarManager::initialize(int stage) {
         genPar.innerRatio = par("innerRatio").doubleValue();
         genPar.forceGenerate = par("forceGenerate").boolValue();
 
+        genPar.majorCarEveryCircle = par("majorCarEveryCircle").longValue();
+        genPar.minorCarEveryCircle = par("minorCarEveryCircle").longValue();
+        genPar.totalCarEveryCircle = genPar.majorCarEveryCircle
+                + genPar.minorCarEveryCircle;
+
         SMTCarInfo::loadVehicleTypeXML(rouXMLFileName);
         carInfoVec = SMTCarInfo::getDefaultVehicleTypeVector();
     }
@@ -160,6 +165,12 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
     while (car != NULL) {
         if (carMapByID.find(car->id) == carMapByID.end()) {
             car->index = genPar.lastVechileIndex++;
+            if (car->index % genPar.totalCarEveryCircle
+                    < genPar.majorCarEveryCircle) {
+                car->isMajorType = true;
+            } else {
+                car->isMajorType = false;
+            }
             curTime = car->time;
             carMapByID[car->id] = car;
             carMapByTime.insert(std::make_pair(car->time, car));
