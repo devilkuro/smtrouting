@@ -53,6 +53,7 @@ void SMTBaseRouting::initialize(int stage) {
         rouState.recordActiveCarNum = par("recordActiveCarNum").boolValue();
         rouState.recordActiveCarInterval =
                 par("recordActiveCarInterval").doubleValue();
+        recordXMLPrefix = par("recordXMLPrefix").stringValue();
     }
     if (stage == 1) {
         // needs to init weightEdgeMap here
@@ -118,6 +119,7 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
 
 void SMTBaseRouting::finish() {
     printStatisticInfo();
+    srt->outputSeparate(recordXMLPrefix + ".xml");
 }
 
 SMTMap* SMTBaseRouting::getMap() {
@@ -369,8 +371,11 @@ void SMTBaseRouting::updateAIRInfo() {
 }
 
 void SMTBaseRouting::updateStatisticInfo() {
-    srt->changeName("activeCarCount", "time\tcarCount") << simTime().dbl()
+    static string titleActiveCarCount = "time" + "\t" + "carCount";
+    srt->changeName("activeCarCount", titleActiveCarCount) << simTime().dbl()
             << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
+    static string titleTTS = "time" + "\t" + "TTS";
+    srt->changeName("TTS", titleTTS);
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,

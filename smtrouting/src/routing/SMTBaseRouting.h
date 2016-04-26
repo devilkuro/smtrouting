@@ -190,7 +190,7 @@ protected:
     bool debug;
     cMessage* debugMsg;
     cMessage* statisticMsg;
-
+    string recordXMLPrefix;
     double startTime;
     SMTCarInfo* carInfo;
     SMT_ROUTING_TYPE majorRoutingType;

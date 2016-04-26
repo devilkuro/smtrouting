@@ -32,6 +32,7 @@ simple SMTBaseRouting like IBaseRouting
         double limitCap = default(0.7);
         bool recordActiveCarNum = default(false);
         double recordActiveCarInterval @unit(s) = default(120s);
+        string recordXMLPrefix = default("default_recordXML");
 
 		// SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
         int majorRoutingType = default(1);
