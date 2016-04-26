@@ -19,7 +19,7 @@ Define_Module(SMTBaseRouting);
 double SMTBaseRouting::WeightLane::outCarKeepDuration = 120;
 double SMTBaseRouting::WeightLane::limitStart = 0.1;
 double SMTBaseRouting::WeightLane::limitCap = 0.7;
-double SMTBaseRouting::WeightLane::limitFix = 0.69;
+double SMTBaseRouting::WeightLane::limitFix = 0.01;
 double SMTBaseRouting::WeightLane::airK = 0.2287;
 double SMTBaseRouting::WeightLane::airV = 0.6352;
 
@@ -60,6 +60,7 @@ void SMTBaseRouting::initialize(int stage) {
         rouState.recordActiveCarInterval =
                 par("recordActiveCarInterval").doubleValue();
         recordXMLPrefix = par("recordXMLPrefix").stringValue();
+        recordHisRoutingData = par("recordHisRoutingData").boolValue();
     }
     if (stage == 1) {
         // needs to init weightEdgeMap here
@@ -374,7 +375,8 @@ void SMTBaseRouting::printStatisticInfo() {
             }
         }
     }
-    std::cout << "TTS:" << rouState.TTS << std::endl;
+    std::cout << "arrivedCarCount:" << rouState.arrivedCarCount << std::endl;
+    std::cout << "TTS" << getMap()->getLaunchd()->getTTS() << std::endl;
 }
 
 void SMTBaseRouting::updateAIRInfo() {
@@ -397,8 +399,11 @@ void SMTBaseRouting::updateStatisticInfo() {
                 << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
     }
     static string titleTTS = titleTime + "\t" + "TTS";
-    srt->changeName("TTS", titleTTS) << simTime().dbl() << rouState.TTS
-            << srt->endl;
+    srt->changeName("TTS", titleTTS) << simTime().dbl()
+            << getMap()->getLaunchd()->getTTS() << srt->endl;
+    static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
+    srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
+            << rouState.arrivedCarCount << srt->endl;
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
@@ -425,6 +430,8 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
         itFromLane->second->removeCar(car, time);
         if (viaTime > 0) {
             itFromLane->second->carPassVia(viaTime);
+        }
+        if (laneTime > 0) {
             itFromLane->second->carPassLane(laneTime);
         }
     }
@@ -441,7 +448,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
         itToLane->second->insertCar(car, time);
     } else {
         // car reaches destination
-        rouState.TTS += time - carInfo->time;
+        rouState.arrivedCarCount++;
     }
 }
 
@@ -496,7 +503,8 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                     && itWL->second->occupation
                             * itWL->second->from->edge->length()
                             > (carInfo->length + carInfo->minGap) * 24) {
-                if (itWL->second->occupation < WeightLane::limitFix) {
+                if (itWL->second->occupation
+                        < WeightLane::limitCap - WeightLane::limitFix) {
                     deltaW = deltaW
                             / (WeightLane::limitCap - itWL->second->occupation);
                 } else {
@@ -563,20 +571,34 @@ void SMTBaseRouting::releaseEdge(SMTEdge* edge) {
     suppressedEdges.erase(edge);
 }
 
-void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
-    ASSERT2(carMap.find(car) == carMap.end(),
-            "car has been already in this lane");
-    carMap[car] = t;
-    enterTimeMap.insert(std::make_pair(t, car));
-    // update occupation information
-    occupation += occStep * (car->length + car->minGap);
-    occupaChangeFlag = true;
-    airCostUpdateFlag = true;
+SMTBaseRouting::WeightLane::~WeightLane() {
+    // do nothing
 }
 
-double SMTBaseRouting::WeightLane::getCost(double time) {
-    updateCost(time);
-    return recentCost;
+void SMTBaseRouting::WeightLane::carGetOut(SMTCarInfo* car, const double& t,
+        const double& cost) {
+    recentOutCars.insert(make_pair(t, CarTime(car, cost)));
+    totalRecentCost += cost;
+    recentCostRefreshFlag = true;
+}
+
+void SMTBaseRouting::WeightLane::initMinAllowedCost() {
+    SMTConnection* con = via->start->laneVector[via->fromLane]->conVector[0];
+    minAllowedCost = ((con->tr + con->ty / 2) * (con->tr + con->ty / 2) / 2)
+            / (con->tr + con->tg + con->ty)
+            + con->fromSMTEdge->length()
+                    / via->start->laneVector[via->fromLane]->speed;
+}
+
+void SMTBaseRouting::WeightLane::carPassVia(double time) {
+    if (statistic.maxViaPassTime < time) {
+        statistic.maxViaPassTime = time;
+    }
+    if (statistic.minViaPassTime > time || statistic.minViaPassTime < 0) {
+        statistic.minViaPassTime = time;
+    }
+    ++statistic.passedCarNum;
+    statistic.totalViaPassTime += time;
 }
 
 void SMTBaseRouting::WeightLane::carPassLane(double time) {
@@ -589,12 +611,40 @@ void SMTBaseRouting::WeightLane::carPassLane(double time) {
     statistic.totalLanePassTime += time;
 }
 
-void SMTBaseRouting::WeightLane::initMinAllowedCost() {
-    SMTConnection* con = via->start->laneVector[via->fromLane]->conVector[0];
-    minAllowedCost = ((con->tr + con->ty / 2) * (con->tr + con->ty / 2) / 2)
-            / (con->tr + con->tg + con->ty)
-            + con->fromSMTEdge->length()
-                    / via->start->laneVector[via->fromLane]->speed;
+void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
+    ASSERT2(carMap.find(car) == carMap.end(),
+            "car has been already in this lane");
+    carMap[car] = t;
+    enterTimeMap.insert(std::make_pair(t, car));
+    // update occupation information
+    occupation += occStep * (car->length + car->minGap);
+    occupaChangeFlag = true;
+    airCostUpdateFlag = true;
+}
+
+void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
+    map<SMTCarInfo*, double>::iterator itCar = carMap.find(car);
+    multimap<double, SMTCarInfo*>::iterator itT = enterTimeMap.find(
+            itCar->second);
+    while (itT->second != car) {
+        ++itT;
+        if (itT->first != itCar->second) {
+            std::cout << "try to remove inexistent car " << itCar->first->id
+                    << ", but find car " << itT->second->id << std::endl;
+        }
+    }
+    carGetOut(car, t, t - itCar->second);
+    enterTimeMap.erase(itT);
+    carMap.erase(itCar);
+    // update occupation information
+    occupation -= occStep * (car->length + car->minGap);
+    occupaChangeFlag = true;
+    airCostUpdateFlag = true;
+}
+
+double SMTBaseRouting::WeightLane::getCost(double time) {
+    updateCost(time);
+    return recentCost;
 }
 
 void SMTBaseRouting::WeightLane::updateAIRsi() {
@@ -612,14 +662,38 @@ double SMTBaseRouting::WeightLane::getAIRCost(double time) {
     if (airCostUpdateFlag && time > airDLastUpdateTime) {
         double v = 0;
         if (airSI > 0.9999) {
-            v = 0.0001 * from->edge->laneVector[via->fromLane]->speed;
+            v = 0.0001 * from->edge->length() / getCost(time);
         } else {
-            v = (1 - airSI) * from->edge->laneVector[via->fromLane]->speed;
+            v = (1 - airSI) * from->edge->length() / getCost(time);
         }
         airD = from->edge->length() / v;
         airDLastUpdateTime = time;
     }
     return airD;
+}
+
+void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car,
+        double t) {
+    ASSERT2(hisCarMap.find(car) == hisCarMap.end(),
+            "car has been already in this lane");
+    hisCarMap[car] = t;
+    hisTimeMap.insert(std::make_pair(t, car));
+}
+
+void SMTBaseRouting::WeightLane::removehistoricalCar(SMTCarInfo* car,
+        double t) {
+    map<SMTCarInfo*, double>::iterator itCar = hisCarMap.find(car);
+    multimap<double, SMTCarInfo*>::iterator itT = hisTimeMap.find(
+            itCar->second);
+    while (itT->second != car) {
+        ++itT;
+        if (itT->first != itCar->second) {
+            std::cout << "try to remove inexistent car " << itCar->first->id
+                    << ", but find car " << itT->second->id << std::endl;
+        }
+    }
+    hisTimeMap.erase(itT);
+    hisCarMap.erase(itCar);
 }
 
 void SMTBaseRouting::WeightLane::updateCost(double time) {
@@ -657,37 +731,6 @@ void SMTBaseRouting::WeightLane::updateCost(double time) {
     }
 }
 
-void SMTBaseRouting::WeightLane::carGetOut(SMTCarInfo* car, const double& t,
-        const double& cost) {
-    recentOutCars.insert(make_pair(t, CarTime(car, cost)));
-    totalRecentCost += cost;
-    recentCostRefreshFlag = true;
-}
-
-SMTBaseRouting::WeightLane::~WeightLane() {
-    // do nothing
-}
-
-void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
-    map<SMTCarInfo*, double>::iterator itCar = carMap.find(car);
-    multimap<double, SMTCarInfo*>::iterator itT = enterTimeMap.find(
-            itCar->second);
-    while (itT->second != car) {
-        ++itT;
-        if (itT->first != itCar->second) {
-            std::cout << "try to remove inexistent car " << itCar->first->id
-                    << ", but find car " << itT->second->id << std::endl;
-        }
-    }
-    carGetOut(car, t, t - itCar->second);
-    enterTimeMap.erase(itT);
-    carMap.erase(itCar);
-    // update occupation information
-    occupation -= occStep * (car->length + car->minGap);
-    occupaChangeFlag = true;
-    airCostUpdateFlag = true;
-}
-
 SMTBaseRouting::WeightEdge::~WeightEdge() {
     for (map<SMTEdge*, WeightLane*>::iterator it = w2NextMap.begin();
             it != w2NextMap.end(); ++it) {
@@ -695,13 +738,3 @@ SMTBaseRouting::WeightEdge::~WeightEdge() {
     }
 }
 
-void SMTBaseRouting::WeightLane::carPassVia(double time) {
-    if (statistic.maxViaPassTime < time) {
-        statistic.maxViaPassTime = time;
-    }
-    if (statistic.minViaPassTime > time || statistic.minViaPassTime < 0) {
-        statistic.minViaPassTime = time;
-    }
-    ++statistic.passedCarNum;
-    statistic.totalViaPassTime += time;
-}

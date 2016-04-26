@@ -68,3 +68,16 @@ void SMTLaunchd::setVehicleArrived(std::string &nodeId) {
 unsigned int SMTLaunchd::getActiveVehicleCount() {
     return activeVehicleCount;
 }
+
+double SMTLaunchd::getTTS() {
+    return _totleTTSWithoutFixByUpdateInterval * updateInterval.dbl();
+}
+
+void SMTLaunchd::handleSelfMsg(cMessage* msg) {
+    // update the TTS
+    // the real TTS euqals to use _totleTTSWithoutFixByUpdateInterval*updateInterval
+    if (msg == executeOneTimestepTrigger) {
+        _totleTTSWithoutFixByUpdateInterval += activeVehicleCount;
+    }
+    TraCIScenarioManagerLaunchd::handleSelfMsg(msg);
+}

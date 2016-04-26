@@ -36,8 +36,11 @@ public:
     SMTComInterface* getSMTComInterface();
     void setVehicleArrived(std::string &nodeId);
     unsigned int getActiveVehicleCount();
+    double getTTS();
+    void handleSelfMsg(cMessage *msg);
 protected:
     SMTComInterface* smtComIfc;
+    double _totleTTSWithoutFixByUpdateInterval;
 };
 
 class SMTLaunchdAccess {

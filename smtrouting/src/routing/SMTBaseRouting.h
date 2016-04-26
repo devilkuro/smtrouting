@@ -61,11 +61,10 @@ public:
             int passedCarNum;
         };
         WeightLane() :
-                via(NULL), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
-                        false), airSI(0), from(NULL), to(
-                NULL), recentCost(-1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
-                        false), totalRecentCost(0), airCostUpdateFlag(false), airDLastUpdateTime(
-                        0), airD(0) {
+                via(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
+                        false), airSI(0), from(0), to(0), recentCost(-1), recentCostLastupdateTime(
+                        -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
+                        false), airDLastUpdateTime(0), airD(0) {
         }
 
         virtual ~WeightLane();
@@ -87,16 +86,25 @@ public:
         map<SMTCarInfo*, double> carMap;
         multimap<double, SMTCarInfo*> enterTimeMap;
         multimap<double, CarTime> recentOutCars;
-        virtual double getCost(double time);
+        // CoRP related
+        map<SMTCarInfo*, double> hisCarMap;
+        map<SMTCarInfo*, WeightEdge*> hisNextMap;
+        multimap<double, SMTCarInfo*> hisTimeMap;
+
         virtual void carGetOut(SMTCarInfo* car, const double &t,
                 const double &cost);
+        void initMinAllowedCost();
         virtual void carPassVia(double time);
         virtual void carPassLane(double time);
         void insertCar(SMTCarInfo* car, double t);
         void removeCar(SMTCarInfo* car, double t);
-        void initMinAllowedCost();
+        virtual double getCost(double time);
+        // AIR related
         void updateAIRsi();
         virtual double getAIRCost(double time);
+        // CoRP related
+        void addHistoricalCar(SMTCarInfo* car, double t);
+        void removehistoricalCar(SMTCarInfo* car, double t);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -132,15 +140,20 @@ public:
         list<WeightEdge*> edges;
     };
     enum SMT_ROUTING_TYPE {
-        SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP_SELF, SMT_RT_CORP_TTS
+        SMT_RT_SHOREST = 0,
+        SMT_RT_FAST,
+        SMT_RT_AIR,
+        SMT_RT_CORP_SELF,
+        SMT_RT_CORP_TTS
     };
     class RoutingState {
     public:
         RoutingState() :
-                TTS(0), recordActiveCarNum(false), recordActiveCarInterval(120) {
+                arrivedCarCount(0), recordActiveCarNum(false), recordActiveCarInterval(
+                        120) {
 
         }
-        double TTS;
+        double arrivedCarCount;
         bool recordActiveCarNum;
         double recordActiveCarInterval;
     };
@@ -197,6 +210,8 @@ protected:
     SMT_ROUTING_TYPE minorRoutingType;
     bool enableAIR;
     bool enableCoRP;
+    // record historical routing data
+    bool recordHisRoutingData;
     cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
     RoutingState rouState;
