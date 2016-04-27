@@ -495,7 +495,7 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                     + from->edge->viaVecMap[to->edge][0]->getViaLength())
                     / carInfo->maxSpeed;
         }
-        {
+        if (WeightLane::limitStart > 0) {
             // fix deltaW by occupation if occupation is bigger than half
             // fix deltaW only when cars in this lane cannot pass in one green time
             // and the occupation reach the limit
@@ -670,7 +670,8 @@ double SMTBaseRouting::WeightLane::getAIRCost(double time) {
     return airD;
 }
 
-void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t, WeightLane* next) {
+void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t,
+        WeightLane* next) {
     ASSERT2(hisCarMap.find(car) == hisCarMap.end(),
             "car has been already in this lane");
     hisCarMap[car].time = t;
