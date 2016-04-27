@@ -19,6 +19,7 @@
 #include <omnetpp.h>
 #include "SMTMap.h"
 #include "SMTCarInfo.h"
+#include "SMTCarManager.h"
 #include <set>
 #include "StatisticsRecordTools.h"
 
@@ -176,11 +177,12 @@ public:
             suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), startTime(
                     -1), carInfo(0), majorRoutingType(SMT_RT_FAST), minorRoutingType(
                     SMT_RT_FAST), enableAIR(false), airUpdateMsg(0), routeType(
-                    SMT_RT_FAST), srt(0), _pMap(0) {
+                    SMT_RT_FAST), srt(0), _pMap(0),_pCarManager(0) {
     }
     virtual ~SMTBaseRouting();
 
     SMTMap* getMap();
+    SMTMap* getCarManager();
 
     // routing functions
     // TODO 添加基本的寻路方法
@@ -240,6 +242,7 @@ protected:
     virtual void finish();
 
     virtual void exportHisXML();
+    virtual void importHisXML();
     virtual void printStatisticInfo();
     virtual void updateStatisticInfo();
     virtual void updateAIRInfo();
@@ -250,6 +253,7 @@ protected:
     double getSmallerOne(double a, double b);
     // protected members
     SMTMap* _pMap;
+    SMTCarManager* _pCarManager;
 private:
     // dijkstra's algorithm related
     void initDijkstra(SMTEdge* origin);

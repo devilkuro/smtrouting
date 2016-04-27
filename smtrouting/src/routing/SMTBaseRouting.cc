@@ -32,7 +32,7 @@ SMTBaseRouting::~SMTBaseRouting() {
 }
 
 int SMTBaseRouting::numInitStages() const {
-    return 2;
+    return 3;
 }
 
 void SMTBaseRouting::initialize(int stage) {
@@ -48,8 +48,8 @@ void SMTBaseRouting::initialize(int stage) {
                 (enum SMT_ROUTING_TYPE) par("majorRoutingType").longValue();
         minorRoutingType =
                 (enum SMT_ROUTING_TYPE) par("majorRoutingType").longValue();
-        recordHisRecordRoutingType =  par(
-                "recordHisRecordRoutingType").longValue();
+        recordHisRecordRoutingType =
+                par("recordHisRecordRoutingType").longValue();
         if (majorRoutingType == SMT_RT_AIR || minorRoutingType == SMT_RT_AIR) {
             enableAIR = true;
         }
@@ -72,7 +72,7 @@ void SMTBaseRouting::initialize(int stage) {
                 par("recordActiveCarInterval").doubleValue();
         recordXMLPrefix = par("recordXMLPrefix").stringValue();
         recordHisRoutingData = par("recordHisRoutingData").boolValue();
-        if(majorRoutingType==recordHisRecordRoutingType){
+        if (majorRoutingType == recordHisRecordRoutingType) {
             recordHisRoutingData = true;
         }
         hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
@@ -121,19 +121,29 @@ void SMTBaseRouting::initialize(int stage) {
         statisticMsg = new cMessage("statisticMsg)");
         scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
     }
+    if(stage = 2){
+        // load historical xml after car map has been initialized
+        if (enableCoRP) {
+            importHisXML();
+            // TODO end simulation
+        }
+    }
 }
 
 void SMTBaseRouting::handleMessage(cMessage* msg) {
-    if (msg == debugMsg) {
-        if (debug) {
-            scheduleAt(simTime() + 120, debugMsg);
-            printStatisticInfo();
+    // only handle self message
+    if (msg->isSelfMessage()) {
+        if (msg == debugMsg) {
+            if (debug) {
+                scheduleAt(simTime() + 120, debugMsg);
+                printStatisticInfo();
+            }
+        } else if (msg == airUpdateMsg) {
+            updateAIRInfo();
+        } else if (msg == statisticMsg) {
+            scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
+            updateStatisticInfo();
         }
-    } else if (msg == airUpdateMsg) {
-        updateAIRInfo();
-    } else if (msg == statisticMsg) {
-        scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
-        updateStatisticInfo();
     }
 }
 
@@ -147,6 +157,13 @@ SMTMap* SMTBaseRouting::getMap() {
         _pMap = SMTMapAccess().get();
     }
     return _pMap;
+}
+
+SMTMap* SMTBaseRouting::getCarManager() {
+    if (_pCarManager == NULL) {
+        _pCarManager = SMTCarManagerAccess().get();
+    }
+    return _pCarManager;
 }
 
 void SMTBaseRouting::getShortestRoute(SMTEdge* origin, SMTEdge* destination,
@@ -431,7 +448,7 @@ void SMTBaseRouting::exportHisXML() {
     for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
             itWE != weightEdgeMap.end(); ++itWE) {
         fromEdgeElm = doc->NewElement("FromEdge");
-        fromEdgeElm->SetAttribute("edgeId", itWE->second->edge->id.c_str());
+        fromEdgeElm->SetAttribute("fromEdge", itWE->second->edge->id.c_str());
         for (map<SMTEdge*, WeightLane*>::iterator itWL =
                 itWE->second->w2NextMap.begin();
                 itWL != itWE->second->w2NextMap.end(); ++itWL) {
@@ -458,6 +475,51 @@ void SMTBaseRouting::exportHisXML() {
     }
     doc->SaveFile(hisRecordXMLPath.c_str());
     doc->Clear();
+}
+
+void SMTBaseRouting::importHisXML() {
+    XMLDocument* doc = new XMLDocument();
+    doc->LoadFile(hisRecordXMLPath.c_str());
+
+    XMLElement* fromEdgeElm;
+    XMLElement* toEdgeElm;
+    XMLElement* carElm;
+    fromEdgeElm = doc->FirstChildElement("FromEdge");
+    WeightEdge* fromWEdge = weightEdgeMap[getMap()->getSMTEdgeById(
+            fromEdgeElm->Attribute("fromEdge"))];
+    while (fromEdgeElm != NULL) {
+        toEdgeElm = fromEdgeElm->FirstChildElement("ToEdge");
+        WeightLane* toWLane = fromWEdge->w2NextMap[getMap()->getSMTEdgeById(
+                toEdgeElm->Attribute("toEdge"))];
+        while (toEdgeElm != NULL) {
+            carElm = toEdgeElm->FirstChildElement("CAR");
+            while (carElm != NULL) {
+                /*
+                 carElm->SetAttribute("id", itHis->second->car->id.c_str());
+                 carElm->SetAttribute("enterTime", itHis->second->time);
+                 carElm->SetAttribute("next",
+                 itHis->second->next->from->edge->id.c_str());
+                 carElm->SetAttribute("laneTime", itHis->second->laneTime);
+                 carElm->SetAttribute("viaTime", itHis->second->viaTime);
+                 carElm->SetAttribute("intervalToLast",
+                 itHis->second->intervalToLast);
+                 */
+                WeightLane::HisInfo* hisInfo = new WeightLane::HisInfo();
+                hisInfo->car = getCarManager()->carMapByID[carElm->Attribute(
+                        "id")];
+                hisInfo->time = carElm->DoubleAttribute("enterTime");
+                hisInfo->next = toWLane->to->w2NextMap[getMap()->getSMTEdgeById(
+                        carElm->Attribute("next"))];
+                hisInfo->laneTime = carElm->DoubleAttribute("laneTime");
+                hisInfo->viaTime = carElm->DoubleAttribute("viaTime");
+                hisInfo->intervalToLast = carElm->DoubleAttribute("intervalToLast");
+                toWLane->addHistoricalCar(hisInfo->car,hisInfo->time);
+                carElm = carElm->NextSiblingElement("CAR");
+            }
+            toEdgeElm = toEdgeElm->FirstChildElement("ToEdge");
+        }
+        fromEdgeElm = fromEdgeElm->NextSiblingElement("FromEdge");
+    }
 }
 
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
