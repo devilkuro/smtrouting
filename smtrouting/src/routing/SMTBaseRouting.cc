@@ -42,12 +42,23 @@ void SMTBaseRouting::initialize(int stage) {
         WeightLane::limitStart = par("limitStart").doubleValue();
         WeightLane::limitFix = par("limitFix").doubleValue();
         WeightLane::limitCap = par("limitCap").doubleValue();
+        WeightLane::airK = par("airK").doubleValue();
+        WeightLane::airV = par("airV").doubleValue();
         majorRoutingType =
                 (enum SMT_ROUTING_TYPE) par("majorRoutingType").longValue();
         minorRoutingType =
                 (enum SMT_ROUTING_TYPE) par("majorRoutingType").longValue();
+        recordHisRecordRoutingType =  par(
+                "recordHisRecordRoutingType").longValue();
         if (majorRoutingType == SMT_RT_AIR || minorRoutingType == SMT_RT_AIR) {
             enableAIR = true;
+        }
+        // whether use fast with occupancy replace air routing
+        replaceAIRWithITSWithOccupancy =
+                par("replaceAIRWithITSWithOccupancy").boolValue();
+        // if replace air, disable it
+        if (replaceAIRWithITSWithOccupancy) {
+            enableAIR = false;
         }
         if (majorRoutingType == SMT_RT_CORP_SELF
                 || minorRoutingType == SMT_RT_CORP_SELF
@@ -61,6 +72,10 @@ void SMTBaseRouting::initialize(int stage) {
                 par("recordActiveCarInterval").doubleValue();
         recordXMLPrefix = par("recordXMLPrefix").stringValue();
         recordHisRoutingData = par("recordHisRoutingData").boolValue();
+        if(majorRoutingType==recordHisRecordRoutingType){
+            recordHisRoutingData = true;
+        }
+        hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
     }
     if (stage == 1) {
         // needs to init weightEdgeMap here
@@ -591,21 +606,81 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         // itWL will never equal to from->w2NextMap.end()
         ASSERT2(itWL != from->w2NextMap.end(),
                 "w2NextMap initialized abnormally");
-        if (itWL->second->getAIRCost(simTime().dbl()) > 0) {
-            deltaW = itWL->second->getAIRCost(simTime().dbl());
+
+        // whether use fast with occupancy replace air routing
+        if (replaceAIRWithITSWithOccupancy) {
+            // if replace air, use airK as start, airV as cap
+            if (itWL->second->getCost(simTime().dbl()) > 0) {
+                deltaW = itWL->second->getCost(simTime().dbl());
+            } else {
+                deltaW = (from->edge->length()
+                        + from->edge->viaVecMap[to->edge][0]->getViaLength())
+                        / carInfo->maxSpeed;
+            }
+            if (WeightLane::airK > 0) {
+                // fix deltaW by occupation if occupation is bigger than half
+                // fix deltaW only when cars in this lane cannot pass in one green time
+                // and the occupation reach the limit
+                if (itWL->second->occupation > WeightLane::airK
+                        && itWL->second->occupation
+                                * itWL->second->from->edge->length()
+                                > (carInfo->length + carInfo->minGap) * 24) {
+                    if (itWL->second->occupation < WeightLane::airV - 0.01) {
+                        deltaW = deltaW
+                                / (WeightLane::airV - itWL->second->occupation);
+                    } else {
+                        if (itWL->second->occupaChangeFlag) {
+                            itWL->second->occupaChangeFlag = false;
+                            std::cout << "occupation from " << from->edge->id
+                                    << " to " << to->edge->id << " is "
+                                    << itWL->second->occupation << std::endl;
+                        }
+                        deltaW = deltaW * 1000;
+                    }
+                }
+            }
         } else {
-            deltaW = (from->edge->length()
-                    + from->edge->viaVecMap[to->edge][0]->getViaLength())
-                    / carInfo->maxSpeed;
+            if (itWL->second->getAIRCost(simTime().dbl()) > 0) {
+                deltaW = itWL->second->getAIRCost(simTime().dbl());
+            } else {
+                deltaW = (from->edge->length()
+                        + from->edge->viaVecMap[to->edge][0]->getViaLength())
+                        / carInfo->maxSpeed;
+            }
+        }
+        if (deltaW < 0) {
+            std::cout << "processDijkstralNeighbors:"
+                    << "cannot handle negative via cost from" << from->edge->id
+                    << " to " << to->edge->id << std::endl;
         }
         changeDijkstraWeight(from, to, deltaW + from->w);
         break;
     case SMT_RT_CORP_SELF:
+        itWL = from->w2NextMap.find(to->edge);
+        // since w2NextMap is initialized in initialize()
+        // itWL will never equal to from->w2NextMap.end()
+        ASSERT2(itWL != from->w2NextMap.end(),
+                "w2NextMap initialized abnormally");
         // TODO add cooperative route plan method
+        if (deltaW < 0) {
+            std::cout << "processDijkstralNeighbors:"
+                    << "cannot handle negative via cost from" << from->edge->id
+                    << " to " << to->edge->id << std::endl;
+        }
         changeDijkstraWeight(from, to, deltaW + from->w);
         break;
     case SMT_RT_CORP_TTS:
+        itWL = from->w2NextMap.find(to->edge);
+        // since w2NextMap is initialized in initialize()
+        // itWL will never equal to from->w2NextMap.end()
+        ASSERT2(itWL != from->w2NextMap.end(),
+                "w2NextMap initialized abnormally");
         // TODO add cooperative route plan method
+        if (deltaW < 0) {
+            std::cout << "processDijkstralNeighbors:"
+                    << "cannot handle negative via cost from" << from->edge->id
+                    << " to " << to->edge->id << std::endl;
+        }
         changeDijkstraWeight(from, to, deltaW + from->w);
         break;
     default:

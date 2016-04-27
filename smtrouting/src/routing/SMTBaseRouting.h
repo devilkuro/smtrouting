@@ -222,8 +222,10 @@ protected:
     SMTCarInfo* carInfo;
     SMT_ROUTING_TYPE majorRoutingType;
     SMT_ROUTING_TYPE minorRoutingType;
+    int recordHisRecordRoutingType;
     bool enableAIR;
     bool enableCoRP;
+    bool replaceAIRWithITSWithOccupancy;
     // record historical routing data
     bool recordHisRoutingData;
     string hisRecordXMLPath;

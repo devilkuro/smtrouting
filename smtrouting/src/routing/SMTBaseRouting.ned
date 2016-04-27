@@ -30,11 +30,18 @@ simple SMTBaseRouting like IBaseRouting
         double limitStart = default(0.5);
         double limitFix = default(0.01);
         double limitCap = default(0.7);
+        // while replace on, work as limitstart
+        double airK = default(0.2287);	
+        // while replace on, work as limitCap
+        double airV = default(0.6352);
+        bool replaceAIRWithITSWithOccupancy = default(true);
         bool recordActiveCarNum = default(false);
         double recordActiveCarInterval @unit(s) = default(120s);
         string recordXMLPrefix = default("default_recordXML");
 		bool recordHisRoutingData = default(false);
+		string hisRecordXMLPath = default("default_hisRecordXML.xml");
 		// SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
         int majorRoutingType = default(1);
         int minorRoutingType = default(2);
+        int recordHisRecordRoutingType = default(-1);
 }
