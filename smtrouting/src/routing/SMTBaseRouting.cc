@@ -124,7 +124,7 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
 
 void SMTBaseRouting::finish() {
     printStatisticInfo();
-    srt->outputSeparate(recordXMLPrefix + ".xml");
+    srt->outputSeparate(recordXMLPrefix + ".txt");
 }
 
 SMTMap* SMTBaseRouting::getMap() {
@@ -670,14 +670,17 @@ double SMTBaseRouting::WeightLane::getAIRCost(double time) {
     return airD;
 }
 
-void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t) {
+void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t, WeightLane* next) {
     ASSERT2(hisCarMap.find(car) == hisCarMap.end(),
             "car has been already in this lane");
-    hisCarMap[car] = t;
+    hisCarMap[car].time = t;
+    hisCarMap[car].car = car;
+    hisCarMap[car].next = next;
+
     hisTimeMap.insert(std::make_pair(t, car));
 }
 
-void SMTBaseRouting::WeightLane::removehistoricalCar(SMTCarInfo* car,
+void SMTBaseRouting::WeightLane::removeHistoricalCar(SMTCarInfo* car,
         double t) {
     map<SMTCarInfo*, double>::iterator itCar = hisCarMap.find(car);
     multimap<double, SMTCarInfo*>::iterator itT = hisTimeMap.find(

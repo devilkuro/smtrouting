@@ -44,6 +44,20 @@ public:
             SMTCarInfo* car;
             double cost;
         };
+        class HisInfo {
+        public:
+            HisInfo() :
+                    car(0), time(0), next(0) {
+
+            }
+            HisInfo(SMTCarInfo* _car, double _time, WeightLane* _next) :
+                    car(_car), time(_time), next(_next) {
+
+            }
+            SMTCarInfo* car;
+            double time;
+            WeightLane next;
+        };
         class laneState {
         public:
             laneState() :
@@ -87,8 +101,7 @@ public:
         multimap<double, SMTCarInfo*> enterTimeMap;
         multimap<double, CarTime> recentOutCars;
         // CoRP related
-        map<SMTCarInfo*, double> hisCarMap;
-        map<SMTCarInfo*, WeightEdge*> hisNextMap;
+        map<SMTCarInfo*, HisInfo> hisCarMap;
         multimap<double, SMTCarInfo*> hisTimeMap;
 
         virtual void carGetOut(SMTCarInfo* car, const double &t,
@@ -103,8 +116,8 @@ public:
         void updateAIRsi();
         virtual double getAIRCost(double time);
         // CoRP related
-        void addHistoricalCar(SMTCarInfo* car, double t);
-        void removehistoricalCar(SMTCarInfo* car, double t);
+        void addHistoricalCar(SMTCarInfo* car, double t, WeightLane* next);
+        void removeHistoricalCar(SMTCarInfo* car, double t);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
