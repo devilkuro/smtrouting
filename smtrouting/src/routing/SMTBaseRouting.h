@@ -56,7 +56,7 @@ public:
             }
             SMTCarInfo* car;
             double time;
-            WeightLane next;
+            WeightLane* next;
         };
         class laneState {
         public:

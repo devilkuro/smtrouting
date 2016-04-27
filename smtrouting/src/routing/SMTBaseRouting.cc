@@ -683,12 +683,12 @@ void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t,
 
 void SMTBaseRouting::WeightLane::removeHistoricalCar(SMTCarInfo* car,
         double t) {
-    map<SMTCarInfo*, double>::iterator itCar = hisCarMap.find(car);
+    map<SMTCarInfo*, HisInfo>::iterator itCar = hisCarMap.find(car);
     multimap<double, SMTCarInfo*>::iterator itT = hisTimeMap.find(
-            itCar->second);
+            itCar->second.time);
     while (itT->second != car) {
         ++itT;
-        if (itT->first != itCar->second) {
+        if (itT->first != itCar->second.time) {
             std::cout << "try to remove inexistent car in hisTimeMap"
                     << itCar->first->id << ", but find car " << itT->second->id
                     << std::endl;
