@@ -27,7 +27,7 @@ using std::multimap;
 using std::map;
 using std::set;
 using std::vector;
-
+using namespace tinyxml2;
 class SMTBaseRouting: public cSimpleModule {
 public:
     // 内部class
@@ -47,16 +47,15 @@ public:
         class HisInfo {
         public:
             HisInfo() :
-                    car(0), time(0), next(0) {
-
-            }
-            HisInfo(SMTCarInfo* _car, double _time, WeightLane* _next) :
-                    car(_car), time(_time), next(_next) {
-
+                    car(0), time(0), next(0), laneTime(0), viaTime(0), intervalToLast(
+                            0) {
             }
             SMTCarInfo* car;
             double time;
             WeightLane* next;
+            double laneTime;
+            double viaTime;
+            double intervalToLast;
         };
         class laneState {
         public:
@@ -64,7 +63,6 @@ public:
                     minViaPassTime(-1), maxViaPassTime(-1), totalViaPassTime(0), minLanePassTime(
                             -1), maxLanePassTime(-1), totalLanePassTime(0), passedCarNum(
                             0) {
-
             }
             double minViaPassTime;
             double maxViaPassTime;
@@ -78,7 +76,7 @@ public:
                 via(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
                         false), airSI(0), from(0), to(0), recentCost(-1), recentCostLastupdateTime(
                         -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
-                        false), airDLastUpdateTime(0), airD(0) {
+                        false), airDLastUpdateTime(0), airD(0),lastCarOutTime(0) {
         }
 
         virtual ~WeightLane();
@@ -101,8 +99,8 @@ public:
         multimap<double, SMTCarInfo*> enterTimeMap;
         multimap<double, CarTime> recentOutCars;
         // CoRP related
-        map<SMTCarInfo*, HisInfo> hisCarMap;
-        multimap<double, SMTCarInfo*> hisTimeMap;
+        map<SMTCarInfo*, HisInfo*> hisCarMap;
+        multimap<double, HisInfo*> hisTimeMap;
 
         virtual void carGetOut(SMTCarInfo* car, const double &t,
                 const double &cost);
@@ -116,7 +114,9 @@ public:
         void updateAIRsi();
         virtual double getAIRCost(double time);
         // CoRP related
-        void addHistoricalCar(SMTCarInfo* car, double t, WeightLane* next);
+        void addHistoricalCar(SMTCarInfo* car, double t);
+        void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
+                double viaTime, double time, WeightLane* next);
         void removeHistoricalCar(SMTCarInfo* car, double t);
     protected:
         // set to true when recentOutCars or totalCost changed
@@ -128,6 +128,7 @@ public:
         bool airCostUpdateFlag;
         bool airDLastUpdateTime;
         double airD;
+        double lastCarOutTime;
         virtual void updateCost(double time);
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
@@ -225,6 +226,7 @@ protected:
     bool enableCoRP;
     // record historical routing data
     bool recordHisRoutingData;
+    string hisRecordXMLPath;
     cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
     RoutingState rouState;
@@ -235,6 +237,7 @@ protected:
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
 
+    virtual void exportHisXML();
     virtual void printStatisticInfo();
     virtual void updateStatisticInfo();
     virtual void updateAIRInfo();

@@ -170,7 +170,7 @@ void SMTMobility::processWhenChangeRoad() {
         // change to lane -1 means car arriving
         getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, simTime().dbl(),
                 carInfo, simTime().dbl() - smtStat.outPrimaryEdgeTime,
-                smtStat.enterPrimaryEdgeTime - smtStat.outPrimaryEdgeTime);
+                smtStat.outPrimaryEdgeTime-smtStat.enterPrimaryEdgeTime);
     } else {
         if (!curEdge->isInternal) {
             while ((*carRoute.begin()) != curEdge) {
@@ -193,7 +193,7 @@ void SMTMobility::processWhenChangeRoad() {
             getRouting()->changeRoad(lastPrimaryEdge, curEdge,
                     preferredLaneIndex, simTime().dbl(), carInfo,
                     simTime().dbl() - smtStat.outPrimaryEdgeTime,
-                    smtStat.enterPrimaryEdgeTime - smtStat.outPrimaryEdgeTime);
+                    smtStat.outPrimaryEdgeTime-smtStat.enterPrimaryEdgeTime);
             smtStat.enterPrimaryEdgeTime = simTime().dbl();
         } else {
             // enter internal edge

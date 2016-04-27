@@ -406,6 +406,45 @@ void SMTBaseRouting::updateStatisticInfo() {
             << rouState.arrivedCarCount << srt->endl;
 }
 
+void SMTBaseRouting::exportHisXML() {
+    XMLDocument* doc = new XMLDocument();
+    XMLDeclaration* dec = doc->NewDeclaration();
+    doc->LinkEndChild(dec);
+    XMLElement* fromEdgeElm;
+    XMLElement* toEdgeElm;
+    XMLElement* carElm;
+    for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
+            itWE != weightEdgeMap.end(); ++itWE) {
+        fromEdgeElm = doc->NewElement("FromEdge");
+        fromEdgeElm->SetAttribute("edgeId", itWE->second->edge->id.c_str());
+        for (map<SMTEdge*, WeightLane*>::iterator itWL =
+                itWE->second->w2NextMap.begin();
+                itWL != itWE->second->w2NextMap.end(); ++itWL) {
+            toEdgeElm = doc->NewElement("ToEdge");
+            toEdgeElm->SetAttribute("toEdge",
+                    itWL->second->to->edge->id.c_str());
+            for (map<double, WeightLane::HisInfo*>::iterator itHis =
+                    itWL->second->hisTimeMap.begin();
+                    itHis != itWL->second->hisTimeMap.end(); ++itHis) {
+                carElm = doc->NewElement("CAR");
+                carElm->SetAttribute("id", itHis->second->car->id.c_str());
+                carElm->SetAttribute("enterTime", itHis->second->time);
+                carElm->SetAttribute("next",
+                        itHis->second->next->from->edge->id.c_str());
+                carElm->SetAttribute("laneTime", itHis->second->laneTime);
+                carElm->SetAttribute("viaTime", itHis->second->viaTime);
+                carElm->SetAttribute("intervalToLast",
+                        itHis->second->intervalToLast);
+                toEdgeElm->LinkEndChild(carElm);
+            }
+            fromEdgeElm->LinkEndChild(toEdgeElm);
+        }
+        doc->LinkEndChild(fromEdgeElm);
+    }
+    doc->SaveFile(hisRecordXMLPath.c_str());
+    doc->Clear();
+}
+
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
@@ -419,36 +458,57 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
     }
 }
 
-void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLane,
+void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         double time, SMTCarInfo* car, double viaTime, double laneTime) {
     // update pass time and remove car from weightEdge 'from'
+    WeightLane* fromLane = NULL;
+    WeightLane* toLane = NULL;
     if (from != NULL) {
         map<SMTEdge*, WeightEdge*>::iterator itFromEdge = weightEdgeMap.find(
                 from);
         map<SMTEdge*, WeightLane*>::iterator itFromLane =
                 itFromEdge->second->w2NextMap.find(to);
-        itFromLane->second->removeCar(car, time);
+        fromLane = itFromLane->second;
+        fromLane->removeCar(car, time);
         if (viaTime > 0) {
-            itFromLane->second->carPassVia(viaTime);
+            fromLane->carPassVia(viaTime);
+        } else {
+            std::cout << "Untouchable code in SMTBaseRouting::changeRoad"
+                    << std::endl;
         }
         if (laneTime > 0) {
-            itFromLane->second->carPassLane(laneTime);
+            fromLane->carPassLane(laneTime);
+        } else {
+            std::cout << "Untouchable code in SMTBaseRouting::changeRoad"
+                    << std::endl;
         }
     }
     // add car into weightEdge 'to'
-    if (toLane != -1) {
+    if (toLaneIndex != -1) {
         map<SMTEdge*, WeightEdge*>::iterator itToEdge = weightEdgeMap.find(to);
-        if (itToEdge->first->laneVector[toLane]->nextVector.size() > 1) {
+        if (itToEdge->first->laneVector[toLaneIndex]->nextVector.size() > 1) {
             std::cout << "system does not support multiple link for now@"
-                    << itToEdge->first->laneVector[toLane]->id << std::endl;
+                    << itToEdge->first->laneVector[toLaneIndex]->id
+                    << std::endl;
         }
-        SMTEdge* next = itToEdge->first->laneVector[toLane]->nextVector[0]->edge;
+        SMTEdge* next =
+                itToEdge->first->laneVector[toLaneIndex]->nextVector[0]->edge;
         map<SMTEdge*, WeightLane*>::iterator itToLane =
                 itToEdge->second->w2NextMap.find(next);
-        itToLane->second->insertCar(car, time);
+        toLane = itToLane->second;
+        toLane->insertCar(car, time);
     } else {
         // car reaches destination
         rouState.arrivedCarCount++;
+    }
+    if (recordHisRoutingData) {
+        if (fromLane != NULL) {
+            // if toLane is NULL, the car reached destination
+            fromLane->getOutHistoricalCar(car, laneTime, viaTime, time, toLane);
+        }
+        if (toLane != NULL) {
+            toLane->addHistoricalCar(car, time);
+        }
     }
 }
 
@@ -572,7 +632,17 @@ void SMTBaseRouting::releaseEdge(SMTEdge* edge) {
 }
 
 SMTBaseRouting::WeightLane::~WeightLane() {
-    // do nothing
+    // release HisInfo in hisCarMap
+    // usually, every HisInfo will be released before simulation end
+    if (hisCarMap.size() > 0) {
+        std::cout
+                << "usually, every HisInfo will be released before simulation end"
+                << std::endl;
+        for (map<SMTCarInfo*, HisInfo*>::iterator it = hisCarMap.begin();
+                it != hisCarMap.end(); ++it) {
+            delete (it->second);
+        }
+    }
 }
 
 void SMTBaseRouting::WeightLane::carGetOut(SMTCarInfo* car, const double& t,
@@ -670,31 +740,46 @@ double SMTBaseRouting::WeightLane::getAIRCost(double time) {
     return airD;
 }
 
-void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t,
-        WeightLane* next) {
+void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t) {
     ASSERT2(hisCarMap.find(car) == hisCarMap.end(),
             "car has been already in this lane");
-    hisCarMap[car].time = t;
-    hisCarMap[car].car = car;
-    hisCarMap[car].next = next;
+    HisInfo* hisInfo = new HisInfo();
+    hisInfo->time = t;
+    hisInfo->car = car;
+    hisCarMap[car] = hisInfo;
 
-    hisTimeMap.insert(std::make_pair(t, car));
+    hisTimeMap.insert(std::make_pair(t, hisInfo));
+}
+
+void SMTBaseRouting::WeightLane::getOutHistoricalCar(SMTCarInfo* car,
+        double laneTime, double viaTime, double time, WeightLane* next) {
+    map<SMTCarInfo*, HisInfo*>::iterator it = hisCarMap.find(car);
+    if (it == hisCarMap.end()) {
+        std::cout << "try to get out unknown car " << car->id << std::endl;
+        return;
+    }
+    it->second->laneTime = laneTime;
+    it->second->viaTime = viaTime;
+    it->second->intervalToLast = time - lastCarOutTime;
+    lastCarOutTime = time;
+    it->second->next = next;
 }
 
 void SMTBaseRouting::WeightLane::removeHistoricalCar(SMTCarInfo* car,
         double t) {
-    map<SMTCarInfo*, HisInfo>::iterator itCar = hisCarMap.find(car);
-    multimap<double, SMTCarInfo*>::iterator itT = hisTimeMap.find(
-            itCar->second.time);
-    while (itT->second != car) {
+    map<SMTCarInfo*, HisInfo*>::iterator itCar = hisCarMap.find(car);
+    multimap<double, HisInfo*>::iterator itT = hisTimeMap.find(
+            itCar->second->time);
+    while (itT->second->car != car) {
         ++itT;
-        if (itT->first != itCar->second.time) {
+        if (itT->first != itCar->second->time) {
             std::cout << "try to remove inexistent car in hisTimeMap"
-                    << itCar->first->id << ", but find car " << itT->second->id
-                    << std::endl;
+                    << itCar->first->id << ", but find car "
+                    << itT->second->car->id << std::endl;
         }
     }
     hisTimeMap.erase(itT);
+    delete (itCar->second);
     hisCarMap.erase(itCar);
 }
 
