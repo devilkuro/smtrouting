@@ -109,6 +109,8 @@ public:
         static double limitStart;
         static double limitCap;
         static double limitFix;
+        double corpEta; // 车辆通过路口占用的平均通行时间
+        double corpOta; // 车辆通过辅道的平均通行时间
         WeightEdge* from;
         WeightEdge* to; // FIXME may lead to multiple edges
         map<SMTCarInfo*, double> carMap;
@@ -193,7 +195,7 @@ public:
             suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), endSimMsg(
                     0), startTime(-1), carInfo(0), majorRoutingType(
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
-                    -1), hisRouteDoc(0),enableAIR(false), enableCoRP(false), corpUseHisRouteCEC(
+                    -1), hisRouteDoc(0), enableAIR(false), enableCoRP(false), corpUseHisRouteCEC(
                     0), corpReRouteCEC(1), replaceAIRWithITSWithOccupancy(
                     false), recordHisRoutingData(false), endAfterLoadHisXML(
                     false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(

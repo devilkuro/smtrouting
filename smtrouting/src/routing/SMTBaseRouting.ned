@@ -45,4 +45,7 @@ simple SMTBaseRouting like IBaseRouting
         int majorRoutingType = default(1);
         int minorRoutingType = default(2);
         int recordHisRecordRoutingType = default(-1);
+        
+        int corpUseHisRouteCEC = default(1);
+        int corpReRouteCEC = default(0);
 }

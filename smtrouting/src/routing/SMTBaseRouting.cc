@@ -56,6 +56,8 @@ void SMTBaseRouting::initialize(int stage) {
         } else {
             enableAIR = false;
         }
+        corpUseHisRouteCEC = par("corpUseHisRouteCEC").longValue();
+        corpReRouteCEC = par("corpReRouteCEC").longValue();
         // whether use fast with occupancy replace air routing
         replaceAIRWithITSWithOccupancy =
                 par("replaceAIRWithITSWithOccupancy").boolValue();
@@ -541,13 +543,13 @@ void SMTBaseRouting::exportHisXML() {
         }
         doc->LinkEndChild(fromEdgeElm);
     }
-    doc->SaveFile((hisRecordXMLPath+".lane.xml").c_str());
+    doc->SaveFile((hisRecordXMLPath + ".lane.xml").c_str());
     doc->Clear();
 }
 
 void SMTBaseRouting::importHisXML() {
     XMLDocument* doc = new XMLDocument();
-    doc->LoadFile((hisRecordXMLPath+".lane.xml").c_str());
+    doc->LoadFile((hisRecordXMLPath + ".lane.xml").c_str());
 
     XMLElement* fromEdgeElm;
     XMLElement* toEdgeElm;
@@ -622,6 +624,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
     }
     if (recordHisRoutingData) {
         XMLElement* carElm = hisRouteDoc->NewElement("car");
+        carElm->SetAttribute("id", carInfo->id);
         string routeStr = "";
         for (list<SMTEdge*>::iterator it = route.begin(); it != route.end();
                 ++it) {
