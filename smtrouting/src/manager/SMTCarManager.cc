@@ -194,15 +194,14 @@ void SMTCarManager::loadCarFlowFile(const string& path) {
             << " seconds." << std::endl;
 }
 
-void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
+bool SMTCarManager::addOneVehicle(SMTCarInfo* car) {
     switch (car->type) {
     case SMTCarInfo::SMTCARINFO_ROUTETYPE_OD:
         if (!getComIf()->addVehicle(car->id, car->vtype, car->origin, -1, -4, 0,
                 0)) {
-            if (debug) {
-                cout << "add car failed: car id: " << car->id << ", road: "
-                        << car->origin << ", @" << car->time << endl;
-            }
+            cout << "add car failed: car id: " << car->id << ", road: "
+                    << car->origin << ", @" << car->time << endl;
+            return false;
         } else {
             if (debug) {
                 cout << "add car: car id: " << car->id << ", road: "
@@ -216,6 +215,7 @@ void SMTCarManager::addOneVehicle(SMTCarInfo* car) {
     default:
         break;
     }
+    return true;
 }
 
 int SMTCarManager::getGenCarNumAtTime(double time, double &remain,
@@ -389,14 +389,22 @@ void SMTCarManager::handleGenMessage(cMessage* msg) {
     multimap<double, SMTCarInfo*>::iterator it = carMapByTime.begin();
     double curTime = simTime().dbl();
     if (getMap()->getLaunchd()->isConnected()) {
-        for (; it != carMapByTime.end() && it->first <= curTime; ++it) {
-            addOneVehicle(it->second);
-            carMapByTime.erase(it);
-            it = carMapByTime.begin();
+        for (; it != carMapByTime.end() && it->first <= curTime;) {
+            if (addOneVehicle(it->second)) {
+                carMapByTime.erase(it);
+                it = carMapByTime.begin();
+            } else {
+                // if add car failed, retry at next step
+                break;
+            }
         }
     }
     if (it != carMapByTime.end()) {
-        scheduleAt(it->first, msg);
+        if (it->first > simTime().dbl() + 0.1) {
+            scheduleAt(it->first, msg);
+        } else {
+            scheduleAt(simTime().dbl() + 0.1, msg);
+        }
     } else {
         // FIXME end simulation
         cancelAndDelete(msg);

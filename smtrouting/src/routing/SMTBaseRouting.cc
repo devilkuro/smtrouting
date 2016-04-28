@@ -457,11 +457,17 @@ void SMTBaseRouting::updateStatisticInfo() {
     static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
     srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
             << rouState.arrivedCarCount << srt->endl;
-    if (getMap()->getLaunchd()->getActiveVehicleCount() == 0
-            && getCarManager()->carMapByTime.size() == 0) {
-        if (endSimMsg == NULL) {
-            endSimMsg = new cMessage("end simulation by routing)");
-            scheduleAt(simTime(), endSimMsg);
+    if (getMap()->getLaunchd()->getActiveVehicleCount() == 0) {
+
+        std::cout << "getActiveVehicleCount: "
+                << getMap()->getLaunchd()->getActiveVehicleCount()
+                << "carMapByTime.size(): "
+                << getCarManager()->carMapByTime.size() << std::endl;
+        if (getCarManager()->carMapByTime.size() == 0) {
+            if (endSimMsg == NULL) {
+                endSimMsg = new cMessage("end simulation by routing)");
+                scheduleAt(simTime() + 0.1, endSimMsg);
+            }
         }
     }
 }
@@ -714,11 +720,13 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                     deltaW = deltaW
                             / (WeightLane::limitCap - itWL->second->occupation);
                 } else {
-                    if (itWL->second->occupaChangeFlag) {
-                        itWL->second->occupaChangeFlag = false;
-                        std::cout << "occupation from " << from->edge->id
-                                << " to " << to->edge->id << " is "
-                                << itWL->second->occupation << std::endl;
+                    if (debug) {
+                        if (itWL->second->occupaChangeFlagForDebug) {
+                            itWL->second->occupaChangeFlagForDebug = false;
+                            std::cout << "occupation from " << from->edge->id
+                                    << " to " << to->edge->id << " is "
+                                    << itWL->second->occupation << std::endl;
+                        }
                     }
                     deltaW = deltaW * 1000;
                 }
@@ -760,11 +768,15 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                         deltaW = deltaW
                                 / (WeightLane::airV - itWL->second->occupation);
                     } else {
-                        if (itWL->second->occupaChangeFlag) {
-                            itWL->second->occupaChangeFlag = false;
-                            std::cout << "occupation from " << from->edge->id
-                                    << " to " << to->edge->id << " is "
-                                    << itWL->second->occupation << std::endl;
+                        if (debug) {
+                            if (itWL->second->occupaChangeFlagForDebug) {
+                                itWL->second->occupaChangeFlagForDebug = false;
+                                std::cout << "occupation from "
+                                        << from->edge->id << " to "
+                                        << to->edge->id << " is "
+                                        << itWL->second->occupation
+                                        << std::endl;
+                            }
                         }
                         deltaW = deltaW * 1000;
                     }
@@ -888,7 +900,7 @@ void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
     enterTimeMap.insert(std::make_pair(t, car));
     // update occupation information
     occupation += occStep * (car->length + car->minGap);
-    occupaChangeFlag = true;
+    occupaChangeFlagForDebug = true;
     airCostUpdateFlag = true;
 }
 
@@ -908,7 +920,7 @@ void SMTBaseRouting::WeightLane::removeCar(SMTCarInfo* car, double t) {
     carMap.erase(itCar);
     // update occupation information
     occupation -= occStep * (car->length + car->minGap);
-    occupaChangeFlag = true;
+    occupaChangeFlagForDebug = true;
     airCostUpdateFlag = true;
 }
 

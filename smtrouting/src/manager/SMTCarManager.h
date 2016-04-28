@@ -111,7 +111,7 @@ protected:
 
     SMTMap* getMap();
     SMTComInterface* getComIf();
-    virtual void addOneVehicle(SMTCarInfo* car);  // add a car of a certain type
+    virtual bool addOneVehicle(SMTCarInfo* car);  // add a car of a certain type
 
     // generating car related
     // get the car number at certain time
