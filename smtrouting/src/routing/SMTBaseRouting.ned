@@ -40,6 +40,7 @@ simple SMTBaseRouting like IBaseRouting
         string recordXMLPrefix = default("default_recordXML");
 		bool recordHisRoutingData = default(false);
 		string hisRecordXMLPath = default("default_hisRecordXML.xml");
+		bool endAfterLoadHisXML = default(false);
 		// SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
         int majorRoutingType = default(1);
         int minorRoutingType = default(2);

@@ -181,8 +181,9 @@ public:
                     0), startTime(-1), carInfo(0), majorRoutingType(
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
                     -1), enableAIR(false), enableCoRP(false), replaceAIRWithITSWithOccupancy(
-                    false), recordHisRoutingData(false), airUpdateMsg(0), routeType(
-                    SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
+                    false), recordHisRoutingData(false), endAfterLoadHisXML(
+                    false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
+                    0), _pCarManager(0) {
     }
     virtual ~SMTBaseRouting();
 
@@ -237,6 +238,7 @@ protected:
     // record historical routing data
     bool recordHisRoutingData;
     string hisRecordXMLPath;
+    bool endAfterLoadHisXML;
     cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
     RoutingState rouState;

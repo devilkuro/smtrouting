@@ -80,6 +80,7 @@ void SMTBaseRouting::initialize(int stage) {
             recordHisRoutingData = true;
         }
         hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
+        endAfterLoadHisXML = par("endAfterLoadHisXML").boolValue();
     }
     if (stage == 1) {
         // needs to init weightEdgeMap here
@@ -130,7 +131,7 @@ void SMTBaseRouting::initialize(int stage) {
         if (enableCoRP) {
             importHisXML();
             // TODO end simulation
-            if (debug) {
+            if (endAfterLoadHisXML) {
                 endSimMsg = new cMessage("end simulation by routing)");
                 scheduleAt(simTime(), endSimMsg);
             }
