@@ -450,25 +450,27 @@ void SMTBaseRouting::exportHisXML() {
     XMLDocument* doc = new XMLDocument();
     XMLDeclaration* dec = doc->NewDeclaration();
     doc->LinkEndChild(dec);
+    XMLComment* comment = doc->NewComment("et=enterTime;lt=laneTime;vt=viaTime;it=intervalToLast");
+    doc->LinkEndChild(comment);
     XMLElement* fromEdgeElm;
     XMLElement* toEdgeElm;
     XMLElement* carElm;
     for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
             itWE != weightEdgeMap.end(); ++itWE) {
-        fromEdgeElm = doc->NewElement("FromEdge");
-        fromEdgeElm->SetAttribute("fromEdge", itWE->second->edge->id.c_str());
+        fromEdgeElm = doc->NewElement("From");
+        fromEdgeElm->SetAttribute("id", itWE->second->edge->id.c_str());
         for (map<SMTEdge*, WeightLane*>::iterator itWL =
                 itWE->second->w2NextMap.begin();
                 itWL != itWE->second->w2NextMap.end(); ++itWL) {
-            toEdgeElm = doc->NewElement("ToEdge");
-            toEdgeElm->SetAttribute("toEdge",
+            toEdgeElm = doc->NewElement("To");
+            toEdgeElm->SetAttribute("id",
                     itWL->second->to->edge->id.c_str());
             for (map<double, WeightLane::HisInfo*>::iterator itHis =
                     itWL->second->hisTimeMap.begin();
                     itHis != itWL->second->hisTimeMap.end(); ++itHis) {
                 carElm = doc->NewElement("CAR");
                 carElm->SetAttribute("id", itHis->second->car->id.c_str());
-                carElm->SetAttribute("enterTime",
+                carElm->SetAttribute("et",
                         Fanjing::StringHelper::dbl2str(itHis->second->time, 1).c_str());
                 if (itHis->second->next != NULL) {
                     carElm->SetAttribute("next",
@@ -476,13 +478,13 @@ void SMTBaseRouting::exportHisXML() {
                 } else {
                     carElm->SetAttribute("next", "");
                 }
-                carElm->SetAttribute("laneTime",
+                carElm->SetAttribute("lt",
                         Fanjing::StringHelper::dbl2str(itHis->second->laneTime,
                                 1).c_str());
-                carElm->SetAttribute("viaTime",
+                carElm->SetAttribute("vt",
                         Fanjing::StringHelper::dbl2str(itHis->second->viaTime,
                                 1).c_str());
-                carElm->SetAttribute("intervalToLast",
+                carElm->SetAttribute("it",
                         Fanjing::StringHelper::dbl2str(
                                 itHis->second->intervalToLast, 1).c_str());
                 toEdgeElm->LinkEndChild(carElm);
@@ -502,13 +504,13 @@ void SMTBaseRouting::importHisXML() {
     XMLElement* fromEdgeElm;
     XMLElement* toEdgeElm;
     XMLElement* carElm;
-    fromEdgeElm = doc->FirstChildElement("FromEdge");
+    fromEdgeElm = doc->FirstChildElement("From");
     WeightEdge* fromWEdge = weightEdgeMap[getMap()->getSMTEdgeById(
-            fromEdgeElm->Attribute("fromEdge"))];
+            fromEdgeElm->Attribute("id"))];
     while (fromEdgeElm != NULL) {
-        toEdgeElm = fromEdgeElm->FirstChildElement("ToEdge");
+        toEdgeElm = fromEdgeElm->FirstChildElement("To");
         WeightLane* toWLane = fromWEdge->w2NextMap[getMap()->getSMTEdgeById(
-                toEdgeElm->Attribute("toEdge"))];
+                toEdgeElm->Attribute("id"))];
         while (toEdgeElm != NULL) {
             carElm = toEdgeElm->FirstChildElement("CAR");
             while (carElm != NULL) {
@@ -525,7 +527,7 @@ void SMTBaseRouting::importHisXML() {
                 WeightLane::HisInfo* hisInfo = new WeightLane::HisInfo();
                 hisInfo->car = getCarManager()->carMapByID[carElm->Attribute(
                         "id")];
-                hisInfo->time = carElm->DoubleAttribute("enterTime");
+                hisInfo->time = carElm->DoubleAttribute("et");
                 string nextEdge = carElm->Attribute("next");
                 if (nextEdge != "") {
                     hisInfo->next =
@@ -534,16 +536,16 @@ void SMTBaseRouting::importHisXML() {
                 } else {
                     hisInfo->next = NULL;
                 }
-                hisInfo->laneTime = carElm->DoubleAttribute("laneTime");
-                hisInfo->viaTime = carElm->DoubleAttribute("viaTime");
+                hisInfo->laneTime = carElm->DoubleAttribute("lt");
+                hisInfo->viaTime = carElm->DoubleAttribute("vt");
                 hisInfo->intervalToLast = carElm->DoubleAttribute(
-                        "intervalToLast");
+                        "it");
                 toWLane->addHistoricalCar(hisInfo->car, hisInfo->time);
                 carElm = carElm->NextSiblingElement("CAR");
             }
-            toEdgeElm = toEdgeElm->FirstChildElement("ToEdge");
+            toEdgeElm = toEdgeElm->FirstChildElement("To");
         }
-        fromEdgeElm = fromEdgeElm->NextSiblingElement("FromEdge");
+        fromEdgeElm = fromEdgeElm->NextSiblingElement("From");
     }
 }
 
