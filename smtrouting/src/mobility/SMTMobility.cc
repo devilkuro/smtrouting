@@ -141,10 +141,10 @@ bool SMTMobility::processAtRouting() {
     // 设置车道变换模式
     cmdSetNoOvertake();
     // 设置路径
-    if(carInfo->isMajorType){
+    if (carInfo->isMajorType) {
         getRouting()->getRouteByMajorMethod(getMap()->getSMTEdgeById(road_id),
                 destination, carRoute, simTime().dbl(), carInfo);
-    }else{
+    } else {
         getRouting()->getRouteByMinorMethod(getMap()->getSMTEdgeById(road_id),
                 destination, carRoute, simTime().dbl(), carInfo);
     }
@@ -169,8 +169,10 @@ void SMTMobility::processWhenChangeRoad() {
         scheduleAt(simTime() + 1, arrivedMsg);
         // change to lane -1 means car arriving
         getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, simTime().dbl(),
-                carInfo, simTime().dbl() - smtStat.outPrimaryEdgeTime,
-                smtStat.outPrimaryEdgeTime-smtStat.enterPrimaryEdgeTime);
+                carInfo,
+                (smtStat.outPrimaryEdgeTime > 0 ?
+                        simTime().dbl() - smtStat.outPrimaryEdgeTime : -1),
+                smtStat.outPrimaryEdgeTime - smtStat.enterPrimaryEdgeTime);
     } else {
         if (!curEdge->isInternal) {
             while ((*carRoute.begin()) != curEdge) {
@@ -192,8 +194,9 @@ void SMTMobility::processWhenChangeRoad() {
             // change road in routing system
             getRouting()->changeRoad(lastPrimaryEdge, curEdge,
                     preferredLaneIndex, simTime().dbl(), carInfo,
-                    simTime().dbl() - smtStat.outPrimaryEdgeTime,
-                    smtStat.outPrimaryEdgeTime-smtStat.enterPrimaryEdgeTime);
+                    (smtStat.outPrimaryEdgeTime > 0 ?
+                            simTime().dbl() - smtStat.outPrimaryEdgeTime : -1),
+                    smtStat.outPrimaryEdgeTime - smtStat.enterPrimaryEdgeTime);
             smtStat.enterPrimaryEdgeTime = simTime().dbl();
         } else {
             // enter internal edge

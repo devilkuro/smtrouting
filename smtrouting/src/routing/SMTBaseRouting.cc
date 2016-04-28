@@ -461,8 +461,9 @@ void SMTBaseRouting::exportHisXML() {
     XMLDocument* doc = new XMLDocument();
     XMLDeclaration* dec = doc->NewDeclaration();
     doc->LinkEndChild(dec);
-    XMLComment* comment = doc->NewComment(
-            "et=enterTime;lt=laneTime;vt=viaTime;it=intervalToLast");
+    XMLComment* comment =
+            doc->NewComment(
+                    "et=enterTime;lt=laneTime;vt=viaTime;it=intervalToLast;opt=outPrimaryEdgeTime");
     doc->LinkEndChild(comment);
     XMLElement* fromEdgeElm;
     XMLElement* toEdgeElm;
@@ -507,6 +508,10 @@ void SMTBaseRouting::exportHisXML() {
                 carElm->SetAttribute("it",
                         Fanjing::StringHelper::dbl2str(
                                 itHis->second->intervalToLast, 1).c_str());
+                carElm->SetAttribute("opt",
+                        Fanjing::StringHelper::dbl2str(
+                                itHis->second->time + itHis->second->laneTime,
+                                1).c_str());
                 toEdgeElm->LinkEndChild(carElm);
             }
             fromEdgeElm->LinkEndChild(toEdgeElm);
