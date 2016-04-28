@@ -77,7 +77,8 @@ public:
                 via(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
                         false), airSI(0), from(0), to(0), recentCost(-1), recentCostLastupdateTime(
                         -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
-                        false), airDLastUpdateTime(0), airD(0),lastCarOutTime(0) {
+                        false), airDLastUpdateTime(0), airD(0), lastCarOutTime(
+                        0) {
         }
 
         virtual ~WeightLane();
@@ -176,13 +177,15 @@ public:
     SMTBaseRouting() :
             suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), startTime(
                     -1), carInfo(0), majorRoutingType(SMT_RT_FAST), minorRoutingType(
-                    SMT_RT_FAST), enableAIR(false), airUpdateMsg(0), routeType(
-                    SMT_RT_FAST), srt(0), _pMap(0),_pCarManager(0) {
+                    SMT_RT_FAST), recordHisRecordRoutingType(-1), enableAIR(
+                    false), enableCoRP(false), replaceAIRWithITSWithOccupancy(
+                    false),recordHisRoutingData(false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
+                    0), _pCarManager(0) {
     }
     virtual ~SMTBaseRouting();
 
     SMTMap* getMap();
-    SMTMap* getCarManager();
+    SMTCarManager* getCarManager();
 
     // routing functions
     // TODO 添加基本的寻路方法

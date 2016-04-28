@@ -52,6 +52,8 @@ void SMTBaseRouting::initialize(int stage) {
                 par("recordHisRecordRoutingType").longValue();
         if (majorRoutingType == SMT_RT_AIR || minorRoutingType == SMT_RT_AIR) {
             enableAIR = true;
+        } else {
+            enableAIR = false;
         }
         // whether use fast with occupancy replace air routing
         replaceAIRWithITSWithOccupancy =
@@ -65,6 +67,8 @@ void SMTBaseRouting::initialize(int stage) {
                 || majorRoutingType == SMT_RT_CORP_TTS
                 || minorRoutingType == SMT_RT_CORP_TTS) {
             enableCoRP = true;
+        } else {
+            enableCoRP = false;
         }
         srt = Fanjing::StatisticsRecordTools::request();
         rouState.recordActiveCarNum = par("recordActiveCarNum").boolValue();
@@ -121,7 +125,7 @@ void SMTBaseRouting::initialize(int stage) {
         statisticMsg = new cMessage("statisticMsg)");
         scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
     }
-    if(stage = 2){
+    if (stage == 2) {
         // load historical xml after car map has been initialized
         if (enableCoRP) {
             importHisXML();
@@ -141,7 +145,8 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
         } else if (msg == airUpdateMsg) {
             updateAIRInfo();
         } else if (msg == statisticMsg) {
-            scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
+            scheduleAt(simTime() + rouState.recordActiveCarInterval,
+                    statisticMsg);
             updateStatisticInfo();
         }
     }
@@ -150,6 +155,9 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
 void SMTBaseRouting::finish() {
     printStatisticInfo();
     srt->outputSeparate(recordXMLPrefix + ".txt");
+    if (recordHisRoutingData) {
+        exportHisXML();
+    }
 }
 
 SMTMap* SMTBaseRouting::getMap() {
@@ -159,7 +167,7 @@ SMTMap* SMTBaseRouting::getMap() {
     return _pMap;
 }
 
-SMTMap* SMTBaseRouting::getCarManager() {
+SMTCarManager* SMTBaseRouting::getCarManager() {
     if (_pCarManager == NULL) {
         _pCarManager = SMTCarManagerAccess().get();
     }
@@ -399,8 +407,8 @@ void SMTBaseRouting::printStatisticInfo() {
                         << ", Min Speed: "
                         << itWL->second->viaLen
                                 / itWL->second->statistic.maxViaPassTime
-                        << ", Min Lane Speed"
-                        << itWL->second->viaLen
+                        << ", Max Lane Speed: "
+                        << itWL->second->from->edge->length()
                                 / itWL->second->statistic.minLanePassTime
                         << ", car number: "
                         << itWL->second->statistic.passedCarNum << std::endl;
@@ -460,13 +468,23 @@ void SMTBaseRouting::exportHisXML() {
                     itHis != itWL->second->hisTimeMap.end(); ++itHis) {
                 carElm = doc->NewElement("CAR");
                 carElm->SetAttribute("id", itHis->second->car->id.c_str());
-                carElm->SetAttribute("enterTime", itHis->second->time);
-                carElm->SetAttribute("next",
-                        itHis->second->next->from->edge->id.c_str());
-                carElm->SetAttribute("laneTime", itHis->second->laneTime);
-                carElm->SetAttribute("viaTime", itHis->second->viaTime);
+                carElm->SetAttribute("enterTime",
+                        Fanjing::StringHelper::dbl2str(itHis->second->time, 1).c_str());
+                if (itHis->second->next != NULL) {
+                    carElm->SetAttribute("next",
+                            itHis->second->next->from->edge->id.c_str());
+                } else {
+                    carElm->SetAttribute("next", "");
+                }
+                carElm->SetAttribute("laneTime",
+                        Fanjing::StringHelper::dbl2str(itHis->second->laneTime,
+                                1).c_str());
+                carElm->SetAttribute("viaTime",
+                        Fanjing::StringHelper::dbl2str(itHis->second->viaTime,
+                                1).c_str());
                 carElm->SetAttribute("intervalToLast",
-                        itHis->second->intervalToLast);
+                        Fanjing::StringHelper::dbl2str(
+                                itHis->second->intervalToLast, 1).c_str());
                 toEdgeElm->LinkEndChild(carElm);
             }
             fromEdgeElm->LinkEndChild(toEdgeElm);
@@ -508,12 +526,19 @@ void SMTBaseRouting::importHisXML() {
                 hisInfo->car = getCarManager()->carMapByID[carElm->Attribute(
                         "id")];
                 hisInfo->time = carElm->DoubleAttribute("enterTime");
-                hisInfo->next = toWLane->to->w2NextMap[getMap()->getSMTEdgeById(
-                        carElm->Attribute("next"))];
+                string nextEdge = carElm->Attribute("next");
+                if (nextEdge != "") {
+                    hisInfo->next =
+                            toWLane->to->w2NextMap[getMap()->getSMTEdgeById(
+                                    nextEdge)];
+                } else {
+                    hisInfo->next = NULL;
+                }
                 hisInfo->laneTime = carElm->DoubleAttribute("laneTime");
                 hisInfo->viaTime = carElm->DoubleAttribute("viaTime");
-                hisInfo->intervalToLast = carElm->DoubleAttribute("intervalToLast");
-                toWLane->addHistoricalCar(hisInfo->car,hisInfo->time);
+                hisInfo->intervalToLast = carElm->DoubleAttribute(
+                        "intervalToLast");
+                toWLane->addHistoricalCar(hisInfo->car, hisInfo->time);
                 carElm = carElm->NextSiblingElement("CAR");
             }
             toEdgeElm = toEdgeElm->FirstChildElement("ToEdge");
@@ -770,15 +795,9 @@ void SMTBaseRouting::releaseEdge(SMTEdge* edge) {
 
 SMTBaseRouting::WeightLane::~WeightLane() {
     // release HisInfo in hisCarMap
-    // usually, every HisInfo will be released before simulation end
-    if (hisCarMap.size() > 0) {
-        std::cout
-                << "usually, every HisInfo will be released before simulation end"
-                << std::endl;
-        for (map<SMTCarInfo*, HisInfo*>::iterator it = hisCarMap.begin();
-                it != hisCarMap.end(); ++it) {
-            delete (it->second);
-        }
+    for (map<SMTCarInfo*, HisInfo*>::iterator it = hisCarMap.begin();
+            it != hisCarMap.end(); ++it) {
+        delete (it->second);
     }
 }
 
@@ -884,7 +903,6 @@ void SMTBaseRouting::WeightLane::addHistoricalCar(SMTCarInfo* car, double t) {
     hisInfo->time = t;
     hisInfo->car = car;
     hisCarMap[car] = hisInfo;
-
     hisTimeMap.insert(std::make_pair(t, hisInfo));
 }
 
