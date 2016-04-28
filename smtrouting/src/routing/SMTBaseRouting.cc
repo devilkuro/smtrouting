@@ -130,6 +130,10 @@ void SMTBaseRouting::initialize(int stage) {
         if (enableCoRP) {
             importHisXML();
             // TODO end simulation
+            if (debug) {
+                endSimMsg = new cMessage("end simulation by routing)");
+                scheduleAt(simTime(), endSimMsg);
+            }
         }
     }
 }
@@ -148,7 +152,11 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
             scheduleAt(simTime() + rouState.recordActiveCarInterval,
                     statisticMsg);
             updateStatisticInfo();
+        }else if(msg ==endSimMsg){
+            endSimulation();
         }
+    }else{
+        cSimpleModule::handleMessage(msg);
     }
 }
 

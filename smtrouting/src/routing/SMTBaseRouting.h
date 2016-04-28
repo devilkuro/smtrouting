@@ -175,12 +175,12 @@ public:
     };
 public:
     SMTBaseRouting() :
-            suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), startTime(
-                    -1), carInfo(0), majorRoutingType(SMT_RT_FAST), minorRoutingType(
-                    SMT_RT_FAST), recordHisRecordRoutingType(-1), enableAIR(
-                    false), enableCoRP(false), replaceAIRWithITSWithOccupancy(
-                    false),recordHisRoutingData(false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
-                    0), _pCarManager(0) {
+            suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), endSimMsg(
+                    0), startTime(-1), carInfo(0), majorRoutingType(
+                    SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
+                    -1), enableAIR(false), enableCoRP(false), replaceAIRWithITSWithOccupancy(
+                    false), recordHisRoutingData(false), airUpdateMsg(0), routeType(
+                    SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
     }
     virtual ~SMTBaseRouting();
 
@@ -222,6 +222,7 @@ protected:
     bool debug;
     cMessage* debugMsg;
     cMessage* statisticMsg;
+    cMessage* endSimMsg;
     string recordXMLPrefix;
     double startTime;
     SMTCarInfo* carInfo;
