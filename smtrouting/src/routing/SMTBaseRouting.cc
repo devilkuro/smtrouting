@@ -482,7 +482,7 @@ void SMTBaseRouting::exportHisXML() {
                         Fanjing::StringHelper::dbl2str(itHis->second->time, 1).c_str());
                 if (itHis->second->next != NULL) {
                     carElm->SetAttribute("next",
-                            itHis->second->next->from->edge->id.c_str());
+                            itHis->second->next->to->edge->id.c_str());
                 } else {
                     carElm->SetAttribute("next", "");
                 }
@@ -539,7 +539,7 @@ void SMTBaseRouting::importHisXML() {
                 string nextEdge = carElm->Attribute("next");
                 if (nextEdge != "") {
                     hisInfo->next =
-                            toWLane->from->w2NextMap[getMap()->getSMTEdgeById(
+                            toWLane->to->w2NextMap[getMap()->getSMTEdgeById(
                                     nextEdge)];
                 } else {
                     hisInfo->next = NULL;

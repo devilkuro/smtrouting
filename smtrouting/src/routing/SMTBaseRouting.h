@@ -62,8 +62,8 @@ public:
         public:
             laneState() :
                     minViaPassTime(-1), maxViaPassTime(-1), totalViaPassTime(0), minLanePassTime(
-                            -1), maxLanePassTime(-1), totalLanePassTime(0), passedCarNum(
-                            0) {
+                            -1), maxLanePassTime(-1), totalLanePassTime(0), minPassLaneInterval(
+                            -1), maxPassLaneNumOneCircle(0), passedCarNum(0) {
             }
             double minViaPassTime;
             double maxViaPassTime;
@@ -71,6 +71,8 @@ public:
             double minLanePassTime;
             double maxLanePassTime;
             double totalLanePassTime;
+            double minPassLaneInterval;
+            int maxPassLaneNumOneCircle;
             int passedCarNum;
         };
         WeightLane() :

@@ -55,6 +55,7 @@ void SMTCarManager::initialize(int stage) {
         genPar.crossRatio = par("crossRatio").doubleValue();
         genPar.innerRatio = par("innerRatio").doubleValue();
         genPar.forceGenerate = par("forceGenerate").boolValue();
+        genPar.generateTestCarNum = par("generateTestCarNum").longValue();
 
         genPar.majorCarEveryCircle = par("majorCarEveryCircle").longValue();
         genPar.minorCarEveryCircle = par("minorCarEveryCircle").longValue();
@@ -112,11 +113,13 @@ void SMTCarManager::generateCarFlowFile(const string& path) {
     int nInner = getGenCarNumAtTime(curTime, remainInner, genPar.innerRatio);
     double remainCross = 0;
     int nCross = getGenCarNumAtTime(curTime, remainCross, genPar.crossRatio);
-    unsigned int intpart;
+    double outPutTime;
     unsigned int crossCarNum = 0;
     unsigned int innerCarNum = 0;
+    if (genPar.generateTestCarNum > 0) {
+        addRandomInnerVehicleIntoXML(0.5, genPar.generateTestCarNum, true);
+    }
     while (nInner >= 0 || nCross >= 0) {
-        ++intpart;
         // add inner vehicle
         addRandomInnerVehicleIntoXML(curTime, nInner);
         innerCarNum += nInner;
@@ -126,7 +129,8 @@ void SMTCarManager::generateCarFlowFile(const string& path) {
         curTime += genPar.generateInterval;
         nInner = getGenCarNumAtTime(curTime, remainInner, genPar.innerRatio);
         nCross = getGenCarNumAtTime(curTime, remainCross, genPar.crossRatio);
-        if (intpart % 120 == 0) {
+        if (curTime > outPutTime + 120) {
+            outPutTime += 120;
             std::cout << "AT:" << curTime << "s, generated inner car number:"
                     << innerCarNum << std::endl;
             std::cout << "AT:" << curTime << "s, generated cross car number:"
@@ -284,26 +288,44 @@ int SMTCarManager::getGenCarNumAtTime(double time, double &remain,
 }
 
 void SMTCarManager::addRandomInnerVehicleIntoXML(double departTime,
-        unsigned int num) {
+        unsigned int num, bool beSame) {
+    SMTEdge* fromEdge;
+    SMTEdge* toEdge;
+    if (beSame) {
+        fromEdge = getRandomNotOutEdge();
+        toEdge = getRandomNotEnterEdge();
+    }
     for (unsigned int i = 0; i < num; ++i) {
+        if (!beSame) {
+            fromEdge = getRandomNotOutEdge();
+            toEdge = getRandomNotEnterEdge();
+        }
         carFlowHelper.addODCar(
                 carPrefix
                         + Fanjing::StringHelper::int2str(
-                                genPar.lastVechileIndex++),
-                getRandomNotOutEdge()->id, getRandomNotEnterEdge()->id,
-                departTime, getRandomCarType()->vtype);
+                                genPar.lastVechileIndex++), fromEdge->id,
+                toEdge->id, departTime, getRandomCarType()->vtype);
     }
 }
 
 void SMTCarManager::addRandomThroughVehicleIntoXML(double departTime,
-        unsigned int num) {
+        unsigned int num, bool beSame) {
+    SMTEdge* fromEdge;
+    SMTEdge* toEdge;
+    if (beSame) {
+        fromEdge = getRandomEnterEdge();
+        toEdge = getRandomOutEdge();
+    }
     for (unsigned int i = 0; i < num; ++i) {
+        if (!beSame) {
+            fromEdge = getRandomEnterEdge();
+            toEdge = getRandomOutEdge();
+        }
         carFlowHelper.addODCar(
                 carPrefix
                         + Fanjing::StringHelper::int2str(
-                                genPar.lastVechileIndex++),
-                getRandomEnterEdge()->id, getRandomOutEdge()->id, departTime,
-                getRandomCarType()->vtype);
+                                genPar.lastVechileIndex++), fromEdge->id,
+                toEdge->id, departTime, getRandomCarType()->vtype);
     }
 }
 

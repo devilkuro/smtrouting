@@ -44,7 +44,7 @@ simple SMTCarManager
         double crossRatio = default(0.5);
         double innerRatio = default(0.5);
         bool forceGenerate = default(false);
-        
+        int generateTestCarNum = default(0);
         // for every major+minor cars, major are major car
 		// and rest are minor
         int majorCarEveryCircle = default(1);

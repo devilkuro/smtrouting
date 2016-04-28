@@ -44,8 +44,8 @@ public:
                 minGenNumPerHour(0), maxGenNumPerHour(0), startTime(0), prePeriod(
                         0), increasePeriod(0), maxPeriod(0), decreasePeriod(0), sufPeriod(
                         0), generateInterval(0), crossRatio(0), innerRatio(1), lastVechileIndex(
-                        0), forceGenerate(false), majorCarEveryCircle(1), minorCarEveryCircle(
-                        0), totalCarEveryCircle(1) {
+                        0), forceGenerate(false), generateTestCarNum(0), majorCarEveryCircle(
+                        1), minorCarEveryCircle(0), totalCarEveryCircle(1) {
         }
         // _-/'''\-_
         // min-increasePeriod->increase->max-maxPeriod->decrease-decreasePeriod->min
@@ -62,6 +62,7 @@ public:
         double innerRatio;
         unsigned int lastVechileIndex;
         bool forceGenerate;
+        int generateTestCarNum;
 
         unsigned int majorCarEveryCircle;
         unsigned int minorCarEveryCircle;
@@ -69,10 +70,8 @@ public:
     };
 public:
     SMTCarManager() :
-            debug(false), endAfterGenerateCarFlowFile(false), genSetpMsg(NULL), endMsg(
-            NULL), _pMap(
-            NULL), _pComIf(
-            NULL) {
+            debug(false), endAfterGenerateCarFlowFile(false), genSetpMsg(0), endMsg(
+                    0), _pMap(0), _pComIf(0) {
     }
     virtual ~SMTCarManager();
 
@@ -117,8 +116,10 @@ protected:
     // get the car number at certain time
     // the fractional part is returned by remain
     int getGenCarNumAtTime(double time, double &remain, double percent = 1);
-    void addRandomInnerVehicleIntoXML(double departTime, unsigned int num);
-    void addRandomThroughVehicleIntoXML(double departTime, unsigned int num);
+    void addRandomInnerVehicleIntoXML(double departTime, unsigned int num,
+            bool beSame = false);
+    void addRandomThroughVehicleIntoXML(double departTime, unsigned int num,
+            bool beSame = false);
     SMTCarInfo* getRandomCarType();
     SMTEdge* getRandomNotOutEdge();
     SMTEdge* getRandomNotEnterEdge();
