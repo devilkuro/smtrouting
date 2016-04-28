@@ -152,10 +152,10 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
             scheduleAt(simTime() + rouState.recordActiveCarInterval,
                     statisticMsg);
             updateStatisticInfo();
-        }else if(msg ==endSimMsg){
+        } else if (msg == endSimMsg) {
             endSimulation();
         }
-    }else{
+    } else {
         cSimpleModule::handleMessage(msg);
     }
 }
@@ -458,7 +458,8 @@ void SMTBaseRouting::exportHisXML() {
     XMLDocument* doc = new XMLDocument();
     XMLDeclaration* dec = doc->NewDeclaration();
     doc->LinkEndChild(dec);
-    XMLComment* comment = doc->NewComment("et=enterTime;lt=laneTime;vt=viaTime;it=intervalToLast");
+    XMLComment* comment = doc->NewComment(
+            "et=enterTime;lt=laneTime;vt=viaTime;it=intervalToLast");
     doc->LinkEndChild(comment);
     XMLElement* fromEdgeElm;
     XMLElement* toEdgeElm;
@@ -471,8 +472,7 @@ void SMTBaseRouting::exportHisXML() {
                 itWE->second->w2NextMap.begin();
                 itWL != itWE->second->w2NextMap.end(); ++itWL) {
             toEdgeElm = doc->NewElement("To");
-            toEdgeElm->SetAttribute("id",
-                    itWL->second->to->edge->id.c_str());
+            toEdgeElm->SetAttribute("id", itWL->second->to->edge->id.c_str());
             for (map<double, WeightLane::HisInfo*>::iterator itHis =
                     itWL->second->hisTimeMap.begin();
                     itHis != itWL->second->hisTimeMap.end(); ++itHis) {
@@ -513,13 +513,13 @@ void SMTBaseRouting::importHisXML() {
     XMLElement* toEdgeElm;
     XMLElement* carElm;
     fromEdgeElm = doc->FirstChildElement("From");
-    WeightEdge* fromWEdge = weightEdgeMap[getMap()->getSMTEdgeById(
-            fromEdgeElm->Attribute("id"))];
     while (fromEdgeElm != NULL) {
+        WeightEdge* fromWEdge = weightEdgeMap[getMap()->getSMTEdgeById(
+                fromEdgeElm->Attribute("id"))];
         toEdgeElm = fromEdgeElm->FirstChildElement("To");
-        WeightLane* toWLane = fromWEdge->w2NextMap[getMap()->getSMTEdgeById(
-                toEdgeElm->Attribute("id"))];
         while (toEdgeElm != NULL) {
+            WeightLane* toWLane = fromWEdge->w2NextMap[getMap()->getSMTEdgeById(
+                    toEdgeElm->Attribute("id"))];
             carElm = toEdgeElm->FirstChildElement("CAR");
             while (carElm != NULL) {
                 /*
@@ -539,15 +539,23 @@ void SMTBaseRouting::importHisXML() {
                 string nextEdge = carElm->Attribute("next");
                 if (nextEdge != "") {
                     hisInfo->next =
-                            toWLane->to->w2NextMap[getMap()->getSMTEdgeById(
+                            toWLane->from->w2NextMap[getMap()->getSMTEdgeById(
                                     nextEdge)];
                 } else {
                     hisInfo->next = NULL;
                 }
                 hisInfo->laneTime = carElm->DoubleAttribute("lt");
                 hisInfo->viaTime = carElm->DoubleAttribute("vt");
-                hisInfo->intervalToLast = carElm->DoubleAttribute(
-                        "it");
+                hisInfo->intervalToLast = carElm->DoubleAttribute("it");
+                if (debug) {
+                    std::cout << "add car " << hisInfo->car->id
+                            << " into lane from " << fromWEdge->edge->id
+                            << " to " << toWLane->from->edge->id
+                            << ", the next edge is "
+                            << (hisInfo->next == NULL ?
+                                    "NULL" : hisInfo->next->from->edge->id)
+                            << "." << std::endl;
+                }
                 toWLane->addHistoricalCar(hisInfo->car, hisInfo->time);
                 carElm = carElm->NextSiblingElement("CAR");
             }

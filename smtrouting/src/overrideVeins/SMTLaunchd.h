@@ -28,7 +28,7 @@ class SMTLaunchd: public Veins::TraCIScenarioManagerLaunchd {
 
 public:
     SMTLaunchd() :
-            smtComIfc(0) {
+            smtComIfc(0),_totleTTSWithoutFixByUpdateInterval(0) {
     }
     virtual ~SMTLaunchd();
 
