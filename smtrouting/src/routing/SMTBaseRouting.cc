@@ -14,6 +14,7 @@
 // 
 
 #include "SMTBaseRouting.h"
+#include "StringHelper.h"
 
 Define_Module(SMTBaseRouting);
 double SMTBaseRouting::WeightLane::outCarKeepDuration = 120;
@@ -71,13 +72,16 @@ void SMTBaseRouting::initialize(int stage) {
             enableCoRP = false;
         }
         srt = Fanjing::StatisticsRecordTools::request();
-        rouState.recordActiveCarNum = par("recordActiveCarNum").boolValue();
-        rouState.recordActiveCarInterval =
+        rouStatus.recordActiveCarNum = par("recordActiveCarNum").boolValue();
+        rouStatus.recordActiveCarInterval =
                 par("recordActiveCarInterval").doubleValue();
         recordXMLPrefix = par("recordXMLPrefix").stringValue();
         recordHisRoutingData = par("recordHisRoutingData").boolValue();
         if (majorRoutingType == recordHisRecordRoutingType) {
             recordHisRoutingData = true;
+            hisRouteDoc = new XMLDocument();
+            XMLDeclaration* dec = hisRouteDoc->NewDeclaration();
+            hisRouteDoc->LinkEndChild(dec);
         }
         hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
         endAfterLoadHisXML = par("endAfterLoadHisXML").boolValue();
@@ -126,13 +130,12 @@ void SMTBaseRouting::initialize(int stage) {
             scheduleAt(simTime() + 1.0, airUpdateMsg);
         }
         statisticMsg = new cMessage("statisticMsg)");
-        scheduleAt(simTime() + rouState.recordActiveCarInterval, statisticMsg);
+        scheduleAt(simTime() + rouStatus.recordActiveCarInterval, statisticMsg);
     }
     if (stage == 2) {
         // load historical xml after car map has been initialized
         if (enableCoRP) {
             importHisXML();
-            // TODO end simulation
             if (endAfterLoadHisXML) {
                 endSimMsg = new cMessage("end simulation by routing)");
                 scheduleAt(simTime(), endSimMsg);
@@ -152,7 +155,7 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
         } else if (msg == airUpdateMsg) {
             updateAIRInfo();
         } else if (msg == statisticMsg) {
-            scheduleAt(simTime() + rouState.recordActiveCarInterval,
+            scheduleAt(simTime() + rouStatus.recordActiveCarInterval,
                     statisticMsg);
             updateStatisticInfo();
         } else if (msg == endSimMsg) {
@@ -172,6 +175,9 @@ void SMTBaseRouting::finish() {
     srt->outputSeparate(recordXMLPrefix + ".txt");
     if (recordHisRoutingData) {
         exportHisXML();
+        hisRouteDoc->SaveFile((hisRecordXMLPath + ".rou.xml").c_str());
+        hisRouteDoc->Clear();
+        hisRouteDoc = NULL;
     }
 }
 
@@ -197,7 +203,6 @@ void SMTBaseRouting::getShortestRoute(SMTEdge* origin, SMTEdge* destination,
     carInfo = car;
     rou.clear();
     runDijkstraAlgorithm(origin, destination, rou);
-    // TODO needs test
 }
 
 void SMTBaseRouting::initDijkstra(SMTEdge* origin) {
@@ -430,7 +435,7 @@ void SMTBaseRouting::printStatisticInfo() {
             }
         }
     }
-    std::cout << "arrivedCarCount:" << rouState.arrivedCarCount << std::endl;
+    std::cout << "arrivedCarCount:" << rouStatus.arrivedCarCount << std::endl;
     std::cout << "TTS" << getMap()->getLaunchd()->getTTS() << std::endl;
 }
 
@@ -448,7 +453,7 @@ void SMTBaseRouting::updateAIRInfo() {
 void SMTBaseRouting::updateStatisticInfo() {
     static string titleTime = "time";
     static string titleActiveCarCount = titleTime + "\t" + "carCount";
-    if (rouState.recordActiveCarNum) {
+    if (rouStatus.recordActiveCarNum) {
         srt->changeName("activeCarCount", titleActiveCarCount)
                 << simTime().dbl()
                 << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
@@ -458,7 +463,7 @@ void SMTBaseRouting::updateStatisticInfo() {
             << getMap()->getLaunchd()->getTTS() << srt->endl;
     static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
     srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
-            << rouState.arrivedCarCount << srt->endl;
+            << rouStatus.arrivedCarCount << srt->endl;
     if (getMap()->getLaunchd()->getActiveVehicleCount() == 0) {
         if (debug) {
             std::cout << "getActiveVehicleCount: "
@@ -536,13 +541,13 @@ void SMTBaseRouting::exportHisXML() {
         }
         doc->LinkEndChild(fromEdgeElm);
     }
-    doc->SaveFile(hisRecordXMLPath.c_str());
+    doc->SaveFile((hisRecordXMLPath+".lane.xml").c_str());
     doc->Clear();
 }
 
 void SMTBaseRouting::importHisXML() {
     XMLDocument* doc = new XMLDocument();
-    doc->LoadFile(hisRecordXMLPath.c_str());
+    doc->LoadFile((hisRecordXMLPath+".lane.xml").c_str());
 
     XMLElement* fromEdgeElm;
     XMLElement* toEdgeElm;
@@ -600,6 +605,10 @@ void SMTBaseRouting::importHisXML() {
     }
 }
 
+void SMTBaseRouting::updateCoRPQueue() {
+    // TODO update car info in CORP
+}
+
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
@@ -610,6 +619,19 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
     while (wEdge != NULL) {
         route.push_front(wEdge->edge);
         wEdge = wEdge->previous;
+    }
+    if (recordHisRoutingData) {
+        XMLElement* carElm = hisRouteDoc->NewElement("car");
+        string routeStr = "";
+        for (list<SMTEdge*>::iterator it = route.begin(); it != route.end();
+                ++it) {
+            if (it != route.begin()) {
+                routeStr = routeStr + " ";
+            }
+            routeStr = routeStr + (*it)->id;
+        }
+        carElm->SetAttribute("route", routeStr.c_str());
+        hisRouteDoc->LinkEndChild(carElm);
     }
 }
 
@@ -654,7 +676,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         toLane->insertCar(car, time);
     } else {
         // car reaches destination
-        rouState.arrivedCarCount++;
+        rouStatus.arrivedCarCount++;
     }
     if (recordHisRoutingData) {
         if (fromLane != NULL) {
@@ -995,6 +1017,34 @@ void SMTBaseRouting::WeightLane::removeHistoricalCar(SMTCarInfo* car,
     hisTimeMap.erase(itT);
     delete (itCar->second);
     hisCarMap.erase(itCar);
+}
+
+void SMTBaseRouting::WeightLane::updateHistoricalCar(SMTCarInfo* car,
+        double t) {
+    map<SMTCarInfo*, HisInfo*>::iterator itCar = hisCarMap.find(car);
+    HisInfo* hisInfo = itCar->second;
+    multimap<double, HisInfo*>::iterator itT = hisTimeMap.find(
+            itCar->second->time);
+    while (itT->second->car != car) {
+        ++itT;
+        if (itT->first != itCar->second->time) {
+            std::cout << "try to remove inexistent car in hisTimeMap"
+                    << itCar->first->id << ", but find car "
+                    << itT->second->car->id << std::endl;
+        }
+    }
+    multimap<double, HisInfo*>::iterator itTerase = itT;
+    ++itT;
+    hisTimeMap.erase(itTerase);
+    hisInfo->time = t;
+    hisInfo->car = car;
+    hisTimeMap.insert(std::make_pair(t, hisInfo));
+    // TODO update historical car get out info
+    getOutHistoricalCar(car, hisInfo->laneTime, hisInfo->viaTime,
+            hisInfo->intervalToLast + t, hisInfo->next);
+    if (hisInfo->next != NULL) {
+        // TODO add hisInfo in next lane into CoRP update queue
+    }
 }
 
 void SMTBaseRouting::WeightLane::updateCost(double time) {

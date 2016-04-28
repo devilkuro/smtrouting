@@ -34,6 +34,16 @@ public:
     // 内部class
     // WEIGHTLANE: use for record car queue of lane
     class WeightEdge;
+    class WeightLane;
+    class CoRPUpdateBlock {
+    public:
+        CoRPUpdateBlock() :
+                timeStamp(0), lane(0), car(0) {
+        }
+        double timeStamp;
+        WeightLane* lane;
+        SMTCarInfo* car;
+    };
     class WeightLane {
 
     public:
@@ -124,6 +134,7 @@ public:
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
         void removeHistoricalCar(SMTCarInfo* car, double t);
+        void updateHistoricalCar(SMTCarInfo* car, double t);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -166,9 +177,9 @@ public:
         SMT_RT_CORP_SELF,
         SMT_RT_CORP_TTS
     };
-    class RoutingState {
+    class RoutingStatus {
     public:
-        RoutingState() :
+        RoutingStatus() :
                 arrivedCarCount(0), recordActiveCarNum(false), recordActiveCarInterval(
                         120) {
 
@@ -182,7 +193,8 @@ public:
             suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), endSimMsg(
                     0), startTime(-1), carInfo(0), majorRoutingType(
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
-                    -1), enableAIR(false), enableCoRP(false), replaceAIRWithITSWithOccupancy(
+                    -1), hisRouteDoc(0),enableAIR(false), enableCoRP(false), corpUseHisRouteCEC(
+                    0), corpReRouteCEC(1), replaceAIRWithITSWithOccupancy(
                     false), recordHisRoutingData(false), endAfterLoadHisXML(
                     false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
                     0), _pCarManager(0) {
@@ -234,8 +246,13 @@ protected:
     SMT_ROUTING_TYPE majorRoutingType;
     SMT_ROUTING_TYPE minorRoutingType;
     int recordHisRecordRoutingType;
+    XMLDocument* hisRouteDoc;
     bool enableAIR;
     bool enableCoRP;
+    multimap<double, CoRPUpdateBlock*> corpUpdateQueue;
+    int corpUseHisRouteCEC; // TODO
+    int corpReRouteCEC;
+
     bool replaceAIRWithITSWithOccupancy;
     // record historical routing data
     bool recordHisRoutingData;
@@ -243,7 +260,7 @@ protected:
     bool endAfterLoadHisXML;
     cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
-    RoutingState rouState;
+    RoutingStatus rouStatus;
     Fanjing::StatisticsRecordTools* srt;
     // functions
     virtual int numInitStages() const;
@@ -256,6 +273,7 @@ protected:
     virtual void printStatisticInfo();
     virtual void updateStatisticInfo();
     virtual void updateAIRInfo();
+    virtual void updateCoRPQueue();
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &route);
     // independent weight modify function
