@@ -156,6 +156,8 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
                     statisticMsg);
             updateStatisticInfo();
         } else if (msg == endSimMsg) {
+            cancelAndDelete(msg);
+            endSimMsg = NULL;
             endSimulation();
         }
     } else {
@@ -455,6 +457,13 @@ void SMTBaseRouting::updateStatisticInfo() {
     static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
     srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
             << rouState.arrivedCarCount << srt->endl;
+    if (getMap()->getLaunchd()->getActiveVehicleCount() == 0
+            && getCarManager()->carMapByTime.size() == 0) {
+        if (endSimMsg == NULL) {
+            endSimMsg = new cMessage("end simulation by routing)");
+            scheduleAt(simTime(), endSimMsg);
+        }
+    }
 }
 
 void SMTBaseRouting::exportHisXML() {

@@ -76,6 +76,7 @@ public:
     virtual ~SMTCarManager();
 
     map<string, SMTCarInfo*> carMapByID;  // store car instance
+    // the car needs to be generated
     multimap<double, SMTCarInfo*> carMapByTime;
 
     virtual void generateCarFlowFile(const string &path = "");
