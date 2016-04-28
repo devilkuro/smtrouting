@@ -58,9 +58,9 @@ public:
             double viaTime;
             double intervalToLast;
         };
-        class laneState {
+        class laneStatus {
         public:
-            laneState() :
+            laneStatus() :
                     minViaPassTime(-1), maxViaPassTime(-1), totalViaPassTime(0), minLanePassTime(
                             -1), maxLanePassTime(-1), totalLanePassTime(0), minPassLaneInterval(
                             -1), maxPassLaneNumOneCircle(0), passedCarNum(0) {
@@ -73,10 +73,11 @@ public:
             double totalLanePassTime;
             double minPassLaneInterval;
             int maxPassLaneNumOneCircle;
+
             int passedCarNum;
         };
         WeightLane() :
-                via(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
+                via(0), con(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlag(
                         false), airSI(0), from(0), to(0), recentCost(-1), recentCostLastupdateTime(
                         -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
                         false), airDLastUpdateTime(0), airD(0), lastCarOutTime(
@@ -84,8 +85,9 @@ public:
         }
 
         virtual ~WeightLane();
-        laneState statistic;
+        laneStatus status;
         SMTVia* via;
+        SMTConnection* con;
         double viaLen;
         double occupation;
         double occStep;

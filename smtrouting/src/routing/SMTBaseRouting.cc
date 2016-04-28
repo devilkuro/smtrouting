@@ -100,6 +100,8 @@ void SMTBaseRouting::initialize(int stage) {
                 // initialize via length
                 // FIXME may need support multiple link
                 wLane->via = vIt->second[0];
+                wLane->con =
+                        it->first->laneVector[wLane->via->fromLane]->conVector[0];
                 wLane->viaLen = vIt->second[0]->getViaLength();
                 // initialize occupation and occStep information
                 wLane->occStep = 1 / it->first->length();
@@ -403,24 +405,24 @@ void SMTBaseRouting::printStatisticInfo() {
         for (map<SMTEdge*, WeightLane*>::iterator itWL =
                 itWE->second->w2NextMap.begin();
                 itWL != itWE->second->w2NextMap.end(); ++itWL) {
-            if (itWL->second->statistic.passedCarNum > 0) {
+            if (itWL->second->status.passedCarNum > 0) {
                 std::cout << "via from edge " << itWE->first->id << " to "
                         << itWL->first->id << std::endl;
                 std::cout << "Avg speed: "
                         << itWL->second->viaLen
-                                * itWL->second->statistic.passedCarNum
-                                / itWL->second->statistic.totalViaPassTime
+                                * itWL->second->status.passedCarNum
+                                / itWL->second->status.totalViaPassTime
                         << ", Max Speed: "
                         << itWL->second->viaLen
-                                / itWL->second->statistic.minViaPassTime
+                                / itWL->second->status.minViaPassTime
                         << ", Min Speed: "
                         << itWL->second->viaLen
-                                / itWL->second->statistic.maxViaPassTime
+                                / itWL->second->status.maxViaPassTime
                         << ", Max Lane Speed: "
                         << itWL->second->from->edge->length()
-                                / itWL->second->statistic.minLanePassTime
-                        << ", car number: "
-                        << itWL->second->statistic.passedCarNum << std::endl;
+                                / itWL->second->status.minLanePassTime
+                        << ", car number: " << itWL->second->status.passedCarNum
+                        << std::endl;
             }
         }
     }
@@ -465,18 +467,27 @@ void SMTBaseRouting::exportHisXML() {
     XMLElement* fromEdgeElm;
     XMLElement* toEdgeElm;
     XMLElement* carElm;
+    WeightEdge* fromWEdge = NULL;
+    WeightLane* wLane = NULL;
     for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
             itWE != weightEdgeMap.end(); ++itWE) {
         fromEdgeElm = doc->NewElement("From");
-        fromEdgeElm->SetAttribute("id", itWE->second->edge->id.c_str());
+        fromWEdge = itWE->second;
+        fromEdgeElm->SetAttribute("id", fromWEdge->edge->id.c_str());
         for (map<SMTEdge*, WeightLane*>::iterator itWL =
-                itWE->second->w2NextMap.begin();
-                itWL != itWE->second->w2NextMap.end(); ++itWL) {
+                fromWEdge->w2NextMap.begin();
+                itWL != fromWEdge->w2NextMap.end(); ++itWL) {
             toEdgeElm = doc->NewElement("To");
-            toEdgeElm->SetAttribute("id", itWL->second->to->edge->id.c_str());
+            wLane = itWL->second;
+            toEdgeElm->SetAttribute("id", wLane->to->edge->id.c_str());
+            SMTConnection* con = wLane->con;
+            toEdgeElm->SetAttribute("t0", con->t0);
+            toEdgeElm->SetAttribute("tg", con->tg);
+            toEdgeElm->SetAttribute("ty", con->ty);
+            toEdgeElm->SetAttribute("tr", con->tr);
             for (map<double, WeightLane::HisInfo*>::iterator itHis =
-                    itWL->second->hisTimeMap.begin();
-                    itHis != itWL->second->hisTimeMap.end(); ++itHis) {
+                    wLane->hisTimeMap.begin(); itHis != wLane->hisTimeMap.end();
+                    ++itHis) {
                 carElm = doc->NewElement("CAR");
                 carElm->SetAttribute("id", itHis->second->car->id.c_str());
                 carElm->SetAttribute("et",
@@ -836,24 +847,24 @@ void SMTBaseRouting::WeightLane::initMinAllowedCost() {
 }
 
 void SMTBaseRouting::WeightLane::carPassVia(double time) {
-    if (statistic.maxViaPassTime < time) {
-        statistic.maxViaPassTime = time;
+    if (status.maxViaPassTime < time) {
+        status.maxViaPassTime = time;
     }
-    if (statistic.minViaPassTime > time || statistic.minViaPassTime < 0) {
-        statistic.minViaPassTime = time;
+    if (status.minViaPassTime > time || status.minViaPassTime < 0) {
+        status.minViaPassTime = time;
     }
-    ++statistic.passedCarNum;
-    statistic.totalViaPassTime += time;
+    ++status.passedCarNum;
+    status.totalViaPassTime += time;
 }
 
 void SMTBaseRouting::WeightLane::carPassLane(double time) {
-    if (statistic.maxLanePassTime < time) {
-        statistic.maxLanePassTime = time;
+    if (status.maxLanePassTime < time) {
+        status.maxLanePassTime = time;
     }
-    if (statistic.minLanePassTime > time || statistic.minLanePassTime < 0) {
-        statistic.minLanePassTime = time;
+    if (status.minLanePassTime > time || status.minLanePassTime < 0) {
+        status.minLanePassTime = time;
     }
-    statistic.totalLanePassTime += time;
+    status.totalLanePassTime += time;
 }
 
 void SMTBaseRouting::WeightLane::insertCar(SMTCarInfo* car, double t) {
