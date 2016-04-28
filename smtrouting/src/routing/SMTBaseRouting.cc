@@ -166,7 +166,9 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
 }
 
 void SMTBaseRouting::finish() {
-    printStatisticInfo();
+    if (debug) {
+        printStatisticInfo();
+    }
     srt->outputSeparate(recordXMLPrefix + ".txt");
     if (recordHisRoutingData) {
         exportHisXML();
@@ -458,11 +460,12 @@ void SMTBaseRouting::updateStatisticInfo() {
     srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
             << rouState.arrivedCarCount << srt->endl;
     if (getMap()->getLaunchd()->getActiveVehicleCount() == 0) {
-
-        std::cout << "getActiveVehicleCount: "
-                << getMap()->getLaunchd()->getActiveVehicleCount()
-                << "carMapByTime.size(): "
-                << getCarManager()->carMapByTime.size() << std::endl;
+        if (debug) {
+            std::cout << "getActiveVehicleCount: "
+                    << getMap()->getLaunchd()->getActiveVehicleCount()
+                    << "carMapByTime.size(): "
+                    << getCarManager()->carMapByTime.size() << std::endl;
+        }
         if (getCarManager()->carMapByTime.size() == 0) {
             if (endSimMsg == NULL) {
                 endSimMsg = new cMessage("end simulation by routing)");
