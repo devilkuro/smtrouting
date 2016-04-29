@@ -468,14 +468,26 @@ void SMTBaseRouting::updateStatisticInfo() {
     static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
     srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
             << rouStatus.arrivedCarCount << srt->endl;
-    if (getMap()->getLaunchd()->getActiveVehicleCount() == 0) {
-        if (debug) {
-            std::cout << "getActiveVehicleCount: "
-                    << getMap()->getLaunchd()->getActiveVehicleCount()
-                    << "carMapByTime.size(): "
-                    << getCarManager()->carMapByTime.size() << std::endl;
+    srt->outputSeparate(recordXMLPrefix + ".txt");
+    if (getCarManager()->carMapByTime.size() == 0) {
+        // all cars are deployed
+        static int activedCarSinceLastStatistics = 0;
+        // 如果所有车辆都已部署且360秒内车辆数目不变,则认为存在环路阻塞,终止试验
+        static int stackTimes = 0;
+        if (getMap()->getLaunchd()->getActiveVehicleCount()
+                == activedCarSinceLastStatistics) {
+            stackTimes++;
+        } else {
+            stackTimes = 0;
         }
-        if (getCarManager()->carMapByTime.size() == 0) {
+        if (stackTimes == 3
+                || getMap()->getLaunchd()->getActiveVehicleCount() == 0) {
+            if (debug) {
+                std::cout << "getActiveVehicleCount: "
+                        << getMap()->getLaunchd()->getActiveVehicleCount()
+                        << "carMapByTime.size(): "
+                        << getCarManager()->carMapByTime.size() << std::endl;
+            }
             if (endSimMsg == NULL) {
                 endSimMsg = new cMessage("end simulation by routing)");
                 scheduleAt(simTime() + 0.1, endSimMsg);
