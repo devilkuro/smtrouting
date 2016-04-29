@@ -471,7 +471,7 @@ void SMTBaseRouting::updateStatisticInfo() {
     srt->outputSeparate(recordXMLPrefix + ".txt");
     if (getCarManager()->carMapByTime.size() == 0) {
         // all cars are deployed
-        static int activedCarSinceLastStatistics = 0;
+        static unsigned int activedCarSinceLastStatistics = 0;
         // 如果所有车辆都已部署且360秒内车辆数目不变,则认为存在环路阻塞,终止试验
         static int stackTimes = 0;
         if (getMap()->getLaunchd()->getActiveVehicleCount()
@@ -1056,7 +1056,7 @@ void SMTBaseRouting::WeightLane::updateHistoricalCar(SMTCarInfo* car,
     // 改变一个hisInfo的离开时间不会影响其他车辆的进入时间
     // 更新hisInfo的离开时间需要更新hisInfo下一跳的进入时间
     // 更新hisInfo的离开时间需要更新后方进入车辆的离开时间
-    // (若后方车辆已经处于需要更新状态则不做其他处理)
+    // (若后方车辆已经处于需要更新状态则不做其他处理,需要使用调试信息测试)
     map<SMTCarInfo*, HisInfo*>::iterator itCar = hisCarMap.find(car);
     HisInfo* hisInfo = itCar->second;
     multimap<double, HisInfo*>::iterator itT = hisTimeMap.find(

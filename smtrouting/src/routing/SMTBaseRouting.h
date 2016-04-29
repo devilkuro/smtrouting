@@ -38,8 +38,9 @@ public:
     class CoRPUpdateBlock {
     public:
         CoRPUpdateBlock() :
-                fromTime(-1), toTime(-1), lane(0), car(0) {
+                timeStamp(-1), fromTime(-1), toTime(-1), lane(0), car(0) {
         }
+        double timeStamp;
         double fromTime;    // -1 means add
         double toTime;  // -1 means remove
         WeightLane* lane;
@@ -89,10 +90,10 @@ public:
         };
         WeightLane() :
                 via(0), con(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlagForDebug(
-                        false), airSI(0), from(0), to(0), recentCost(-1), recentCostLastupdateTime(
-                        -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
-                        false), airDLastUpdateTime(0), airD(0), lastCarOutTime(
-                        0) {
+                        false), airSI(0), corpEta(1.2), corpOta(0.5), from(0), to(
+                        0), recentCost(-1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
+                        false), totalRecentCost(0), airCostUpdateFlag(false), airDLastUpdateTime(
+                        0), airD(0), lastCarOutTime(0) {
         }
 
         virtual ~WeightLane();
