@@ -624,7 +624,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
     }
     if (recordHisRoutingData) {
         XMLElement* carElm = hisRouteDoc->NewElement("car");
-        carElm->SetAttribute("id", carInfo->id);
+        carElm->SetAttribute("id", carInfo->id.c_str());
         string routeStr = "";
         for (list<SMTEdge*>::iterator it = route.begin(); it != route.end();
                 ++it) {
