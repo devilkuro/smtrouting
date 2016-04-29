@@ -38,9 +38,10 @@ public:
     class CoRPUpdateBlock {
     public:
         CoRPUpdateBlock() :
-                timeStamp(0), lane(0), car(0) {
+                fromTime(-1), toTime(-1), lane(0), car(0) {
         }
-        double timeStamp;
+        double fromTime;    // -1 means add
+        double toTime;  // -1 means remove
         WeightLane* lane;
         SMTCarInfo* car;
     };
@@ -167,8 +168,9 @@ public:
     class Route {
     public:
         Route() :
-                cost(0) {
+                t(0), cost(0) {
         }
+        double t;   // enter time
         double cost;
         list<WeightEdge*> edges;
     };
@@ -195,8 +197,8 @@ public:
             suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), endSimMsg(
                     0), startTime(-1), carInfo(0), majorRoutingType(
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
-                    -1), hisRouteDoc(0), enableAIR(false), enableCoRP(false), corpUseHisRouteCEC(
-                    0), corpReRouteCEC(1), replaceAIRWithITSWithOccupancy(
+                    -1), hisRouteDoc(0), hisRouteRoot(0), enableAIR(false), enableCoRP(
+                    false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
                     false), recordHisRoutingData(false), endAfterLoadHisXML(
                     false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
                     0), _pCarManager(0) {
@@ -249,6 +251,7 @@ protected:
     SMT_ROUTING_TYPE minorRoutingType;
     int recordHisRecordRoutingType;
     XMLDocument* hisRouteDoc;
+    XMLElement* hisRouteRoot;
     bool enableAIR;
     bool enableCoRP;
     multimap<double, CoRPUpdateBlock*> corpUpdateQueue;

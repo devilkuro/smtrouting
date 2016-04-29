@@ -84,6 +84,8 @@ void SMTBaseRouting::initialize(int stage) {
             hisRouteDoc = new XMLDocument();
             XMLDeclaration* dec = hisRouteDoc->NewDeclaration();
             hisRouteDoc->LinkEndChild(dec);
+            hisRouteRoot = hisRouteDoc->NewElement("CARS");
+            hisRouteDoc->LinkEndChild(hisRouteRoot);
         }
         hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
         endAfterLoadHisXML = par("endAfterLoadHisXML").boolValue();
@@ -634,7 +636,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
             routeStr = routeStr + (*it)->id;
         }
         carElm->SetAttribute("route", routeStr.c_str());
-        hisRouteDoc->LinkEndChild(carElm);
+        hisRouteRoot->LinkEndChild(carElm);
     }
 }
 
@@ -1024,6 +1026,25 @@ void SMTBaseRouting::WeightLane::removeHistoricalCar(SMTCarInfo* car,
 
 void SMTBaseRouting::WeightLane::updateHistoricalCar(SMTCarInfo* car,
         double t) {
+    // 车辆更新策略
+    // 车辆更新主要分为2部分
+    // 1. 进入时间更新
+    // 更新进入时间时间戳为更新前后进入时间较早者
+    // 对应一个hisInfo,进入时间更新拥有更高权限
+    // 改变一个hisInfo的进入时间需要更新受影响车辆的离开时间
+    // 改变一个hisInfo的进入时间不会影响其他车辆的进入时间
+    // 更新hisInfo的进入时间需要更新hisInfo后方车辆的离开时间
+    // (前移后移后时间中较早者后方第一辆车,时间戳为后方车辆进入时间)
+    // 更新hisInfo的进入时间需要更新hisInfo车辆离开时间
+    // 时间戳为hisInfo更新后进入时间,即前移立即更新,后移等待至移动后的进入时间
+    // 2. 离开时间更新
+    // 更新离开时间时间戳为当前车辆进入时间
+    // 改变一个hisInfo的离开时间会影响该车下一跳道路的进入时间
+    // 改变一个hisInfo的离开时间需要更新受影响车辆的离开时间
+    // 改变一个hisInfo的离开时间不会影响其他车辆的进入时间
+    // 更新hisInfo的离开时间需要更新hisInfo下一跳的进入时间
+    // 更新hisInfo的离开时间需要更新后方进入车辆的离开时间
+    // (若后方车辆已经处于需要更新状态则不做其他处理)
     map<SMTCarInfo*, HisInfo*>::iterator itCar = hisCarMap.find(car);
     HisInfo* hisInfo = itCar->second;
     multimap<double, HisInfo*>::iterator itT = hisTimeMap.find(
