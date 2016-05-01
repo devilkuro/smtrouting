@@ -121,6 +121,8 @@ public:
         // CoRP related
         map<SMTCarInfo*, HisInfo*> hisCarMap;
         multimap<double, HisInfo*> hisTimeMap;
+        map<SMTCarInfo*, HisInfo*> corpCarMap;
+        multimap<double, HisInfo*> corpTimeMap;
 
         virtual void carGetOut(SMTCarInfo* car, const double &t,
                 const double &cost);
@@ -138,7 +140,12 @@ public:
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
         void removeHistoricalCar(SMTCarInfo* car, double t);
-        void updateHistoricalCar(SMTCarInfo* car, double t);
+        void addCoRPCar(SMTCarInfo* car, double t,
+                multimap<double, CoRPUpdateBlock*> &queue);
+        void updateCoRPCar(SMTCarInfo* car, double t,
+                multimap<double, CoRPUpdateBlock*> &queue);
+        void removeCoRPCar(SMTCarInfo* car, double t,
+                multimap<double, CoRPUpdateBlock*> &queue);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -166,13 +173,15 @@ public:
         map<SMTEdge*, WeightLane*> w2NextMap;
     };
     // ROUTE:用于记录选择的路径
-    class Route {
+    class WeightRoute {
     public:
-        Route() :
-                t(0), cost(0) {
+        WeightRoute() :
+                t(0), cost(0), car(0) {
         }
         double t;   // enter time
         double cost;
+        SMTCarInfo* car;
+        list<WeightEdge*>::iterator curIt;
         list<WeightEdge*> edges;
     };
     enum SMT_ROUTING_TYPE {
@@ -187,7 +196,6 @@ public:
         RoutingStatus() :
                 arrivedCarCount(0), recordActiveCarNum(false), recordActiveCarInterval(
                         120) {
-
         }
         double arrivedCarCount;
         bool recordActiveCarNum;
@@ -200,9 +208,9 @@ public:
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
                     -1), hisRouteDoc(0), hisRouteRoot(0), enableAIR(false), enableCoRP(
                     false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
-                    false), recordHisRoutingData(false), endAfterLoadHisXML(
-                    false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
-                    0), _pCarManager(0) {
+                    false), recordHisRoutingData(false), recordHisRoutingResult(
+                    false), endAfterLoadHisXML(false), airUpdateMsg(0), routeType(
+                    SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
     }
     virtual ~SMTBaseRouting();
 
@@ -262,7 +270,11 @@ protected:
     bool replaceAIRWithITSWithOccupancy;
     // record historical routing data
     bool recordHisRoutingData;
+    bool recordHisRoutingResult;
     string hisRecordXMLPath;
+    map<SMTCarInfo*, WeightRoute*> hisRouteMapByCar;
+    multimap<double, WeightRoute*> hisRouteMapByTime;
+
     bool endAfterLoadHisXML;
     cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
