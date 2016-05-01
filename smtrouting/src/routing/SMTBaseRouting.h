@@ -35,19 +35,21 @@ public:
     // WEIGHTLANE: use for record car queue of lane
     class WeightEdge;
     class WeightLane;
+    class WeightRoute;
     class CoRPUpdateBlock {
     public:
         CoRPUpdateBlock() :
-                timeStamp(-1), fromTime(-1), toTime(-1), lane(0), car(0) {
+                timeStamp(-1), fromTime(-1), toTime(-1), lane(0), car(0), rou(0) {
         }
         double timeStamp;
         double fromTime;    // -1 means add
         double toTime;  // -1 means remove
         WeightLane* lane;
         SMTCarInfo* car;
+        WeightRoute* rou;
+        list<WeightEdge*>::iterator rouIt;
     };
     class WeightLane {
-
     public:
         class CarTime {
         public:

@@ -30,6 +30,10 @@ SMTBaseRouting::~SMTBaseRouting() {
             it != weightEdgeMap.end(); ++it) {
         delete (it->second);
     }
+    for (map<SMTCarInfo*, WeightRoute*>::iterator it = hisRouteMapByCar.begin();
+            it != hisRouteMapByCar.end(); ++it) {
+        delete (it->second);
+    }
 }
 
 int SMTBaseRouting::numInitStages() const {
@@ -82,11 +86,6 @@ void SMTBaseRouting::initialize(int stage) {
         if (majorRoutingType == recordHisRecordRoutingType) {
             recordHisRoutingData = true;
             recordHisRoutingResult = true;
-            hisRouteDoc = new XMLDocument();
-            XMLDeclaration* dec = hisRouteDoc->NewDeclaration();
-            hisRouteDoc->LinkEndChild(dec);
-            hisRouteRoot = hisRouteDoc->NewElement("CARS");
-            hisRouteDoc->LinkEndChild(hisRouteRoot);
         }
         hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
         endAfterLoadHisXML = par("endAfterLoadHisXML").boolValue();
@@ -180,9 +179,6 @@ void SMTBaseRouting::finish() {
     srt->outputSeparate(recordXMLPrefix + ".txt");
     if (recordHisRoutingData || recordHisRoutingResult) {
         exportHisXML();
-        hisRouteDoc->SaveFile((hisRecordXMLPath + ".rou.xml").c_str());
-        hisRouteDoc->Clear();
-        hisRouteDoc = NULL;
     }
 }
 
@@ -566,6 +562,11 @@ void SMTBaseRouting::exportHisXML() {
 
     if (recordHisRoutingResult) {
         //TODO
+        hisRouteDoc = new XMLDocument();
+        XMLDeclaration* dec = hisRouteDoc->NewDeclaration();
+        hisRouteDoc->LinkEndChild(dec);
+        hisRouteRoot = hisRouteDoc->NewElement("CARS");
+        hisRouteDoc->LinkEndChild(hisRouteRoot);
         for (multimap<double, WeightRoute*>::iterator itWR =
                 hisRouteMapByTime.begin(); itWR != hisRouteMapByTime.end();
                 ++itWR) {
@@ -583,6 +584,9 @@ void SMTBaseRouting::exportHisXML() {
             carElm->SetAttribute("route", routeStr.c_str());
             hisRouteRoot->LinkEndChild(carElm);
         }
+        hisRouteDoc->SaveFile((hisRecordXMLPath + ".rou.xml").c_str());
+        hisRouteDoc->Clear();
+        hisRouteDoc = NULL;
     }
 }
 
@@ -669,6 +673,7 @@ void SMTBaseRouting::importHisXML() {
             carElm = carElm->NextSiblingElement("car");
         }
     }
+    hisRouteDoc->Clear();
 }
 
 void SMTBaseRouting::updateCoRPQueue() {
@@ -680,7 +685,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
     WeightEdge* wEdge = weightEdgeMap[destination];
     // before operation
     if (routeType == SMT_RT_CORP_SELF) {
-
+        // remove and update CoRP info
     }
     if (recordHisRoutingResult) {
         WeightRoute* rou = new WeightRoute();
