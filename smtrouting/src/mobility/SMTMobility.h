@@ -36,15 +36,13 @@ public:
         double outPrimaryEdgeTime;  // 离开上一条primary道路的时间
     };
     SMTMobility() :
-            carInfo(NULL), origin(NULL), destination(
-            NULL), hasRouted(false), hasInitialized(false), arrivedMsg(
-            NULL), beSuppressed(false), hasSuppressEdge(false), isSlowDown(
-                    false), checkSuppressInterval(10), checkSuppressedEdgesMsg(
-            NULL), lastEdge(0), curEdge(
-            NULL), lastPrimaryEdge(NULL), nextPrimaryEdge(NULL), laneChangeMsg(
-                    0), laneChangeDuration(5), preferredLaneIndex(0), isChangeAndHold(
-                    false), smtMap(0), _pCarManager(
-            NULL), _pRouting(NULL) {
+            carInfo(0), origin(0), destination(0), hasRouted(false), hasInitialized(
+                    false), arrivedMsg(0), beSuppressed(false), hasSuppressEdge(
+                    false), isSlowDown(false), checkSuppressInterval(10), checkSuppressedEdgesMsg(
+                    0), lastEdge(0), curEdge(0), lastPrimaryEdge(0), nextPrimaryEdge(
+                    0), laneChangeMsg(0), laneChangeDuration(5), preferredLaneIndex(
+                    0), isChangeAndHold(false), isDynamicUpdateRoute(false), smtMap(
+                    0), _pCarManager(0), _pRouting(0) {
     }
     virtual ~SMTMobility();
 
