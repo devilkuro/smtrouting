@@ -1383,21 +1383,23 @@ void SMTBaseRouting::WeightLane::addCoRPCarInfo(CoRPUpdateBlock* block,
         // 在最后的添加block需要释放rou占用的空间
         delete (block->rou);
         block->rou = NULL;
+        // 若不再利用则当前block需要被释放
         releaseFlag = true;
     }
     // 添加后续可能被影响车辆
     ++itT;
     // 判定后方车辆离开信息是否受到该车影响
-    if (itT->first < hisInfo->tau + corpEta) {
+    if (itT->second->tau < hisInfo->tau + corpEta) {
+        // 判定是否对block进行重利用
         if (!releaseFlag) {
             block = new CoRPUpdateBlock();
         } else {
             releaseFlag = false;
         }
         block->car = itT->second->car;
-        block->timeStamp = itT->second->enterTime;
         block->fromTime = itT->second->enterTime;
-        block->toTime = itT->second->enterTime;
+        block->timeStamp = block->fromTime;
+        block->toTime = block->fromTime;
         block->lane = this;
         // 更新信息不需要设置route信息,因为对应hisInfo有next参数
         block->rou = NULL;
@@ -1412,7 +1414,7 @@ void SMTBaseRouting::WeightLane::addCoRPCarInfo(CoRPUpdateBlock* block,
 
 void SMTBaseRouting::WeightLane::removeCoRPCarInfo(CoRPUpdateBlock* block,
         multimap<double, CoRPUpdateBlock*>& queue) {
-    // TODO removeCoRPCar
+    // TODO [finished]removeCoRPCar
     // 移除车辆,并添加后续影响至queue
     // 1st. 移除车辆
     if (block->lane != this) {
@@ -1434,12 +1436,62 @@ void SMTBaseRouting::WeightLane::removeCoRPCarInfo(CoRPUpdateBlock* block,
                 "no such car in this lane when remove it.");
         ++itT;
     }
+    // 保留当前itT用于删除元素
     multimap<double, HisInfo*>::iterator itTold = itT;
+    // itT后移,用于指示下一个车辆
     ++itT;
-    corpTimeMap.erase(itT);
+    corpTimeMap.erase(itTold);
     corpCarMap.erase(itCar);
-    //
-    // TODO
+    // 2nd. 后续影响
+    bool releaseFlag = false;
+    // 继续移除当前车辆的后续路径
+    if (itCar->second->next != NULL) {
+        block->fromTime = itCar->second->tau + itCar->second->viaTime;
+        block->timeStamp = block->fromTime;
+        block->lane = itCar->second->next;
+        if (block->rou != NULL) {
+            // TODO [delay] 似乎没用
+            ++(block->rouIt);
+        }
+    } else {
+        // TODO [delay] 似乎没用
+        if (block->rou != NULL) {
+            delete (block->rou);
+            block->rou = NULL;
+        }
+        // 若不再利用则当前block需要被释放
+        releaseFlag = true;
+    }
+    double tau = itT->second->tau;
+    getCoRPOutInfo(itT->second->car, itT->second->enterTime, itT->second);
+    // 后方车辆离开状态改变
+    // 需要对应修改被影响车辆下一条道路的进入时间
+    if (tau != itT->second->tau) {
+        // 若后方车辆下一条道路即终点则不需要更新其进入下一条道路的信息
+        // 因为没有
+        if (itT->second->next != NULL) {
+            // 如果block不在有效,重用block内存空间
+            if (!releaseFlag) {
+                block = new CoRPUpdateBlock();
+            } else {
+                releaseFlag = false;
+            }
+            // 重设block为修改被影响车辆的下一条道路进入时间
+            block->fromTime = itT->second->tau + itT->second->viaTime;
+            block->toTime = tau + itT->second->viaTime;
+            block->timeStamp = block->toTime;
+            block->lane = itT->second->next;
+            block->car = itT->second->car;
+            // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
+            block->rou = NULL;
+            queue.insert(std::make_pair(block->timeStamp, block));
+        }
+    }
+    if (releaseFlag) {
+        delete block;
+    }
+    // 继续处理queue
+    updateCoRPCar(queue);
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPCarEnterInfo(CoRPUpdateBlock* block,
