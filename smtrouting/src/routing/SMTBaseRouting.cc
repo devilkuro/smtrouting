@@ -353,7 +353,11 @@ void SMTBaseRouting::getCORPSelfRoute(SMTEdge* origin, SMTEdge* destination,
     startTime = time;
     carInfo = car;
     rou.clear();
-    runDijkstraAlgorithm(origin, destination, rou);
+    WeightRoute* oldrou = hisRouteMapByCar[car];
+    for(list<WeightEdge*>::iterator it =oldrou->edges.begin();it!=oldrou->edges.end();++it){
+      rou.push_back((*it)->edge);
+    }
+//    runDijkstraAlgorithm(origin, destination, rou);
 }
 
 void SMTBaseRouting::getCORPTTSRoute(SMTEdge* origin, SMTEdge* destination,
@@ -674,6 +678,8 @@ void SMTBaseRouting::importHisXML() {
         }
     }
     hisRouteDoc->Clear();
+    std::cout << "import historical routes:" << hisRouteMapByCar.size()
+            << std::endl;
 }
 
 void SMTBaseRouting::updateCoRPQueue() {
