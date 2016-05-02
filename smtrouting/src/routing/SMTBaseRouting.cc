@@ -374,7 +374,7 @@ void SMTBaseRouting::getDYRPRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
-SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
+SMTBaseRouting::SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
         SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (majorRoutingType) {
@@ -403,7 +403,7 @@ SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
     return majorRoutingType;
 }
 
-SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMinorMethod(SMTEdge* origin,
+SMTBaseRouting::SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMinorMethod(SMTEdge* origin,
         SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (minorRoutingType) {
