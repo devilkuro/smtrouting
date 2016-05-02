@@ -41,6 +41,7 @@ public:
         CoRPUpdateBlock() :
                 timeStamp(-1), fromTime(-1), toTime(-1), lane(0), car(0), rou(0) {
         }
+        virtual ~CoRPUpdateBlock();
         double timeStamp;
         double fromTime;    // -1 means add
         double toTime;  // -1 means remove

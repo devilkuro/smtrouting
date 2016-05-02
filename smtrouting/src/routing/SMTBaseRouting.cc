@@ -15,6 +15,7 @@
 
 #include "SMTBaseRouting.h"
 #include "StringHelper.h"
+#include <cmath>
 
 Define_Module(SMTBaseRouting);
 double SMTBaseRouting::WeightLane::outCarKeepDuration = 120;
@@ -1301,6 +1302,11 @@ void SMTBaseRouting::WeightLane::updateCoRPCar(
 void SMTBaseRouting::WeightLane::addCoRPCarInfo(CoRPUpdateBlock* block,
         multimap<double, CoRPUpdateBlock*>& queue) {
     // TODO [finished] addCoRPCar
+    if (block->lane != this) {
+        std::cout << "unmatched lane" << std::endl;
+        block->lane->removeCoRPCarInfo(block, queue);
+        return;
+    }
     // 同一时间,之前进入的不做处理
     // 插入车辆信息更新离开信息
     // 将受影响车辆更新需求插入queue
@@ -1325,6 +1331,7 @@ void SMTBaseRouting::WeightLane::addCoRPCarInfo(CoRPUpdateBlock* block,
         rBlock->car = block->car;
         // construct the route of rBlock
         // TODO [delay] remove operation does not need route info
+        // since the hisInfo has it already
         rBlock->rou = new WeightRoute();
         rBlock->rou->t = itCar->second->enterTime;
         rBlock->rou->car = itCar->second->car;
@@ -1342,10 +1349,10 @@ void SMTBaseRouting::WeightLane::addCoRPCarInfo(CoRPUpdateBlock* block,
             }
         }
         rBlock->rouIt = rBlock->rou->edges.begin();
-        queue.insert(queue.begin(), std::make_pair(rBlock->timeStamp,rBlock));
+        queue.insert(queue.begin(), std::make_pair(rBlock->timeStamp, rBlock));
         updateCoRPCar(queue);
         // 将block加回queue
-        queue.insert(block->timeStamp,block);
+        queue.insert(std::make_pair(block->timeStamp, block));
     }
     // 插入对应车辆信息至corpTimeMap与corpCarMap,并为后续影响修改queue信息
     HisInfo* hisInfo = new HisInfo();
@@ -1396,7 +1403,7 @@ void SMTBaseRouting::WeightLane::addCoRPCarInfo(CoRPUpdateBlock* block,
         block->rou = NULL;
         queue.insert(std::make_pair(block->timeStamp, block));
     }
-    if(releaseFlag){
+    if (releaseFlag) {
         delete block;
     }
     // 继续更新queue
@@ -1406,14 +1413,48 @@ void SMTBaseRouting::WeightLane::addCoRPCarInfo(CoRPUpdateBlock* block,
 void SMTBaseRouting::WeightLane::removeCoRPCarInfo(CoRPUpdateBlock* block,
         multimap<double, CoRPUpdateBlock*>& queue) {
     // TODO removeCoRPCar
+    // 移除车辆,并添加后续影响至queue
+    // 1st. 移除车辆
+    if (block->lane != this) {
+        std::cout << "unmatched lane" << std::endl;
+        block->lane->removeCoRPCarInfo(block, queue);
+        return;
+    }
+    multimap<SMTCarInfo*, HisInfo*>::iterator itCar = corpCarMap.find(
+            block->car);
+    ASSERT2(itCar != corpCarMap.end(),
+            "try to remove corp car from the lane does not contain it");
+    multimap<double, HisInfo*>::iterator itT = corpTimeMap.find(
+            block->fromTime);
+    while (itT != corpTimeMap.end()) {
+        if (itT->second->car == block->car) {
+            break;
+        }
+        ASSERT2(itT->first == block->fromTime,
+                "no such car in this lane when remove it.");
+        ++itT;
+    }
+    multimap<double, HisInfo*>::iterator itTold = itT;
+    ++itT;
+    corpTimeMap.erase(itT);
+    corpCarMap.erase(itCar);
+    //
+    // TODO
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPCarEnterInfo(CoRPUpdateBlock* block,
         multimap<double, CoRPUpdateBlock*>& queue) {
     // TODO updateCoRPCarEnterInfo
+    if (block->lane != this) {
+        std::cout << "unmatched lane" << std::endl;
+        block->lane->removeCoRPCarInfo(block, queue);
+        return;
+    }
+
 }
 
-WeightLane* SMTBaseRouting::WeightLane::getNextLane(SMTEdge* toEdge) {
+SMTBaseRouting::WeightLane* SMTBaseRouting::WeightLane::getNextLane(
+        SMTEdge* toEdge) {
     map<SMTEdge*, WeightLane*>::iterator it = to->w2NextMap.find(toEdge);
     if (it == to->w2NextMap.end()) {
         std::cout << "no connection from lane " << con->fromLane << " of edge "
@@ -1425,6 +1466,11 @@ WeightLane* SMTBaseRouting::WeightLane::getNextLane(SMTEdge* toEdge) {
 void SMTBaseRouting::WeightLane::updateCoRPCarOutInfo(CoRPUpdateBlock* block,
         multimap<double, CoRPUpdateBlock*>& queue) {
     // TODO updateCoRPCarOutInfo
+    if (block->lane != this) {
+        std::cout << "unmatched lane" << std::endl;
+        block->lane->removeCoRPCarInfo(block, queue);
+        return;
+    }
 }
 
 SMTBaseRouting::WeightEdge::~WeightEdge() {
@@ -1434,3 +1480,9 @@ SMTBaseRouting::WeightEdge::~WeightEdge() {
     }
 }
 
+SMTBaseRouting::CoRPUpdateBlock::~CoRPUpdateBlock() {
+    if (rou != NULL) {
+        delete rou;
+        rou = NULL;
+    }
+}
