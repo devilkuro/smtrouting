@@ -353,6 +353,8 @@ void SMTMap::addConFromConXML(cXMLElement* xml) {
         con->tg = seg.tg;
         con->ty = seg.ty;
         con->tr = seg.tr;
+        con->ta = seg.tg + seg.tr + seg.ty;
+        con->_t0 = con->ta - seg.t0;
     }
     con->fromSMTLane = edgeMap[con->from]->laneVector[con->fromLane];
     con->toSMTLane = edgeMap[con->to]->laneVector[con->toLane];

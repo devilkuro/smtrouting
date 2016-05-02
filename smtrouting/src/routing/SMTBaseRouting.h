@@ -46,6 +46,9 @@ public:
         double toTime;  // -1 means remove
         WeightLane* lane;
         SMTCarInfo* car;
+        // initialized at the begin block
+        // released when process the end block of this route
+        // 更新信息不需要设置route信息,因为对应hisInfo有next参数
         WeightRoute* rou;
         list<WeightEdge*>::iterator rouIt;
     };
@@ -62,14 +65,17 @@ public:
         class HisInfo {
         public:
             HisInfo() :
-                    car(0), time(0), next(0), laneTime(0), viaTime(0), intervalToLast(
-                            0) {
+                    car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(
+                            0), intervalToLast(0) {
             }
             SMTCarInfo* car;
-            double time;
+            double enterTime;
             WeightLane* next;
             double laneTime;
             double viaTime;
+            // time of the interval between car enter and reach the junction
+            // equal to enterTime + laneTime
+            double tau;
             double intervalToLast;
         };
         class laneStatus {
@@ -117,6 +123,7 @@ public:
         double corpOta; // 车辆通过辅道的平均通行时间
         WeightEdge* from;
         WeightEdge* to; // FIXME may lead to multiple edges
+        map<SMTEdge*, WeightLane*> nextMap;
         map<SMTCarInfo*, double> carMap;
         multimap<double, SMTCarInfo*> enterTimeMap;
         multimap<double, CarTime> recentOutCars;
@@ -142,12 +149,11 @@ public:
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
         void removeHistoricalCar(SMTCarInfo* car, double t);
-        void addCoRPCar(SMTCarInfo* car, double t,
+        virtual void updateCoRPCar(
                 multimap<double, CoRPUpdateBlock*> &queue);
-        void updateCoRPCar(SMTCarInfo* car, double t,
-                multimap<double, CoRPUpdateBlock*> &queue);
-        void removeCoRPCar(SMTCarInfo* car, double t,
-                multimap<double, CoRPUpdateBlock*> &queue);
+        virtual void getCoRPOutInfo(SMTCarInfo* car, double enterTime,
+                HisInfo* hisInfo);
+        WeightLane* getNextLane(SMTEdge* toEdge);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -160,6 +166,14 @@ public:
         double airD;
         double lastCarOutTime;
         virtual void updateCost(double time);
+        virtual void addCoRPCarInfo(CoRPUpdateBlock* block,
+                multimap<double, CoRPUpdateBlock*> &queue);
+        virtual void removeCoRPCarInfo(CoRPUpdateBlock* block,
+                multimap<double, CoRPUpdateBlock*> &queue);
+        virtual void updateCoRPCarEnterInfo(CoRPUpdateBlock* block,
+                multimap<double, CoRPUpdateBlock*> &queue);
+        virtual void updateCoRPCarOutInfo(CoRPUpdateBlock* block,
+                multimap<double, CoRPUpdateBlock*> &queue);
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
@@ -183,12 +197,10 @@ public:
         double t;   // enter time
         double cost;
         SMTCarInfo* car;
-        list<WeightEdge*>::iterator curIt;
         list<WeightEdge*> edges;
     };
     enum SMT_ROUTING_TYPE {
-        SMT_RT_USEOLDROUTE = -1,
-        SMT_RT_SHOREST = 0, // shorest
+        SMT_RT_USEOLDROUTE = -1, SMT_RT_SHOREST = 0, // shorest
         SMT_RT_FAST,    // its
         SMT_RT_AIR, // air with its
         SMT_RT_CORP_SELF,   // corp-self
@@ -239,10 +251,12 @@ public:
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getOldRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual SMT_ROUTING_TYPE getRouteByMajorMethod(SMTEdge* origin, SMTEdge* destination,
-            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual SMT_ROUTING_TYPE getRouteByMinorMethod(SMTEdge* origin, SMTEdge* destination,
-            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual SMT_ROUTING_TYPE getRouteByMajorMethod(SMTEdge* origin,
+            SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
+            SMTCarInfo* car = NULL);
+    virtual SMT_ROUTING_TYPE getRouteByMinorMethod(SMTEdge* origin,
+            SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
+            SMTCarInfo* car = NULL);
     // try to change to corrected lane by suppress cars prevent this car
     virtual bool suppressEdge(SMTEdge* edge, double pos = -1);
     virtual void releaseEdge(SMTEdge* edge);

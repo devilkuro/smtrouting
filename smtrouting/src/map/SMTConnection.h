@@ -30,7 +30,7 @@ public:
     SMTConnection() :
             fromLane(0), toLane(0), linkIndex(0), fromSMTEdge(0), toSMTEdge(0), fromSMTLane(
                     0), toSMTLane(0), viaSMTLane(0), tlSMTTL(0), t0(-1), tg(-1), ty(
-                    -1), tr(-1) {
+                    -1), tr(-1), _t0(-1), ta(-1) {
     }
     virtual ~SMTConnection();
     // xml attributes
@@ -60,6 +60,6 @@ public:
     SMTTLLogic* tlSMTTL;
 
     // time information
-    double t0, tg, ty, tr;
+    double t0, tg, ty, tr, _t0, ta;
 };
 #endif /* __SMTCONNECTION_H_ */
