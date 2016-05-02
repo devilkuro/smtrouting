@@ -112,6 +112,7 @@ protected:
     double laneChangeDuration;
     uint8_t preferredLaneIndex;
     bool isChangeAndHold;
+    bool isDynamicUpdateRoute;
 
     // overload these function in different mobility
     // processAfterRouting

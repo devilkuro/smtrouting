@@ -187,11 +187,13 @@ public:
         list<WeightEdge*> edges;
     };
     enum SMT_ROUTING_TYPE {
-        SMT_RT_SHOREST = 0,
-        SMT_RT_FAST,
-        SMT_RT_AIR,
-        SMT_RT_CORP_SELF,
-        SMT_RT_CORP_TTS
+        SMT_RT_USEOLDROUTE = -1,
+        SMT_RT_SHOREST = 0, // shorest
+        SMT_RT_FAST,    // its
+        SMT_RT_AIR, // air with its
+        SMT_RT_CORP_SELF,   // corp-self
+        SMT_RT_CORP_TTS,    // corp-tts
+        SMT_RT_DYRP // dynamic route plan
     };
     class RoutingStatus {
     public:
@@ -233,9 +235,13 @@ public:
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getCORPTTSRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual void getRouteByMajorMethod(SMTEdge* origin, SMTEdge* destination,
+    virtual void getDYRPRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual void getRouteByMinorMethod(SMTEdge* origin, SMTEdge* destination,
+    virtual void getOldRoute(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual SMT_ROUTING_TYPE getRouteByMajorMethod(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual SMT_ROUTING_TYPE getRouteByMinorMethod(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     // try to change to corrected lane by suppress cars prevent this car
     virtual bool suppressEdge(SMTEdge* edge, double pos = -1);

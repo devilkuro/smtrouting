@@ -353,11 +353,7 @@ void SMTBaseRouting::getCORPSelfRoute(SMTEdge* origin, SMTEdge* destination,
     startTime = time;
     carInfo = car;
     rou.clear();
-    WeightRoute* oldrou = hisRouteMapByCar[car];
-    for(list<WeightEdge*>::iterator it =oldrou->edges.begin();it!=oldrou->edges.end();++it){
-      rou.push_back((*it)->edge);
-    }
-//    runDijkstraAlgorithm(origin, destination, rou);
+    runDijkstraAlgorithm(origin, destination, rou);
 }
 
 void SMTBaseRouting::getCORPTTSRoute(SMTEdge* origin, SMTEdge* destination,
@@ -369,10 +365,22 @@ void SMTBaseRouting::getCORPTTSRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
-void SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
+void SMTBaseRouting::getDYRPRoute(SMTEdge* origin, SMTEdge* destination,
+        list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
+    routeType = SMT_RT_DYRP;
+    startTime = time;
+    carInfo = car;
+    rou.clear();
+    runDijkstraAlgorithm(origin, destination, rou);
+}
+
+SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
         SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (majorRoutingType) {
+    case SMT_RT_USEOLDROUTE:
+        getOldRoute(origin, destination, rou, time, car);
+        break;
     case SMT_RT_FAST:
         getFastestRoute(origin, destination, rou, time, car);
         break;
@@ -385,16 +393,23 @@ void SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
     case SMT_RT_CORP_TTS:
         getCORPTTSRoute(origin, destination, rou, time, car);
         break;
+    case SMT_RT_DYRP:
+        getDYRPRoute(origin, destination, rou, time, car);
+        break;
     default:
         getFastestRoute(origin, destination, rou, time, car);
         break;
     }
+    return majorRoutingType;
 }
 
-void SMTBaseRouting::getRouteByMinorMethod(SMTEdge* origin,
+SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMinorMethod(SMTEdge* origin,
         SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (minorRoutingType) {
+    case SMT_RT_USEOLDROUTE:
+        getOldRoute(origin, destination, rou, time, car);
+        break;
     case SMT_RT_FAST:
         getFastestRoute(origin, destination, rou, time, car);
         break;
@@ -407,10 +422,14 @@ void SMTBaseRouting::getRouteByMinorMethod(SMTEdge* origin,
     case SMT_RT_CORP_TTS:
         getCORPTTSRoute(origin, destination, rou, time, car);
         break;
+    case SMT_RT_DYRP:
+        getDYRPRoute(origin, destination, rou, time, car);
+        break;
     default:
         getFastestRoute(origin, destination, rou, time, car);
         break;
     }
+    return minorRoutingType;
 }
 
 void SMTBaseRouting::printStatisticInfo() {
@@ -686,6 +705,22 @@ void SMTBaseRouting::updateCoRPQueue() {
     // TODO update car info in CORP
 }
 
+void SMTBaseRouting::getOldRoute(SMTEdge* origin, SMTEdge* destination,
+        list<SMTEdge*>& rou, double time, SMTCarInfo* car) {
+    ASSERT2(hisRouteMapByCar.find(car) != hisRouteMapByCar.end(),
+            "missing historical route data");
+    WeightRoute* oldrou = hisRouteMapByCar[car];
+    ASSERT2(
+            origin == oldrou->edges.front()->edge
+                    && destination == oldrou->edges.back()->edge,
+            "unmatched historical route data");
+
+    for (list<WeightEdge*>::iterator it = oldrou->edges.begin();
+            it != oldrou->edges.end(); ++it) {
+        rou.push_back((*it)->edge);
+    }
+}
+
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
@@ -716,6 +751,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
     // update pass time and remove car from weightEdge 'from'
     WeightLane* fromLane = NULL;
     WeightLane* toLane = NULL;
+    // if from == NULL, the car enter map first time
     if (from != NULL) {
         map<SMTEdge*, WeightEdge*>::iterator itFromEdge = weightEdgeMap.find(
                 from);
@@ -735,6 +771,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
             std::cout << "Untouchable code in SMTBaseRouting::changeRoad"
                     << std::endl;
         }
+        // 如果使用动态寻路, 更新道路情况
     }
     // add car into weightEdge 'to'
     if (toLaneIndex != -1) {
@@ -920,6 +957,48 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         ASSERT2(itWL != from->w2NextMap.end(),
                 "w2NextMap initialized abnormally");
         // TODO add cooperative route plan method
+        if (deltaW < 0) {
+            std::cout << "processDijkstralNeighbors:"
+                    << "cannot handle negative via cost from" << from->edge->id
+                    << " to " << to->edge->id << std::endl;
+        }
+        changeDijkstraWeight(from, to, deltaW + from->w);
+        break;
+    case SMT_RT_DYRP:
+        // the cost fix function needs change here
+        itWL = from->w2NextMap.find(to->edge);
+        // since w2NextMap is initialized in initialize()
+        // itWL will never equal to from->w2NextMap.end()
+        ASSERT2(itWL != from->w2NextMap.end(),
+                "w2NextMap initialized abnormally");
+        if (itWL->second->getCost(simTime().dbl()) > 0) {
+            deltaW = itWL->second->getCost(simTime().dbl());
+        } else {
+            deltaW = (from->edge->length()
+                    + from->edge->viaVecMap[to->edge][0]->getViaLength())
+                    / carInfo->maxSpeed;
+        }
+        // fix deltaW by occupation if occupation is bigger than half
+        // fix deltaW only when cars in this lane cannot pass in one green time
+        // and the occupation reach the limit
+        if (itWL->second->occupation > 0.6
+                && itWL->second->occupation * itWL->second->from->edge->length()
+                        > (carInfo->length + carInfo->minGap) * 24) {
+            if (itWL->second->occupation < 0.8 - 0.01) {
+                deltaW = deltaW / (0.8 - itWL->second->occupation);
+            } else {
+                if (debug) {
+                    if (itWL->second->occupaChangeFlagForDebug) {
+                        itWL->second->occupaChangeFlagForDebug = false;
+                        std::cout << "occupation from " << from->edge->id
+                                << " to " << to->edge->id << " is "
+                                << itWL->second->occupation << std::endl;
+                    }
+                }
+                deltaW = deltaW * 1000;
+            }
+        }
+
         if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
                     << "cannot handle negative via cost from" << from->edge->id

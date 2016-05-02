@@ -142,11 +142,17 @@ bool SMTMobility::processAtRouting() {
     cmdSetNoOvertake();
     // 设置路径
     if (carInfo->isMajorType) {
-        getRouting()->getRouteByMajorMethod(getMap()->getSMTEdgeById(road_id),
-                destination, carRoute, simTime().dbl(), carInfo);
+        if (getRouting()->getRouteByMajorMethod(
+                getMap()->getSMTEdgeById(road_id), destination, carRoute,
+                simTime().dbl(), carInfo) == SMTBaseRouting::SMT_RT_DYRP) {
+            isDynamicUpdateRoute = true;
+        }
     } else {
-        getRouting()->getRouteByMinorMethod(getMap()->getSMTEdgeById(road_id),
-                destination, carRoute, simTime().dbl(), carInfo);
+        if (getRouting()->getRouteByMinorMethod(
+                getMap()->getSMTEdgeById(road_id), destination, carRoute,
+                simTime().dbl(), carInfo) == SMTBaseRouting::SMT_RT_DYRP) {
+            isDynamicUpdateRoute = true;
+        }
     }
     return updateVehicleRoute();
 }
@@ -179,6 +185,15 @@ void SMTMobility::processWhenChangeRoad() {
                 std::cout << "redundant edges in route : "
                         << carRoute.front()->id << std::endl;
                 carRoute.pop_front();
+            }
+            if (isDynamicUpdateRoute) {
+                if (carInfo->isMajorType) {
+                    getRouting()->getRouteByMajorMethod(curEdge, destination,
+                            carRoute, simTime().dbl(), carInfo);
+                } else {
+                    getRouting()->getRouteByMinorMethod(curEdge, destination,
+                            carRoute, simTime().dbl(), carInfo);
+                }
             }
             carRoute.pop_front();
             SMTEdge* next = carRoute.front();
