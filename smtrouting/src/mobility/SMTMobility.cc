@@ -186,13 +186,16 @@ void SMTMobility::processWhenChangeRoad() {
                         << carRoute.front()->id << std::endl;
                 carRoute.pop_front();
             }
-            if (isDynamicUpdateRoute) {
+            if (isDynamicUpdateRoute && hasRouted) {
                 if (carInfo->isMajorType) {
                     getRouting()->getRouteByMajorMethod(curEdge, destination,
                             carRoute, simTime().dbl(), carInfo);
                 } else {
                     getRouting()->getRouteByMinorMethod(curEdge, destination,
                             carRoute, simTime().dbl(), carInfo);
+                }
+                if (!updateVehicleRoute()) {
+                    std::cout<<"update route failed."<<std::endl;
                 }
             }
             carRoute.pop_front();
