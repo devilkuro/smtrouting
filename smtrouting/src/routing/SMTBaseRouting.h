@@ -36,10 +36,12 @@ public:
     class WeightEdge;
     class WeightLane;
     class WeightRoute;
+    class HisInfo;
     class CoRPUpdateBlock {
     public:
         CoRPUpdateBlock() :
-                timeStamp(-1), fromTime(-1), toTime(-1), lane(0), car(0), rou(0) {
+                timeStamp(-1), fromTime(-1), toTime(-1), lane(0), car(0), rou(
+                        0), srcHisInfo(0) {
         }
         virtual ~CoRPUpdateBlock();
         double timeStamp;
@@ -52,6 +54,23 @@ public:
         // 更新信息不需要设置route信息,因为对应hisInfo有next参数
         WeightRoute* rou;
         list<WeightEdge*>::iterator rouIt;
+        HisInfo* srcHisInfo;
+    };
+    class HisInfo {
+    public:
+        HisInfo() :
+                car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(
+                        0), intervalToLast(0) {
+        }
+        SMTCarInfo* car;
+        double enterTime;
+        WeightLane* next;
+        double laneTime;
+        double viaTime;
+        // time of the interval between car enter and reach the junction
+        // equal to enterTime + laneTime
+        double tau;
+        double intervalToLast;
     };
     class WeightLane {
     public:
@@ -62,22 +81,6 @@ public:
             }
             SMTCarInfo* car;
             double cost;
-        };
-        class HisInfo {
-        public:
-            HisInfo() :
-                    car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(
-                            0), intervalToLast(0) {
-            }
-            SMTCarInfo* car;
-            double enterTime;
-            WeightLane* next;
-            double laneTime;
-            double viaTime;
-            // time of the interval between car enter and reach the junction
-            // equal to enterTime + laneTime
-            double tau;
-            double intervalToLast;
         };
         class laneStatus {
         public:
@@ -150,8 +153,7 @@ public:
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
         void removeHistoricalCar(SMTCarInfo* car, double t);
-        virtual void updateCoRPCar(
-                multimap<double, CoRPUpdateBlock*> &queue);
+        virtual void updateCoRPCar(multimap<double, CoRPUpdateBlock*> &queue);
         virtual void getCoRPOutInfo(SMTCarInfo* car, double enterTime,
                 HisInfo* hisInfo);
         WeightLane* getNextLane(SMTEdge* toEdge);
