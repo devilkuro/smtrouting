@@ -53,14 +53,15 @@ public:
         // released when process the end block of this route
         // 更新信息不需要设置route信息,因为对应hisInfo有next参数
         WeightRoute* rou;
+        // rouIt指向lane->to
         list<WeightEdge*>::iterator rouIt;
         HisInfo* srcHisInfo;
     };
     class HisInfo {
     public:
         HisInfo() :
-                car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(
-                        0), intervalToLast(0) {
+                car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(0), intervalToLast(
+                        0) {
         }
         SMTCarInfo* car;
         double enterTime;
@@ -154,9 +155,8 @@ public:
                 double viaTime, double time, WeightLane* next);
         void removeHistoricalCar(SMTCarInfo* car, double t);
         virtual void updateCoRPCar(multimap<double, CoRPUpdateBlock*> &queue);
-        virtual void getCoRPOutInfo(SMTCarInfo* car, double enterTime,
-                HisInfo* hisInfo);
         WeightLane* getNextLane(SMTEdge* toEdge);
+        virtual void getCoRPOutTime(HisInfo* hisInfo);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -169,14 +169,16 @@ public:
         double airD;
         double lastCarOutTime;
         virtual void updateCost(double time);
-        virtual void addCoRPCarInfo(CoRPUpdateBlock* block,
+        virtual void addCoRPQueueInfo(CoRPUpdateBlock* block,
                 multimap<double, CoRPUpdateBlock*> &queue);
-        virtual void removeCoRPCarInfo(CoRPUpdateBlock* block,
+        virtual void removeCoRPQueueInfo(CoRPUpdateBlock* block,
                 multimap<double, CoRPUpdateBlock*> &queue);
-        virtual void updateCoRPCarEnterInfo(CoRPUpdateBlock* block,
+        virtual void updateCoRPQueueEnterInfo(CoRPUpdateBlock* block,
                 multimap<double, CoRPUpdateBlock*> &queue);
-        virtual void updateCoRPCarOutInfo(CoRPUpdateBlock* block,
+        virtual void updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
                 multimap<double, CoRPUpdateBlock*> &queue);
+        virtual void updateCoRPOutInfo(HisInfo* hisInfo,
+                multimap<double, HisInfo*>::iterator itHI);
     };
     // WEIGHTEDGE: 用于dijkstra‘s algorithm
     class WeightEdge {
@@ -260,6 +262,7 @@ public:
     virtual SMT_ROUTING_TYPE getRouteByMinorMethod(SMTEdge* origin,
             SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
             SMTCarInfo* car = NULL);
+    virtual void addCoRPCar(WeightRoute* rou);
     // try to change to corrected lane by suppress cars prevent this car
     virtual bool suppressEdge(SMTEdge* edge, double pos = -1);
     virtual void releaseEdge(SMTEdge* edge);
