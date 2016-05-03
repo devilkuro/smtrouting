@@ -61,7 +61,7 @@ public:
     public:
         HisInfo() :
                 car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(0), intervalToLast(
-                        0) {
+                        0), outTime(0) {
         }
         SMTCarInfo* car;
         double enterTime;
@@ -72,6 +72,7 @@ public:
         // equal to enterTime + laneTime
         double tau;
         double intervalToLast;
+        double outTime;
     };
     class WeightLane {
     public:
@@ -137,6 +138,7 @@ public:
         multimap<double, HisInfo*> hisTimeMap;
         map<SMTCarInfo*, HisInfo*> corpCarMap;
         multimap<double, HisInfo*> corpTimeMap;
+        HisInfo tempHisInfo;
 
         virtual void carGetOut(SMTCarInfo* car, const double &t,
                 const double &cost);
@@ -150,6 +152,7 @@ public:
         void updateAIRsi();
         virtual double getAIRCost(double time);
         // CoRP related
+        virtual double getCoRPSelfCost(double time, SMTCarInfo* car);
         void addHistoricalCar(SMTCarInfo* car, double t);
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);

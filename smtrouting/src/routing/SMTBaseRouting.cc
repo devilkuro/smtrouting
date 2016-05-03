@@ -659,6 +659,7 @@ void SMTBaseRouting::importHisXML() {
                     hisInfo->viaTime = carElm->DoubleAttribute("vt");
                     hisInfo->intervalToLast = carElm->DoubleAttribute("it");
                     hisInfo->tau = hisInfo->laneTime + hisInfo->enterTime;
+                    hisInfo->outTime = hisInfo->tau+hisInfo->viaTime;
                     if (debug) {
                         std::cout << "add car " << hisInfo->car->id
                                 << " into lane from " << fromWEdge->edge->id
@@ -1222,6 +1223,7 @@ void SMTBaseRouting::WeightLane::getOutHistoricalCar(SMTCarInfo* car,
     it->second->viaTime = viaTime;
     it->second->tau = it->second->enterTime + laneTime;
     it->second->intervalToLast = time - lastCarOutTime;
+    it->second->outTime = it->second->tau+it->second->viaTime;
     lastCarOutTime = time;
     it->second->next = next;
 }
@@ -1252,7 +1254,8 @@ void SMTBaseRouting::WeightLane::getCoRPOutTime(HisInfo* hisInfo) {
             "remove the info in corpMap, before routing method.");
     multimap<double, HisInfo*>::iterator it = corpTimeMap.upper_bound(
             hisInfo->enterTime);
-    double tau = from->edge->length() / hisInfo->car->maxSpeed + hisInfo->enterTime;
+    double tau = from->edge->length() / hisInfo->car->maxSpeed
+            + hisInfo->enterTime;
     // fix by previous car
     if (it != corpTimeMap.end()) {
         if (it != corpTimeMap.begin()) {
@@ -1270,6 +1273,15 @@ void SMTBaseRouting::WeightLane::getCoRPOutTime(HisInfo* hisInfo) {
     hisInfo->laneTime = tau - hisInfo->enterTime;
     hisInfo->tau = tau;
     hisInfo->viaTime = corpOta;
+    hisInfo->outTime = hisInfo->tau+hisInfo->viaTime;
+}
+
+double SMTBaseRouting::WeightLane::getCoRPSelfCost(double time,
+        SMTCarInfo* car) {
+    tempHisInfo.enterTime = time;
+    tempHisInfo.car = car;
+    getCoRPOutTime(&tempHisInfo);
+    return tempHisInfo.outTime;
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
@@ -1434,7 +1446,7 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
         // 因此此处block->rouIt != block->rou->edges.end()
         hisInfo->next = block->lane->getNextLane((*(block->rouIt))->edge);
         block->lane = hisInfo->next;
-        block->toTime = hisInfo->tau + hisInfo->viaTime;
+        block->toTime = hisInfo->outTime;
         block->timeStamp = block->toTime;
         block->srcHisInfo = hisInfo;
         queue.insert(std::make_pair(block->timeStamp, block));
@@ -1447,7 +1459,7 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
     // 添加后续可能被影响车辆
     ++itT;
     // 判定后方车辆离开信息是否受到该车影响
-    if (itT!=corpTimeMap.end()) {
+    if (itT != corpTimeMap.end()) {
         if (itT->second->tau < hisInfo->tau + corpEta) {
             // 判定是否对block进行重利用
             if (!releaseFlag) {
@@ -1516,7 +1528,7 @@ void SMTBaseRouting::WeightLane::removeCoRPQueueInfo(CoRPUpdateBlock* block,
     if (hisInfo->next != NULL) {
         // 若再利用则当前block不需要被释放
         releaseFlag = false;
-        block->fromTime = hisInfo->tau + hisInfo->viaTime;
+        block->fromTime = hisInfo->outTime;
         block->timeStamp = block->fromTime;
         block->lane = hisInfo->next;
         if (block->rou != NULL) {
@@ -1570,7 +1582,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
         return;
     }
     // 通过判定toTime是否与srcHisInfo内容一致验证block是否过期
-    if (block->srcHisInfo->tau + block->srcHisInfo->viaTime != block->toTime) {
+    if (block->srcHisInfo->outTime != block->toTime) {
         queue.erase(queue.begin());
         delete block;
         return;
@@ -1641,7 +1653,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
             // 若再利用则当前block不需要被释放
             releaseFlag = false;
             block->fromTime = oldTau + hisInfo->viaTime;
-            block->toTime = hisInfo->tau + hisInfo->viaTime;
+            block->toTime = hisInfo->outTime;
             block->timeStamp =
                     block->fromTime < block->toTime ?
                             block->fromTime : block->toTime;
@@ -1686,7 +1698,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
         return;
     }
     // 通过判定toTime是否与srcHisInfo内容一致验证block是否过期
-    if (block->srcHisInfo->tau + block->srcHisInfo->viaTime != block->toTime) {
+    if (block->srcHisInfo->outTime != block->toTime) {
         queue.erase(queue.begin());
         delete block;
         return;
@@ -1729,7 +1741,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
                 // 若再利用则当前block不需要被释放
                 releaseFlag = false;
                 block->fromTime = oldTau + hisInfo->viaTime;
-                block->toTime = hisInfo->tau + hisInfo->viaTime;
+                block->toTime = hisInfo->outTime;
                 block->timeStamp =
                         block->fromTime < block->toTime ?
                                 block->fromTime : block->toTime;
