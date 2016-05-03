@@ -1502,17 +1502,7 @@ void SMTBaseRouting::WeightLane::updateCoRPCarEnterInfo(CoRPUpdateBlock* block,
         block->lane->removeCoRPCarInfo(block, queue);
         return;
     }
-
-}
-
-SMTBaseRouting::WeightLane* SMTBaseRouting::WeightLane::getNextLane(
-        SMTEdge* toEdge) {
-    map<SMTEdge*, WeightLane*>::iterator it = to->w2NextMap.find(toEdge);
-    if (it == to->w2NextMap.end()) {
-        std::cout << "no connection from lane " << con->fromLane << " of edge "
-                << from->edge->id << " to " << toEdge->id << "." << std::endl;
-    }
-    return it->second;
+    // TODO
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPCarOutInfo(CoRPUpdateBlock* block,
@@ -1523,6 +1513,18 @@ void SMTBaseRouting::WeightLane::updateCoRPCarOutInfo(CoRPUpdateBlock* block,
         block->lane->removeCoRPCarInfo(block, queue);
         return;
     }
+
+}
+
+
+SMTBaseRouting::WeightLane* SMTBaseRouting::WeightLane::getNextLane(
+        SMTEdge* toEdge) {
+    map<SMTEdge*, WeightLane*>::iterator it = to->w2NextMap.find(toEdge);
+    if (it == to->w2NextMap.end()) {
+        std::cout << "no connection from lane " << con->fromLane << " of edge "
+                << from->edge->id << " to " << toEdge->id << "." << std::endl;
+    }
+    return it->second;
 }
 
 SMTBaseRouting::WeightEdge::~WeightEdge() {
