@@ -159,7 +159,10 @@ public:
         void removeHistoricalCar(SMTCarInfo* car, double t);
         virtual void updateCoRPCar(multimap<double, CoRPUpdateBlock*> &queue);
         WeightLane* getNextLane(SMTEdge* toEdge);
-        virtual void getCoRPOutTime(HisInfo* hisInfo);
+        virtual multimap<double, HisInfo*>::iterator getCoRPOutTime(
+                HisInfo* hisInfo);
+        virtual double getCoRPQueueLength(double enterTime,
+                multimap<double, HisInfo*>::iterator itPreCar);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -266,6 +269,7 @@ public:
             SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
             SMTCarInfo* car = NULL);
     virtual void addCoRPCar(WeightRoute* rou);
+    virtual void removeCoRPCar(WeightRoute* rou);
     // try to change to corrected lane by suppress cars prevent this car
     virtual bool suppressEdge(SMTEdge* edge, double pos = -1);
     virtual void releaseEdge(SMTEdge* edge);
