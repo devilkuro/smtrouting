@@ -204,11 +204,11 @@ list<string> CarFlowXMLHelper::getAllCars() {
 }
 
 void CarFlowXMLHelper::clear(bool saveXML) {
-    initXML();
     if (saveXML) {
         this->save();
         loadXML(carXMLPath);
     }
+    initXML();
 }
 
 void CarFlowXMLHelper::save(string path) {

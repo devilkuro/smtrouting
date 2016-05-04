@@ -107,6 +107,7 @@ SMTComInterface* SMTCarManager::getComIf() {
 }
 
 void SMTCarManager::generateCarFlowFile(const string& path) {
+    carFlowHelper.clear(false);
     // add generating car flow file process
     double curTime = 0;
     double remainInner = 0;
