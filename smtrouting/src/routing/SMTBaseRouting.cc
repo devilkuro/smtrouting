@@ -114,8 +114,12 @@ void SMTBaseRouting::initialize(int stage) {
                 wLane->viaLen = vIt->second[0]->getViaLength();
                 // initialize occupation and occStep information
                 wLane->occStep = 1 / it->first->length();
-                wLane->corpEta = 1.4;
-                wLane->corpOta = wLane->viaLen / 15;
+                if (wLane->con->tr==0) {
+                    wLane->corpEta = 2.0;
+                }else{
+                    wLane->corpEta = 1.4;
+                }
+                wLane->corpOta = wLane->viaLen / 30;
                 wLane->from = it->second;
                 wLane->to = weightEdgeMap[vIt->first];
                 std::cout << "viaLane from " << wLane->from->edge->id << " to "
@@ -706,6 +710,13 @@ void SMTBaseRouting::importHisXML() {
                 rou->edges.push_back(
                         weightEdgeMap[getMap()->getSMTEdgeById(*it)]);
             }
+            // FIX the burst flow
+//            map<SMTCarInfo*, HisInfo*>::iterator it = block->lane->hisCarMap.find(
+//                    block->car);
+//            if (it != block->lane->hisCarMap.end()) {
+//                block->toTime = it->second->enterTime;
+//                block->timeStamp = it->second->enterTime;
+//            }
             addCoRPCar(rou);
             hisRouteMapByCar[rou->car] = rou;
             hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
@@ -771,6 +782,13 @@ void SMTBaseRouting::removeCoRPCar(WeightRoute* rou) {
         block->rouIt = rou->edges.begin();
         ++(block->rouIt);
         block->lane = rou->edges.front()->w2NextMap[(*(block->rouIt))->edge];
+        // FIX the burst flow
+//        map<SMTCarInfo*, HisInfo*>::iterator it = block->lane->hisCarMap.find(
+//                block->car);
+//        if (it != block->lane->hisCarMap.end()) {
+//            block->fromTime = it->second->enterTime;
+//            block->timeStamp = it->second->enterTime;
+//        }
         block->rou = new WeightRoute();
         block->rou->edges = rou->edges;
         block->rouIt = block->rou->edges.begin();
@@ -788,7 +806,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         // if use dynamic routing
         WeightRoute* rou = new WeightRoute();
         rou->car = carInfo;
-        rou->t = carInfo->time;
+        rou->t = simTime().dbl();
         while (wEdge != NULL) {
             route.push_front(wEdge->edge);
             rou->edges.push_front(wEdge);
@@ -1315,9 +1333,11 @@ double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
     tempHisInfo.enterTime = enterTime;
     tempHisInfo.car = car;
     double freeLen = from->edge->length()
-            - 1.5 * getCoRPQueueLength(enterTime, getCoRPOutTime(&tempHisInfo));
+            - 1.2 * getCoRPQueueLength(enterTime, getCoRPOutTime(&tempHisInfo));
     if (freeLen < 100) {
         freeLen = (100 - freeLen) * 3600;
+        std::cout << "freeLen:" << car->id << " at " << from->edge->id << " is "
+                << freeLen << std::endl;
     } else {
         freeLen = 0;
     }
