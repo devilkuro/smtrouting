@@ -114,8 +114,13 @@ void SMTBaseRouting::initialize(int stage) {
                 wLane->viaLen = vIt->second[0]->getViaLength();
                 // initialize occupation and occStep information
                 wLane->occStep = 1 / it->first->length();
+                wLane->corpEta = 1.4;
+                wLane->corpOta = wLane->viaLen / 15;
                 wLane->from = it->second;
                 wLane->to = weightEdgeMap[vIt->first];
+                std::cout << "viaLane from " << wLane->from->edge->id << " to "
+                        << wLane->to->edge->id << "- Len:" << wLane->viaLen
+                        << ", viaOta:" << wLane->corpOta << std::endl;
                 wLane->initMinAllowedCost();
                 if (it->second->w2NextMap.find(vIt->first)
                         == it->second->w2NextMap.end()) {
@@ -209,7 +214,7 @@ void SMTBaseRouting::getShortestRoute(SMTEdge* origin, SMTEdge* destination,
 
 void SMTBaseRouting::initDijkstra(SMTEdge* origin) {
     // before operation
-    if (routeType == SMT_RT_CORP_SELF||routeType==SMT_RT_CORP_TTS) {
+    if (routeType == SMT_RT_CORP_SELF || routeType == SMT_RT_CORP_TTS) {
         // remove and update CoRP info
         removeCoRPCar(hisRouteMapByCar[carInfo]);
     }
@@ -236,7 +241,7 @@ void SMTBaseRouting::initDijkstra(SMTEdge* origin) {
 }
 
 void SMTBaseRouting::changeDijkstraWeight(WeightEdge* from, WeightEdge* to,
-        double w) {
+        double w, double t) {
     if (to->w != -1 && to->w <= w) {
         // do not change wEdge if the old weight is smaller
         return;
@@ -256,6 +261,7 @@ void SMTBaseRouting::changeDijkstraWeight(WeightEdge* from, WeightEdge* to,
     }
     to->previous = from;
     to->w = w;
+    to->t = t;
     processMap.insert(std::make_pair(w, to));
 }
 
@@ -777,7 +783,7 @@ void SMTBaseRouting::removeCoRPCar(WeightRoute* rou) {
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
-    if (recordHisRoutingResult||enableCoRP) {
+    if (recordHisRoutingResult || enableCoRP) {
         // TODO [delay] this should be report by mobility
         // if use dynamic routing
         WeightRoute* rou = new WeightRoute();
@@ -791,7 +797,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         if (recordHisRoutingResult) {
             hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
         }
-        if(enableCoRP){
+        if (enableCoRP) {
             addCoRPCar(rou);
         }
     } else {
@@ -862,6 +868,7 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         WeightEdge* to) {
     // w means the delta weight from wEdge to next
     double deltaW = -1;
+    double costTime = 0;
     if (to == NULL) {
         std::cout << "processDijkstralNeighbors:" << " No edge " << to->edge->id
                 << " in weightEdgeMap" << std::endl;
@@ -999,13 +1006,13 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         ASSERT2(itWL != from->w2NextMap.end(),
                 "w2NextMap initialized abnormally");
         // TODO add cooperative route plan method
-        deltaW = itWL->second->getCoRPSelfCost(from->t, carInfo);
+        deltaW = itWL->second->getCoRPSelfCost(from->t, carInfo, costTime);
         if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
                     << "cannot handle negative via cost from" << from->edge->id
                     << " to " << to->edge->id << std::endl;
         }
-        changeDijkstraWeight(from, to, deltaW + from->w);
+        changeDijkstraWeight(from, to, deltaW + from->w, from->t + costTime);
         break;
     case SMT_RT_CORP_TTS:
         itWL = from->w2NextMap.find(to->edge);
@@ -1303,18 +1310,19 @@ multimap<double, SMTBaseRouting::HisInfo*>::iterator SMTBaseRouting::WeightLane:
     return it;
 }
 
-double SMTBaseRouting::WeightLane::getCoRPSelfCost(double time,
-        SMTCarInfo* car) {
-    tempHisInfo.enterTime = time;
+double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
+        SMTCarInfo* car, double &costTime) {
+    tempHisInfo.enterTime = enterTime;
     tempHisInfo.car = car;
     double freeLen = from->edge->length()
-            - getCoRPQueueLength(time, getCoRPOutTime(&tempHisInfo));
-    if (freeLen < 150) {
-        freeLen = (150 - freeLen) * 3600;
+            - 1.5 * getCoRPQueueLength(enterTime, getCoRPOutTime(&tempHisInfo));
+    if (freeLen < 100) {
+        freeLen = (100 - freeLen) * 3600;
     } else {
         freeLen = 0;
     }
-    return tempHisInfo.outTime - time + freeLen;
+    costTime = tempHisInfo.outTime - enterTime;
+    return costTime + freeLen;
 }
 
 double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
@@ -1361,6 +1369,7 @@ void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
     hisInfo->laneTime = tau - hisInfo->enterTime;
     hisInfo->tau = tau;
     hisInfo->viaTime = corpOta;
+    hisInfo->outTime = tau + corpOta;
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPCar(

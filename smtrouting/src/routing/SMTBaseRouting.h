@@ -152,7 +152,7 @@ public:
         void updateAIRsi();
         virtual double getAIRCost(double time);
         // CoRP related
-        virtual double getCoRPSelfCost(double time, SMTCarInfo* car);
+        virtual double getCoRPSelfCost(double enterTime, SMTCarInfo* car, double &costTime);
         void addHistoricalCar(SMTCarInfo* car, double t);
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
@@ -338,7 +338,8 @@ protected:
 private:
     // dijkstra's algorithm related
     void initDijkstra(SMTEdge* origin);
-    void changeDijkstraWeight(WeightEdge* from, WeightEdge* to, double w);
+    void changeDijkstraWeight(WeightEdge* from, WeightEdge* to, double w,
+            double t = 0);
     int processDijkstraLoop(SMTEdge* destination);
     SMTEdge* processDijkstralNode(SMTEdge* destination);
     void processDijkstralNeighbors(WeightEdge* wEdge);
