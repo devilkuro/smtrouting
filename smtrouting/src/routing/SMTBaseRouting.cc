@@ -875,7 +875,7 @@ void SMTBaseRouting::importHisXML() {
                         itA += hisInfo->intervalToLast;
                         ++nit;
                     }
-                    toWLane->addHistoricalCar(hisInfo->car, hisInfo->enterTime);
+                    // toWLane->addHistoricalCar(hisInfo->car, hisInfo->enterTime);
                     carElm = carElm->NextSiblingElement("CAR");
                 }
                 if (nvt > 0) {
