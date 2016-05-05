@@ -105,9 +105,10 @@ public:
         WeightLane() :
                 via(0), con(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlagForDebug(
                         false), airSI(0), corpEta(1.2), corpOta(0.5), from(0), to(
-                        0), recentCost(-1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
-                        false), totalRecentCost(0), airCostUpdateFlag(false), airDLastUpdateTime(
-                        0), airD(0), lastCarOutTime(0) {
+                        0), firstCoRPInfo(0), recentCost(-1), recentCostLastupdateTime(
+                        -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
+                        false), airDLastUpdateTime(0), airD(0), lastCarOutTime(
+                        0) {
         }
 
         virtual ~WeightLane();
@@ -138,6 +139,9 @@ public:
         multimap<double, HisInfo*> hisTimeMap;
         map<SMTCarInfo*, HisInfo*> corpCarMap;
         multimap<double, HisInfo*> corpTimeMap;
+        // 用于表示CoRP队列的头部
+        // 头部节点在车辆离开时不移除队列,以此保证队列占用有效性
+        HisInfo* firstCoRPInfo;
         HisInfo tempHisInfo;
 
         virtual void carGetOut(SMTCarInfo* car, const double &t,
@@ -152,7 +156,8 @@ public:
         void updateAIRsi();
         virtual double getAIRCost(double time);
         // CoRP related
-        virtual double getCoRPSelfCost(double enterTime, SMTCarInfo* car, double &costTime);
+        virtual double getCoRPSelfCost(double enterTime, SMTCarInfo* car,
+                double &costTime);
         void addHistoricalCar(SMTCarInfo* car, double t);
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
@@ -163,6 +168,9 @@ public:
                 HisInfo* hisInfo);
         virtual double getCoRPQueueLength(double enterTime,
                 multimap<double, HisInfo*>::iterator itPreCar);
+        virtual void setCoRPOutInfo(SMTCarInfo* car, double laneTime,
+                double viaTime, double outTime,
+                multimap<double, CoRPUpdateBlock*>& queue);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time

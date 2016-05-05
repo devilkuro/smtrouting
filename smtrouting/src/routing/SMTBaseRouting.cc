@@ -640,8 +640,9 @@ void SMTBaseRouting::exportHisXML() {
             XMLElement* carElm;
             WeightEdge* fromWEdge = NULL;
             WeightLane* wLane = NULL;
-            for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
-                    itWE != weightEdgeMap.end(); ++itWE) {
+            for (map<SMTEdge*, WeightEdge*>::iterator itWE =
+                    weightEdgeMap.begin(); itWE != weightEdgeMap.end();
+                    ++itWE) {
                 fromEdgeElm = doc->NewElement("From");
                 fromWEdge = itWE->second;
                 fromEdgeElm->SetAttribute("id", fromWEdge->edge->id.c_str());
@@ -660,7 +661,8 @@ void SMTBaseRouting::exportHisXML() {
                             wLane->corpTimeMap.begin();
                             itHis != wLane->corpTimeMap.end(); ++itHis) {
                         carElm = doc->NewElement("CAR");
-                        carElm->SetAttribute("id", itHis->second->car->id.c_str());
+                        carElm->SetAttribute("id",
+                                itHis->second->car->id.c_str());
                         carElm->SetAttribute("et",
                                 Fanjing::StringHelper::dbl2str(
                                         itHis->second->enterTime, 1).c_str());
@@ -708,8 +710,9 @@ void SMTBaseRouting::exportHisXML() {
             XMLElement* carElm;
             WeightEdge* fromWEdge = NULL;
             WeightLane* wLane = NULL;
-            for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
-                    itWE != weightEdgeMap.end(); ++itWE) {
+            for (map<SMTEdge*, WeightEdge*>::iterator itWE =
+                    weightEdgeMap.begin(); itWE != weightEdgeMap.end();
+                    ++itWE) {
                 fromEdgeElm = doc->NewElement("From");
                 fromWEdge = itWE->second;
                 fromEdgeElm->SetAttribute("id", fromWEdge->edge->id.c_str());
@@ -728,7 +731,8 @@ void SMTBaseRouting::exportHisXML() {
                             wLane->hisTimeMap.begin();
                             itHis != wLane->hisTimeMap.end(); ++itHis) {
                         carElm = doc->NewElement("CAR");
-                        carElm->SetAttribute("id", itHis->second->car->id.c_str());
+                        carElm->SetAttribute("id",
+                                itHis->second->car->id.c_str());
                         carElm->SetAttribute("et",
                                 Fanjing::StringHelper::dbl2str(
                                         itHis->second->enterTime, 1).c_str());
@@ -785,7 +789,8 @@ void SMTBaseRouting::importHisXML() {
                 carElm = toEdgeElm->FirstChildElement("CAR");
                 double vtA = 0;
                 double itA = 0;
-                double n = 0;
+                double nvt = 0;
+                double nit = 0;
                 while (carElm != NULL) {
                     /*
                      carElm->SetAttribute("id", itHis->second->car->id);
@@ -830,17 +835,20 @@ void SMTBaseRouting::importHisXML() {
                     }
                     if (hisInfo->viaTime < 3) {
                         vtA += hisInfo->viaTime;
+                        ++nvt;
                     }
                     if (hisInfo->intervalToLast < 3) {
                         itA += hisInfo->intervalToLast;
+                        ++nit;
                     }
-                    ++n;
                     toWLane->addHistoricalCar(hisInfo->car, hisInfo->enterTime);
                     carElm = carElm->NextSiblingElement("CAR");
                 }
-                if (n > 0) {
-                    toWLane->corpEta = itA / n;
-                    toWLane->corpOta = vtA / n;
+                if (nvt > 0) {
+                    toWLane->corpOta = vtA / nvt;
+                }
+                if (nit > 0) {
+                    toWLane->corpEta = itA / nit;
                 }
                 toEdgeElm = toEdgeElm->FirstChildElement("To");
             }
@@ -884,7 +892,6 @@ void SMTBaseRouting::importHisXML() {
 }
 
 void SMTBaseRouting::updateCoRPQueue() {
-    // TODO update car info in CORP
     corpUpdateQueue.begin()->second->lane->updateCoRPCar(corpUpdateQueue);
 }
 
@@ -1006,6 +1013,9 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
             std::cout << "Untouchable code in SMTBaseRouting::changeRoad"
                     << std::endl;
         }
+        // 执行更新队列
+        fromLane->setCoRPOutInfo(car, laneTime, viaTime, time, corpUpdateQueue);
+        updateCoRPQueue();
         // 如果使用动态寻路, 更新道路情况
     }
     // add car into weightEdge 'to'
@@ -1677,10 +1687,7 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
     ++(block->rouIt);
     if (block->rouIt != block->rou->edges.end()) {
         // 若lane->to道路不是终点再利用则当前block不需要被释放
-        // TODO
         releaseFlag = false;
-        // 由于block->rouIt != block->rou->edges.back()
-        // 因此此处block->rouIt != block->rou->edges.end()
         hisInfo->next = block->lane->getNextLane((*(block->rouIt))->edge);
         block->lane = hisInfo->next;
         block->toTime = hisInfo->outTime;
@@ -1820,6 +1827,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
     }
     // 通过判定toTime是否与srcHisInfo内容一致验证block是否过期
     if (block->srcHisInfo->outTime != block->toTime) {
+        std::cout << "expired update enter info block" << std::endl;
         queue.erase(queue.begin());
         delete block;
         return;
@@ -1861,7 +1869,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
     // 仅仅做移动,不做删除
     // corpCarMap.erase(itCar);
     // 保存原始下一条道路进入时间
-    double oldTau = hisInfo->tau;
+    double oldTau = hisInfo->outTime;
     // 更新hisInfo信息
     hisInfo->enterTime = block->toTime;
     // 将hisInfo插回队列
@@ -1886,7 +1894,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
     // 添加后续道路更新
     if (hisInfo->next != NULL) {
         // 如果离开状态改变,则重用block用于更新下一条道路
-        if (oldTau != hisInfo->tau) {
+        if (oldTau != hisInfo->outTime) {
             // 若再利用则当前block不需要被释放
             releaseFlag = false;
             block->fromTime = oldTau + hisInfo->viaTime;
@@ -1949,6 +1957,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
     HisInfo* hisInfo = itCar->second;
     // 通过判定toTime是否与enterTime内容一致验证block是否过期
     if (hisInfo->enterTime != block->toTime) {
+        std::cout << "expired update out info block" << std::endl;
         queue.erase(queue.begin());
         delete block;
         return;
@@ -1965,16 +1974,17 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
     }
     // 更新离开信息
     double oldTau = hisInfo->tau;
+    double oldOutTime = hisInfo->outTime;
     updateCoRPOutInfo(hisInfo, itT);
     // 信息更新完成,移除block
     queue.erase(queue.begin());
     bool releaseFlag = true;
-    // 若后续状态改变, 则更新
+    // 若离开路口状态改变, 则更新后续车辆
     if (hisInfo->tau != oldTau) {
         // 添加后续道路更新
         if (hisInfo->next != NULL) {
-            // 如果离开状态改变,则重用block用于更新下一条道路
-            if (oldTau != hisInfo->tau) {
+            // 如果离开状态(即进入下一条道路时间)改变,则重用block用于更新下一条道路
+            if (oldOutTime != hisInfo->outTime) {
                 // 若再利用则当前block不需要被释放
                 releaseFlag = false;
                 block->fromTime = oldTau + hisInfo->viaTime;
@@ -2041,3 +2051,96 @@ SMTBaseRouting::CoRPUpdateBlock::~CoRPUpdateBlock() {
     }
 }
 
+void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
+        double laneTime, double viaTime, double outTime,
+        multimap<double, CoRPUpdateBlock*>& queue) {
+    // 移动车辆进入时间至队列顶部(队列中车辆都是未离开车辆)
+    // 更改离开时间,并添加后续影响至队列
+    // 检索车辆
+    multimap<SMTCarInfo*, HisInfo*>::iterator itCar = corpCarMap.find(car);
+    ASSERT2(itCar != corpCarMap.end(),
+            "try to set corp car from the lane does not contain it");
+    // 保留当前车辆指针,用于后续路径操作
+    HisInfo* hisInfo = itCar->second;
+    // 验证hisInfo信息
+    std::cout << "enter time: " << hisInfo->enterTime << " -> "
+            << outTime - viaTime - laneTime << std::endl;
+    ASSERT2(hisInfo->enterTime == (outTime - viaTime - laneTime),
+            "unmatched enter time when set corp enter info");
+    multimap<double, HisInfo*>::iterator itT = corpTimeMap.find(
+            hisInfo->enterTime);
+    while (itT != corpTimeMap.end()) {
+        if (itT->second->car == car) {
+            break;
+        }
+        ASSERT2(itT->first == hisInfo->enterTime,
+                "no such car in this lane when update it.");
+        ++itT;
+    }
+    // 保留当前itT用于删除元素
+    multimap<double, HisInfo*>::iterator itTold = itT;
+    // itT后移,用于指示下一个车辆
+    ++itT;
+    corpTimeMap.erase(itTold);
+    // 仅仅做移动,不做删除
+    // corpCarMap.erase(itCar);
+    // 保存原始下一条道路进入时间
+    double oldOutTime = hisInfo->outTime;
+    // 将hisInfo插入队列头部
+    if (firstCoRPInfo != NULL) {
+        // 若存在已经离开道路的头结点,则移除并释放头结点
+        corpTimeMap.erase(corpTimeMap.begin());
+        corpCarMap.erase(firstCoRPInfo->car);
+        delete firstCoRPInfo;
+    }
+    // 将hisInfo设为新的头结点
+    firstCoRPInfo = hisInfo;
+    itTold = corpTimeMap.insert(corpTimeMap.begin(),
+            std::make_pair(-1, hisInfo));
+    // 更新离开信息
+    hisInfo->laneTime = laneTime;
+    hisInfo->viaTime = viaTime;
+    hisInfo->tau = outTime - viaTime;
+    hisInfo->outTime = outTime;
+    // 2nd. 添加后续道路更新和受影响车辆更新
+    // 获取时间点最早的受影响车辆,并将其迭代器赋给itTold
+    // 由于当前车辆为队列最早车辆,因此后续车辆肯定为itTold后方车辆
+    ++itTold;
+    // 添加后续道路更新
+    CoRPUpdateBlock* block = NULL;
+    if (hisInfo->next != NULL) {
+        // 如果离开状态改变,则进行下一条道路的更新
+        // TODO
+        if (oldOutTime != hisInfo->outTime) {
+            block = new CoRPUpdateBlock();
+            block->fromTime = oldOutTime + hisInfo->viaTime;
+            block->toTime = hisInfo->outTime;
+            block->timeStamp =
+                    block->fromTime < block->toTime ?
+                            block->fromTime : block->toTime;
+            block->lane = hisInfo->next;
+            block->car = car;
+            // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
+            block->rou = NULL;
+            block->srcHisInfo = hisInfo;
+            queue.insert(std::make_pair(block->timeStamp, block));
+        }
+    }
+    // 受影响车辆更新
+    // 构造out info更新消息
+    if (itTold != corpTimeMap.end()) {
+        hisInfo = itTold->second;
+        // 设置受影响车辆outInfo更新消息
+        block = new CoRPUpdateBlock();
+        // 重设block为修改被影响车辆进入时间
+        block->fromTime = hisInfo->enterTime;
+        block->toTime = hisInfo->enterTime;
+        block->timeStamp = hisInfo->enterTime;
+        block->lane = this;
+        block->car = hisInfo->car;
+        // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
+        block->rou = NULL;
+        block->srcHisInfo = hisInfo;
+        queue.insert(std::make_pair(block->timeStamp, block));
+    }
+}
