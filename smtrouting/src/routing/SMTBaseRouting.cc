@@ -89,6 +89,7 @@ void SMTBaseRouting::initialize(int stage) {
             recordHisRoutingData = true;
             recordHisRoutingResult = true;
         }
+        enableHisDataRecord = par("enableHisDataRecord").boolValue();
         hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
         endAfterLoadHisXML = par("endAfterLoadHisXML").boolValue();
     }
@@ -278,7 +279,7 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
 void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
         list<SMTEdge*> &route) {
     // before operation
-    if (enableCoRP&&enableCoRPPreImport) {
+    if (enableCoRP && enableCoRPPreImport) {
         // remove and update CoRP info
         removeCoRPCar(hisRouteMapByCar[carInfo]);
     }
@@ -596,8 +597,8 @@ void SMTBaseRouting::exportHisXML() {
         }
         doc->SaveFile((hisRecordXMLPath + ".lane.xml").c_str());
         doc->Clear();
+        delete doc;
     }
-
     if (recordHisRoutingResult) {
         hisRouteDoc = new XMLDocument();
         XMLDeclaration* dec = hisRouteDoc->NewDeclaration();
@@ -625,149 +626,178 @@ void SMTBaseRouting::exportHisXML() {
         }
         hisRouteDoc->SaveFile((hisRecordXMLPath + ".rou.xml").c_str());
         hisRouteDoc->Clear();
+        delete hisRouteDoc;
+        hisRouteDoc = NULL;
+    }
+    if (enableHisDataRecord) {
+        hisRouteDoc = new XMLDocument();
+        XMLDeclaration* dec = hisRouteDoc->NewDeclaration();
+        hisRouteDoc->LinkEndChild(dec);
+        XMLComment* comment = hisRouteDoc->NewComment("time=enterTime");
+        hisRouteDoc->LinkEndChild(comment);
+        hisRouteRoot = hisRouteDoc->NewElement("CARS");
+        hisRouteDoc->LinkEndChild(hisRouteRoot);
+        for (multimap<double, WeightRoute*>::iterator itWR =
+                hisRouteMapByTime.begin(); itWR != hisRouteMapByTime.end();
+                ++itWR) {
+            XMLElement* carElm = hisRouteDoc->NewElement("car");
+            carElm->SetAttribute("id", itWR->second->car->id.c_str());
+            carElm->SetAttribute("time", itWR->second->t);
+            string routeStr = "";
+            for (list<WeightEdge*>::iterator it = itWR->second->edges.begin();
+                    it != itWR->second->edges.end(); ++it) {
+                if (it != itWR->second->edges.begin()) {
+                    routeStr = routeStr + " ";
+                }
+                routeStr = routeStr + (*it)->edge->id;
+            }
+            carElm->SetAttribute("route", routeStr.c_str());
+            hisRouteRoot->LinkEndChild(carElm);
+        }
+        hisRouteDoc->SaveFile((hisRecordXMLPath + ".rou."
+                + Fanjing::StringHelper::int2str(majorRoutingType)
+                + ".xml").c_str());
+        hisRouteDoc->Clear();
+        delete hisRouteDoc;
         hisRouteDoc = NULL;
     }
     if (debug) {
-        {
-            XMLDocument* doc = new XMLDocument();
-            XMLDeclaration* dec = doc->NewDeclaration();
-            doc->LinkEndChild(dec);
-            XMLComment* comment = doc->NewComment(
-                    "et=enterTime;lt=laneTime;vt=viaTime;"
-                            "it=intervalToLast;opt=outPrimaryEdgeTime");
-            doc->LinkEndChild(comment);
-            XMLElement* fromEdgeElm;
-            XMLElement* toEdgeElm;
-            XMLElement* carElm;
-            WeightEdge* fromWEdge = NULL;
-            WeightLane* wLane = NULL;
-            for (map<SMTEdge*, WeightEdge*>::iterator itWE =
-                    weightEdgeMap.begin(); itWE != weightEdgeMap.end();
-                    ++itWE) {
-                fromEdgeElm = doc->NewElement("From");
-                fromWEdge = itWE->second;
-                fromEdgeElm->SetAttribute("id", fromWEdge->edge->id.c_str());
-                for (map<SMTEdge*, WeightLane*>::iterator itWL =
-                        fromWEdge->w2NextMap.begin();
-                        itWL != fromWEdge->w2NextMap.end(); ++itWL) {
-                    toEdgeElm = doc->NewElement("To");
-                    wLane = itWL->second;
-                    toEdgeElm->SetAttribute("id", wLane->to->edge->id.c_str());
-                    SMTConnection* con = wLane->con;
-                    toEdgeElm->SetAttribute("t0", con->t0);
-                    toEdgeElm->SetAttribute("tg", con->tg);
-                    toEdgeElm->SetAttribute("ty", con->ty);
-                    toEdgeElm->SetAttribute("tr", con->tr);
-                    for (map<double, HisInfo*>::iterator itHis =
-                            wLane->corpTimeMap.begin();
-                            itHis != wLane->corpTimeMap.end(); ++itHis) {
-                        carElm = doc->NewElement("CAR");
-                        carElm->SetAttribute("id",
-                                itHis->second->car->id.c_str());
-                        carElm->SetAttribute("et",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->enterTime, 1).c_str());
-                        if (itHis->second->next != NULL) {
-                            carElm->SetAttribute("next",
-                                    itHis->second->next->to->edge->id.c_str());
-                        } else {
-                            carElm->SetAttribute("next", "");
-                        }
-                        carElm->SetAttribute("lt",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->laneTime, 1).c_str());
-                        carElm->SetAttribute("vt",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->viaTime, 1).c_str());
-                        carElm->SetAttribute("it",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->intervalToLast, 1).c_str());
-                        carElm->SetAttribute("opt",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->enterTime
-                                                + itHis->second->laneTime, 1).c_str());
-                        toEdgeElm->LinkEndChild(carElm);
+        XMLDocument* doc = new XMLDocument();
+        XMLDeclaration* dec = doc->NewDeclaration();
+        doc->LinkEndChild(dec);
+        XMLComment* comment = doc->NewComment(
+                "et=enterTime;lt=laneTime;vt=viaTime;"
+                        "it=intervalToLast;opt=outPrimaryEdgeTime");
+        doc->LinkEndChild(comment);
+        XMLElement* fromEdgeElm;
+        XMLElement* toEdgeElm;
+        XMLElement* carElm;
+        WeightEdge* fromWEdge = NULL;
+        WeightLane* wLane = NULL;
+        for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
+                itWE != weightEdgeMap.end(); ++itWE) {
+            fromEdgeElm = doc->NewElement("From");
+            fromWEdge = itWE->second;
+            fromEdgeElm->SetAttribute("id", fromWEdge->edge->id.c_str());
+            for (map<SMTEdge*, WeightLane*>::iterator itWL =
+                    fromWEdge->w2NextMap.begin();
+                    itWL != fromWEdge->w2NextMap.end(); ++itWL) {
+                toEdgeElm = doc->NewElement("To");
+                wLane = itWL->second;
+                toEdgeElm->SetAttribute("id", wLane->to->edge->id.c_str());
+                SMTConnection* con = wLane->con;
+                toEdgeElm->SetAttribute("t0", con->t0);
+                toEdgeElm->SetAttribute("tg", con->tg);
+                toEdgeElm->SetAttribute("ty", con->ty);
+                toEdgeElm->SetAttribute("tr", con->tr);
+                for (map<double, HisInfo*>::iterator itHis =
+                        wLane->corpTimeMap.begin();
+                        itHis != wLane->corpTimeMap.end(); ++itHis) {
+                    carElm = doc->NewElement("CAR");
+                    carElm->SetAttribute("id", itHis->second->car->id.c_str());
+                    carElm->SetAttribute("et",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->enterTime, 1).c_str());
+                    if (itHis->second->next != NULL) {
+                        carElm->SetAttribute("next",
+                                itHis->second->next->to->edge->id.c_str());
+                    } else {
+                        carElm->SetAttribute("next", "");
                     }
-                    fromEdgeElm->LinkEndChild(toEdgeElm);
+                    carElm->SetAttribute("lt",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->laneTime, 1).c_str());
+                    carElm->SetAttribute("vt",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->viaTime, 1).c_str());
+                    carElm->SetAttribute("it",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->intervalToLast, 1).c_str());
+                    carElm->SetAttribute("opt",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->enterTime
+                                            + itHis->second->laneTime, 1).c_str());
+                    toEdgeElm->LinkEndChild(carElm);
                 }
-                doc->LinkEndChild(fromEdgeElm);
+                fromEdgeElm->LinkEndChild(toEdgeElm);
             }
-            doc->SaveFile(
-                    (hisRecordXMLPath + ".cur"
-                            + Fanjing::StringHelper::int2str(majorRoutingType)
-                            + ".xml").c_str());
-            doc->Clear();
+            doc->LinkEndChild(fromEdgeElm);
         }
-        {
-            XMLDocument* doc = new XMLDocument();
-            XMLDeclaration* dec = doc->NewDeclaration();
-            doc->LinkEndChild(dec);
-            XMLComment* comment = doc->NewComment(
-                    "et=enterTime;lt=laneTime;vt=viaTime;"
-                            "it=intervalToLast;opt=outPrimaryEdgeTime");
-            doc->LinkEndChild(comment);
-            XMLElement* fromEdgeElm;
-            XMLElement* toEdgeElm;
-            XMLElement* carElm;
-            WeightEdge* fromWEdge = NULL;
-            WeightLane* wLane = NULL;
-            for (map<SMTEdge*, WeightEdge*>::iterator itWE =
-                    weightEdgeMap.begin(); itWE != weightEdgeMap.end();
-                    ++itWE) {
-                fromEdgeElm = doc->NewElement("From");
-                fromWEdge = itWE->second;
-                fromEdgeElm->SetAttribute("id", fromWEdge->edge->id.c_str());
-                for (map<SMTEdge*, WeightLane*>::iterator itWL =
-                        fromWEdge->w2NextMap.begin();
-                        itWL != fromWEdge->w2NextMap.end(); ++itWL) {
-                    toEdgeElm = doc->NewElement("To");
-                    wLane = itWL->second;
-                    toEdgeElm->SetAttribute("id", wLane->to->edge->id.c_str());
-                    SMTConnection* con = wLane->con;
-                    toEdgeElm->SetAttribute("t0", con->t0);
-                    toEdgeElm->SetAttribute("tg", con->tg);
-                    toEdgeElm->SetAttribute("ty", con->ty);
-                    toEdgeElm->SetAttribute("tr", con->tr);
-                    for (map<double, HisInfo*>::iterator itHis =
-                            wLane->hisTimeMap.begin();
-                            itHis != wLane->hisTimeMap.end(); ++itHis) {
-                        carElm = doc->NewElement("CAR");
-                        carElm->SetAttribute("id",
-                                itHis->second->car->id.c_str());
-                        carElm->SetAttribute("et",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->enterTime, 1).c_str());
-                        if (itHis->second->next != NULL) {
-                            carElm->SetAttribute("next",
-                                    itHis->second->next->to->edge->id.c_str());
-                        } else {
-                            carElm->SetAttribute("next", "");
-                        }
-                        carElm->SetAttribute("lt",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->laneTime, 1).c_str());
-                        carElm->SetAttribute("vt",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->viaTime, 1).c_str());
-                        carElm->SetAttribute("it",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->intervalToLast, 1).c_str());
-                        carElm->SetAttribute("opt",
-                                Fanjing::StringHelper::dbl2str(
-                                        itHis->second->enterTime
-                                                + itHis->second->laneTime, 1).c_str());
-                        toEdgeElm->LinkEndChild(carElm);
+        doc->SaveFile(
+                (hisRecordXMLPath + ".cur"
+                        + Fanjing::StringHelper::int2str(majorRoutingType)
+                        + ".xml").c_str());
+        doc->Clear();
+        delete doc;
+    }
+    if (enableHisDataRecord) {
+        XMLDocument* doc = new XMLDocument();
+        XMLDeclaration* dec = doc->NewDeclaration();
+        doc->LinkEndChild(dec);
+        XMLComment* comment = doc->NewComment(
+                "et=enterTime;lt=laneTime;vt=viaTime;"
+                        "it=intervalToLast;opt=outPrimaryEdgeTime");
+        doc->LinkEndChild(comment);
+        XMLElement* fromEdgeElm;
+        XMLElement* toEdgeElm;
+        XMLElement* carElm;
+        WeightEdge* fromWEdge = NULL;
+        WeightLane* wLane = NULL;
+        for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
+                itWE != weightEdgeMap.end(); ++itWE) {
+            fromEdgeElm = doc->NewElement("From");
+            fromWEdge = itWE->second;
+            fromEdgeElm->SetAttribute("id", fromWEdge->edge->id.c_str());
+            for (map<SMTEdge*, WeightLane*>::iterator itWL =
+                    fromWEdge->w2NextMap.begin();
+                    itWL != fromWEdge->w2NextMap.end(); ++itWL) {
+                toEdgeElm = doc->NewElement("To");
+                wLane = itWL->second;
+                toEdgeElm->SetAttribute("id", wLane->to->edge->id.c_str());
+                SMTConnection* con = wLane->con;
+                toEdgeElm->SetAttribute("t0", con->t0);
+                toEdgeElm->SetAttribute("tg", con->tg);
+                toEdgeElm->SetAttribute("ty", con->ty);
+                toEdgeElm->SetAttribute("tr", con->tr);
+                for (map<double, HisInfo*>::iterator itHis =
+                        wLane->hisTimeMap.begin();
+                        itHis != wLane->hisTimeMap.end(); ++itHis) {
+                    carElm = doc->NewElement("CAR");
+                    carElm->SetAttribute("id", itHis->second->car->id.c_str());
+                    carElm->SetAttribute("et",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->enterTime, 1).c_str());
+                    if (itHis->second->next != NULL) {
+                        carElm->SetAttribute("next",
+                                itHis->second->next->to->edge->id.c_str());
+                    } else {
+                        carElm->SetAttribute("next", "");
                     }
-                    fromEdgeElm->LinkEndChild(toEdgeElm);
+                    carElm->SetAttribute("lt",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->laneTime, 1).c_str());
+                    carElm->SetAttribute("vt",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->viaTime, 1).c_str());
+                    carElm->SetAttribute("it",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->intervalToLast, 1).c_str());
+                    carElm->SetAttribute("opt",
+                            Fanjing::StringHelper::dbl2str(
+                                    itHis->second->enterTime
+                                            + itHis->second->laneTime, 1).c_str());
+                    toEdgeElm->LinkEndChild(carElm);
                 }
-                doc->LinkEndChild(fromEdgeElm);
+                fromEdgeElm->LinkEndChild(toEdgeElm);
             }
-            doc->SaveFile(
-                    (hisRecordXMLPath + ".his"
-                            + Fanjing::StringHelper::int2str(majorRoutingType)
-                            + ".xml").c_str());
-            doc->Clear();
+            doc->LinkEndChild(fromEdgeElm);
         }
+        doc->SaveFile(
+                (hisRecordXMLPath + ".his"
+                        + Fanjing::StringHelper::int2str(majorRoutingType)
+                        + ".xml").c_str());
+        doc->Clear();
+        delete doc;
     }
 }
 
@@ -892,6 +922,9 @@ void SMTBaseRouting::importHisXML() {
     hisRouteDoc->Clear();
     std::cout << "import historical routes:" << hisRouteMapByCar.size()
             << std::endl;
+    if(enableHisDataRecord){
+        hisRouteMapByTime.clear();
+    }
 }
 
 void SMTBaseRouting::updateCoRPQueue() {
@@ -979,11 +1012,15 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
             rou->edges.push_front(wEdge);
             wEdge = wEdge->previous;
         }
-        if (recordHisRoutingResult) {
-            hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
-        }
         if (enableCoRP) {
+            if(recordHisRoutingResult||enableHisDataRecord){
+                delete (hisRouteMapByCar[carInfo]);
+                hisRouteMapByCar[carInfo] = rou;
+            }
             addCoRPCar(rou);
+        }
+        if (recordHisRoutingResult||enableHisDataRecord) {
+            hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
         }
     } else {
         while (wEdge != NULL) {
@@ -1041,7 +1078,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         // car reaches destination
         rouStatus.arrivedCarCount++;
     }
-    if (recordHisRoutingData) {
+    if (recordHisRoutingData||enableHisDataRecord) {
         if (fromLane != NULL) {
             // if toLane is NULL, the car reached destination
             fromLane->getOutHistoricalCar(car, laneTime, viaTime, time, toLane);
@@ -1660,9 +1697,9 @@ void SMTBaseRouting::WeightLane::updateCoRPCar(
     // 如果from!=-1,to!=-1则表示修改车辆
     // 都不为-1时,如果from!=to则修改进入时间
     // 反之from==to,则修改离开时间
-    static unsigned int operationNum = 0;
+    //static unsigned int operationNum = 0;
     if (queue.size() == 0) {
-        std::cout << operationNum << std::endl;
+        //std::cout << operationNum << std::endl;
         return;
     }
     CoRPUpdateBlock* block = queue.begin()->second;
@@ -1683,7 +1720,7 @@ void SMTBaseRouting::WeightLane::updateCoRPCar(
         }
     }
     // 继续更新queue
-    ++operationNum;
+    //++operationNum;
     updateCoRPCar(queue);
 }
 
@@ -2139,8 +2176,6 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     // 保留当前车辆指针,用于后续路径操作
     HisInfo* hisInfo = itCar->second;
     // 验证hisInfo信息
-    std::cout << "out time: " << hisInfo->outTime << " -> " << outTime
-            << std::endl;
     double _eTime = outTime - viaTime - laneTime;
     ASSERT2(
             hisInfo->enterTime < _eTime + 0.01

@@ -61,7 +61,7 @@ public:
     public:
         HisInfo() :
                 car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(0), intervalToLast(
-                        0), outTime(0),nFDT(0) {
+                        0), outTime(0), nFDT(0) {
         }
         SMTCarInfo* car;
         double enterTime;
@@ -249,8 +249,9 @@ public:
             suppressLength(40), debug(false), debugMsg(0), statisticMsg(0), endSimMsg(
                     0), startTime(-1), carInfo(0), majorRoutingType(
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
-                    -1), hisRouteDoc(0), hisRouteRoot(0), enableAIR(false), enableCoRP(
-                    false),enableCoRPPreImport(false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
+                    -1), enableHisDataRecord(false), hisRouteDoc(0), hisRouteRoot(
+                    0), enableAIR(false), enableCoRP(false), enableCoRPPreImport(
+                    false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
                     false), recordHisRoutingData(false), recordHisRoutingResult(
                     false), endAfterLoadHisXML(false), airUpdateMsg(0), routeType(
                     SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
@@ -310,6 +311,7 @@ protected:
     SMT_ROUTING_TYPE majorRoutingType;
     SMT_ROUTING_TYPE minorRoutingType;
     int recordHisRecordRoutingType;
+    bool enableHisDataRecord;
     XMLDocument* hisRouteDoc;
     XMLElement* hisRouteRoot;
     bool enableAIR;
