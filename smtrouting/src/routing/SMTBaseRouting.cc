@@ -514,6 +514,8 @@ void SMTBaseRouting::updateStatisticInfo() {
                 == activedCarSinceLastStatistics) {
             stackTimes++;
         } else {
+            activedCarSinceLastStatistics =
+                    getMap()->getLaunchd()->getActiveVehicleCount();
             stackTimes = 0;
         }
         if (stackTimes == 3
@@ -654,9 +656,10 @@ void SMTBaseRouting::exportHisXML() {
             carElm->SetAttribute("route", routeStr.c_str());
             hisRouteRoot->LinkEndChild(carElm);
         }
-        hisRouteDoc->SaveFile((hisRecordXMLPath + ".rou."
-                + Fanjing::StringHelper::int2str(majorRoutingType)
-                + ".xml").c_str());
+        hisRouteDoc->SaveFile(
+                (hisRecordXMLPath + ".rou."
+                        + Fanjing::StringHelper::int2str(majorRoutingType)
+                        + ".xml").c_str());
         hisRouteDoc->Clear();
         delete hisRouteDoc;
         hisRouteDoc = NULL;
@@ -922,7 +925,7 @@ void SMTBaseRouting::importHisXML() {
     hisRouteDoc->Clear();
     std::cout << "import historical routes:" << hisRouteMapByCar.size()
             << std::endl;
-    if(enableHisDataRecord){
+    if (enableHisDataRecord) {
         hisRouteMapByTime.clear();
     }
 }
@@ -1013,13 +1016,13 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
             wEdge = wEdge->previous;
         }
         if (enableCoRP) {
-            if(recordHisRoutingResult||enableHisDataRecord){
+            if (recordHisRoutingResult || enableHisDataRecord) {
                 delete (hisRouteMapByCar[carInfo]);
                 hisRouteMapByCar[carInfo] = rou;
             }
             addCoRPCar(rou);
         }
-        if (recordHisRoutingResult||enableHisDataRecord) {
+        if (recordHisRoutingResult || enableHisDataRecord) {
             hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
         }
     } else {
@@ -1078,7 +1081,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         // car reaches destination
         rouStatus.arrivedCarCount++;
     }
-    if (recordHisRoutingData||enableHisDataRecord) {
+    if (recordHisRoutingData || enableHisDataRecord) {
         if (fromLane != NULL) {
             // if toLane is NULL, the car reached destination
             fromLane->getOutHistoricalCar(car, laneTime, viaTime, time, toLane);
