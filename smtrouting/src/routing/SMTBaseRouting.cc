@@ -78,6 +78,7 @@ void SMTBaseRouting::initialize(int stage) {
         } else {
             enableCoRP = false;
         }
+        enableCoRPPreImport = par("enableCoRPPreImport").boolValue();
         srt = Fanjing::StatisticsRecordTools::request();
         rouStatus.recordActiveCarNum = par("recordActiveCarNum").boolValue();
         rouStatus.recordActiveCarInterval =
@@ -117,7 +118,7 @@ void SMTBaseRouting::initialize(int stage) {
                 if (wLane->con->tr == 0) {
                     wLane->corpEta = 2.0;
                 } else {
-                    wLane->corpEta = 1.4;
+                    wLane->corpEta = 1.3;
                 }
                 wLane->corpOta = wLane->viaLen / 30;
                 wLane->from = it->second;
@@ -215,11 +216,6 @@ void SMTBaseRouting::getShortestRoute(SMTEdge* origin, SMTEdge* destination,
 }
 
 void SMTBaseRouting::initDijkstra(SMTEdge* origin) {
-    // before operation
-    if (routeType == SMT_RT_CORP_SELF || routeType == SMT_RT_CORP_TTS) {
-        // remove and update CoRP info
-        removeCoRPCar(hisRouteMapByCar[carInfo]);
-    }
     // 1. reset weightEdge
     map<SMTEdge*, WeightEdge*>::iterator ori_it = weightEdgeMap.find(origin);
     if (ori_it == weightEdgeMap.end()) {
@@ -281,6 +277,11 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
 
 void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
         list<SMTEdge*> &route) {
+    // before operation
+    if (enableCoRP&&enableCoRPPreImport) {
+        // remove and update CoRP info
+        removeCoRPCar(hisRouteMapByCar[carInfo]);
+    }
     initDijkstra(origin);
     processDijkstraLoop(destination);
     getDijkstralResult(destination, route);
@@ -833,11 +834,11 @@ void SMTBaseRouting::importHisXML() {
                                         "NULL" : hisInfo->next->from->edge->id)
                                 << "." << std::endl;
                     }
-                    if (hisInfo->viaTime < 3) {
+                    if (hisInfo->viaTime < toWLane->viaLen / 25) {
                         vtA += hisInfo->viaTime;
                         ++nvt;
                     }
-                    if (hisInfo->intervalToLast < 3) {
+                    if (hisInfo->intervalToLast < 1.5) {
                         itA += hisInfo->intervalToLast;
                         ++nit;
                     }
@@ -880,7 +881,9 @@ void SMTBaseRouting::importHisXML() {
 //                block->toTime = it->second->enterTime;
 //                block->timeStamp = it->second->enterTime;
 //            }
-            addCoRPCar(rou);
+            if (enableCoRPPreImport) {
+                addCoRPCar(rou);
+            }
             hisRouteMapByCar[rou->car] = rou;
             hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
             carElm = carElm->NextSiblingElement("car");
@@ -892,7 +895,9 @@ void SMTBaseRouting::importHisXML() {
 }
 
 void SMTBaseRouting::updateCoRPQueue() {
-    corpUpdateQueue.begin()->second->lane->updateCoRPCar(corpUpdateQueue);
+    if (corpUpdateQueue.size() > 0) {
+        corpUpdateQueue.begin()->second->lane->updateCoRPCar(corpUpdateQueue);
+    }
 }
 
 void SMTBaseRouting::getOldRoute(SMTEdge* origin, SMTEdge* destination,
@@ -968,7 +973,7 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         // if use dynamic routing
         WeightRoute* rou = new WeightRoute();
         rou->car = carInfo;
-        rou->t = simTime().dbl();
+        rou->t = startTime;
         while (wEdge != NULL) {
             route.push_front(wEdge->edge);
             rou->edges.push_front(wEdge);
@@ -1204,12 +1209,13 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         ASSERT2(itWL != from->w2NextMap.end(),
                 "w2NextMap initialized abnormally");
         // TODO add cooperative route plan method
+        deltaW = itWL->second->getCoRPTTSCost(from->t, carInfo, costTime);
         if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
                     << "cannot handle negative via cost from" << from->edge->id
                     << " to " << to->edge->id << std::endl;
         }
-        changeDijkstraWeight(from, to, deltaW + from->w);
+        changeDijkstraWeight(from, to, deltaW + from->w, from->t + costTime);
         break;
     case SMT_RT_DYRP:
         // the cost fix function needs change here
@@ -1490,6 +1496,7 @@ multimap<double, SMTBaseRouting::HisInfo*>::iterator SMTBaseRouting::WeightLane:
     hisInfo->tau = tau;
     hisInfo->viaTime = corpOta;
     hisInfo->outTime = hisInfo->tau + hisInfo->viaTime;
+    // it is the previous car last car whose enter time is not later than hisInfo
     return it;
 }
 
@@ -1508,6 +1515,57 @@ double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
     }
     costTime = tempHisInfo.outTime - enterTime;
     return costTime + freeLen;
+}
+
+double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
+        SMTCarInfo* car, double& costTime) {
+    tempHisInfo.enterTime = enterTime;
+    tempHisInfo.car = car;
+    // it is the previous car last car whose enter time is not later than hisInfo
+    // it是enter time之前的最后一辆进入车辆
+    multimap<double, SMTBaseRouting::HisInfo*>::iterator it = getCoRPOutTime(
+            &tempHisInfo);
+    costTime = tempHisInfo.outTime - enterTime;
+    double freeLen = from->edge->length()
+            - 1.5 * getCoRPQueueLength(enterTime, it);
+    if (freeLen < 150) {
+        freeLen = (150 - freeLen) * 1000;
+        std::cout << "freeLen:" << car->id << " at " << from->edge->id << " is "
+                << freeLen << std::endl;
+    } else {
+        freeLen = 0;
+    }
+    // TODO calculate the affection to other cars
+    // 计算对所有车辆的形式时间影响总和
+    // 一般而言等于退出饱和状态车辆的nextDummyTime-enterTime
+    // 对出饱和状态判定基于队列中离开时间tempHisInfo.outTime之后
+    // 车辆nFDT(next free decision time)与后一辆离开时间tau之间的大小
+    // nFDT<=tau则认为过程终止
+
+    // 判定是否饱和
+    // 若后方空间能够容纳额外一辆车辆通过,则认为非饱和,反之饱和
+    // 计算如果存在后方紧跟进入车辆,其对应的离开时间
+    // (即当前车辆后移后的虚拟通过时间)
+    tempHisInfo.nFDT = tempHisInfo.tau + corpEta;
+    double _fmod = std::fmod(tempHisInfo.nFDT + con->_t0, con->ta);
+    if (_fmod > con->tg) {
+        tempHisInfo.nFDT = tempHisInfo.nFDT - _fmod + con->ta + corpEta;
+    }
+    tempHisInfo.nextDummyTime = tempHisInfo.tau;
+    // 判定后方进入车辆是否退出饱和状态
+    if (it != corpTimeMap.end()) {
+        ++it;
+        while (it != corpTimeMap.end()) {
+            if (it->second->tau >= tempHisInfo.nFDT) {
+                tempHisInfo.nextDummyTime = it->second->nextDummyTime;
+                break;
+            } else {
+                tempHisInfo.nFDT = it->second->nFDT;
+                ++it;
+            }
+        }
+    }
+    return tempHisInfo.nextDummyTime + corpOta - enterTime + freeLen;
 }
 
 double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
@@ -1545,6 +1603,7 @@ void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
         if (tau <= itHI->second->tau + corpEta) {
             tau = itHI->second->tau + corpEta;
         }
+        ++itHI;
     }
     // fix by traffic signal
     double _fmod = std::fmod(tau + con->_t0, con->ta);
@@ -1555,6 +1614,23 @@ void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
     hisInfo->tau = tau;
     hisInfo->viaTime = corpOta;
     hisInfo->outTime = tau + corpOta;
+    // 判定是否饱和
+    // 若后方空间能够容纳额外一辆车辆通过,则认为非饱和,反之饱和
+    // 计算如果存在后方紧跟进入车辆,其对应的离开时间
+    // (即当前车辆后移后的虚拟通过时间)
+    hisInfo->nextDummyTime = tau + corpEta;
+    _fmod = std::fmod(hisInfo->nextDummyTime + con->_t0, con->ta);
+    if (_fmod > con->tg) {
+        hisInfo->nextDummyTime = hisInfo->nextDummyTime - _fmod + con->ta
+                + corpEta;
+        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta;
+    } else {
+        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta;
+        _fmod = std::fmod(hisInfo->nFDT + con->_t0, con->ta);
+        if (_fmod > con->tg) {
+            hisInfo->nFDT = hisInfo->nFDT - _fmod + con->ta + corpEta;
+        }
+    }
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPCar(
@@ -1869,7 +1945,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
     // 仅仅做移动,不做删除
     // corpCarMap.erase(itCar);
     // 保存原始下一条道路进入时间
-    double oldTau = hisInfo->outTime;
+    double oldOutTime = hisInfo->outTime;
     // 更新hisInfo信息
     hisInfo->enterTime = block->toTime;
     // 将hisInfo插回队列
@@ -1894,10 +1970,10 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
     // 添加后续道路更新
     if (hisInfo->next != NULL) {
         // 如果离开状态改变,则重用block用于更新下一条道路
-        if (oldTau != hisInfo->outTime) {
+        if (oldOutTime != hisInfo->outTime) {
             // 若再利用则当前block不需要被释放
             releaseFlag = false;
-            block->fromTime = oldTau + hisInfo->viaTime;
+            block->fromTime = oldOutTime;
             block->toTime = hisInfo->outTime;
             block->timeStamp =
                     block->fromTime < block->toTime ?
@@ -1987,7 +2063,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
             if (oldOutTime != hisInfo->outTime) {
                 // 若再利用则当前block不需要被释放
                 releaseFlag = false;
-                block->fromTime = oldTau + hisInfo->viaTime;
+                block->fromTime = oldOutTime;
                 block->toTime = hisInfo->outTime;
                 block->timeStamp =
                         block->fromTime < block->toTime ?
@@ -2063,9 +2139,12 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     // 保留当前车辆指针,用于后续路径操作
     HisInfo* hisInfo = itCar->second;
     // 验证hisInfo信息
-    std::cout << "enter time: " << hisInfo->enterTime << " -> "
-            << outTime - viaTime - laneTime << std::endl;
-    ASSERT2(hisInfo->enterTime == (outTime - viaTime - laneTime),
+    std::cout << "out time: " << hisInfo->outTime << " -> " << outTime
+            << std::endl;
+    double _eTime = outTime - viaTime - laneTime;
+    ASSERT2(
+            hisInfo->enterTime < _eTime + 0.01
+                    && hisInfo->enterTime > _eTime - 0.01,
             "unmatched enter time when set corp enter info");
     multimap<double, HisInfo*>::iterator itT = corpTimeMap.find(
             hisInfo->enterTime);
@@ -2100,7 +2179,7 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     // 更新离开信息
     hisInfo->laneTime = laneTime;
     hisInfo->viaTime = viaTime;
-    hisInfo->tau = outTime - viaTime;
+    hisInfo->tau = _eTime + laneTime;
     hisInfo->outTime = outTime;
     // 2nd. 添加后续道路更新和受影响车辆更新
     // 获取时间点最早的受影响车辆,并将其迭代器赋给itTold
@@ -2113,7 +2192,7 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
         // TODO
         if (oldOutTime != hisInfo->outTime) {
             block = new CoRPUpdateBlock();
-            block->fromTime = oldOutTime + hisInfo->viaTime;
+            block->fromTime = oldOutTime;
             block->toTime = hisInfo->outTime;
             block->timeStamp =
                     block->fromTime < block->toTime ?

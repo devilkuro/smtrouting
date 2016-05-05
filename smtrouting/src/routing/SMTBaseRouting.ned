@@ -44,6 +44,7 @@ simple SMTBaseRouting like IBaseRouting
 		// SMT_RT_SHOREST = 0, SMT_RT_FAST, SMT_RT_AIR, SMT_RT_CORP
         int majorRoutingType = default(1);
         int minorRoutingType = default(2);
+        bool enableCoRPPreImport = default(false);
         int recordHisRecordRoutingType = default(-1);
         
         int corpUseHisRouteCEC = default(1);

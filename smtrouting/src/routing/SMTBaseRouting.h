@@ -61,7 +61,7 @@ public:
     public:
         HisInfo() :
                 car(0), enterTime(0), next(0), laneTime(0), viaTime(0), tau(0), intervalToLast(
-                        0), outTime(0) {
+                        0), outTime(0),nFDT(0) {
         }
         SMTCarInfo* car;
         double enterTime;
@@ -73,6 +73,12 @@ public:
         double tau;
         double intervalToLast;
         double outTime;
+        // next free decision time
+        // the time use to decide lane status is whether full or not
+        // if out time of next car is before nFDT, it is full status
+        double nFDT;
+        // nextDummyTime means its tau after one car inserted before this car
+        double nextDummyTime;
     };
     class WeightLane {
     public:
@@ -158,6 +164,8 @@ public:
         // CoRP related
         virtual double getCoRPSelfCost(double enterTime, SMTCarInfo* car,
                 double &costTime);
+        virtual double getCoRPTTSCost(double enterTime, SMTCarInfo* car,
+                double &costTime);
         void addHistoricalCar(SMTCarInfo* car, double t);
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
@@ -242,7 +250,7 @@ public:
                     0), startTime(-1), carInfo(0), majorRoutingType(
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
                     -1), hisRouteDoc(0), hisRouteRoot(0), enableAIR(false), enableCoRP(
-                    false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
+                    false),enableCoRPPreImport(false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
                     false), recordHisRoutingData(false), recordHisRoutingResult(
                     false), endAfterLoadHisXML(false), airUpdateMsg(0), routeType(
                     SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
@@ -306,6 +314,7 @@ protected:
     XMLElement* hisRouteRoot;
     bool enableAIR;
     bool enableCoRP;
+    bool enableCoRPPreImport;
     multimap<double, CoRPUpdateBlock*> corpUpdateQueue;
     int corpUseHisRouteCEC; // TODO
     int corpReRouteCEC;

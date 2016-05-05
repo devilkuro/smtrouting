@@ -175,11 +175,14 @@ void SMTMobility::processWhenChangeRoad() {
         arrivedMsg = new cMessage("arrived");
         scheduleAt(simTime() + 1, arrivedMsg);
         // change to lane -1 means car arriving
-        getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, curTime,
-                carInfo,
-                (smtStat.outPrimaryEdgeTime > 0 ?
-                        curTime - smtStat.outPrimaryEdgeTime : -1),
-                smtStat.outPrimaryEdgeTime - smtStat.enterPrimaryEdgeTime);
+        double viaTime = -1;
+        if (smtStat.outPrimaryEdgeTime > 0) {
+            viaTime = curTime - smtStat.outPrimaryEdgeTime;
+        }
+        double laneTime = smtStat.outPrimaryEdgeTime
+                - smtStat.enterPrimaryEdgeTime;
+        getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, curTime, carInfo,
+                viaTime, laneTime);
     } else {
         if (!curEdge->isInternal) {
             while ((*carRoute.begin()) != curEdge) {
@@ -196,7 +199,7 @@ void SMTMobility::processWhenChangeRoad() {
                             carRoute, curTime, carInfo);
                 }
                 if (!updateVehicleRoute()) {
-                    std::cout<<"update route failed."<<std::endl;
+                    std::cout << "update route failed." << std::endl;
                 }
             }
             carRoute.pop_front();
@@ -211,11 +214,14 @@ void SMTMobility::processWhenChangeRoad() {
                 ASSERT2(!debug, "next edge unlinked ");
             }
             // change road in routing system
+            double viaTime = -1;
+            if (smtStat.outPrimaryEdgeTime > 0) {
+                viaTime = curTime - smtStat.outPrimaryEdgeTime;
+            }
+            double laneTime = smtStat.outPrimaryEdgeTime
+                    - smtStat.enterPrimaryEdgeTime;
             getRouting()->changeRoad(lastPrimaryEdge, curEdge,
-                    preferredLaneIndex, curTime, carInfo,
-                    (smtStat.outPrimaryEdgeTime > 0 ?
-                            curTime - smtStat.outPrimaryEdgeTime : -1),
-                    smtStat.outPrimaryEdgeTime - smtStat.enterPrimaryEdgeTime);
+                    preferredLaneIndex, curTime, carInfo, viaTime, laneTime);
             smtStat.enterPrimaryEdgeTime = curTime;
         } else {
             // enter internal edge
