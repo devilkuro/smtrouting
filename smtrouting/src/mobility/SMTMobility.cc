@@ -181,6 +181,7 @@ void SMTMobility::processWhenChangeRoad() {
         }
         double laneTime = smtStat.outPrimaryEdgeTime
                 - smtStat.enterPrimaryEdgeTime;
+        passedRoute.push_back(curEdge);
         getRouting()->changeRoad(lastPrimaryEdge, curEdge, -1, curTime, carInfo,
                 viaTime, laneTime);
     } else {
@@ -190,6 +191,7 @@ void SMTMobility::processWhenChangeRoad() {
                         << carRoute.front()->id << std::endl;
                 carRoute.pop_front();
             }
+            passedRoute.push_back(curEdge);
             if (isDynamicUpdateRoute && hasRouted) {
                 if (carInfo->isMajorType) {
                     getRouting()->getRouteByMajorMethod(curEdge, destination,
@@ -202,6 +204,7 @@ void SMTMobility::processWhenChangeRoad() {
                     std::cout << "update route failed." << std::endl;
                 }
             }
+
             carRoute.pop_front();
             SMTEdge* next = carRoute.front();
             if (curEdge->viaVecMap.find(next) != curEdge->viaVecMap.end()) {
@@ -240,6 +243,7 @@ void SMTMobility::processWhenInitializingRoad() {
     scheduleAt(simTime() + checkSuppressInterval, checkSuppressedEdgesMsg);
     // smtStat.enterPrimaryEdgeTime = carInfo->time;
     smtStat.enterPrimaryEdgeTime = simTime().dbl();
+    appearTime = smtStat.enterPrimaryEdgeTime;
 }
 
 void SMTMobility::processWhenNextPosition() {

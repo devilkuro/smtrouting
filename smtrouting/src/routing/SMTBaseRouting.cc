@@ -78,6 +78,9 @@ void SMTBaseRouting::initialize(int stage) {
         } else {
             enableCoRP = false;
         }
+        if(enableCoRP){
+            enableCoRPReroute = par("enableCoRPReroute").boolValue();
+        }
         enableCoRPPreImport = par("enableCoRPPreImport").boolValue();
         srt = Fanjing::StatisticsRecordTools::request();
         rouStatus.recordActiveCarNum = par("recordActiveCarNum").boolValue();
@@ -279,9 +282,23 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
 void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
         list<SMTEdge*> &route) {
     // before operation
-    if (enableCoRP && enableCoRPPreImport) {
+    if (enableCoRP && enableCoRPPreImport&&route.size()==0) {
         // remove and update CoRP info
         removeCoRPCar(hisRouteMapByCar[carInfo]);
+    }
+    if(enableCoRP&&enableCoRPReroute&&route.size()>1){
+        // 构造需要移除的路径信息
+        WeightRoute* route = new WeightRoute();
+        for(list<SMTEdge*>::iterator it = route.begin();it!=route.end();++it){
+            route->edges.push_back(weightEdgeMap[(*it)]);
+        }
+        list<WeightEdge*>::iterator itR = route->edges.begin();
+        WeightEdge* start = *itR;
+        ++itR;
+        WeightEdge* next = *itR;
+        WeightLane* lane = start->w2NextMap[next->edge];
+        route->t = lane->corpCarMap[carInfo]->enterTime;
+        removeCoRPCar(route);
     }
     initDijkstra(origin);
     processDijkstraLoop(destination);
@@ -390,7 +407,7 @@ void SMTBaseRouting::getDYRPRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
-SMTBaseRouting::SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMajorMethod(
+bool SMTBaseRouting::getRouteByMajorMethod(
         SMTEdge* origin, SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (majorRoutingType) {
@@ -416,10 +433,13 @@ SMTBaseRouting::SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMajorMethod(
         getFastestRoute(origin, destination, rou, time, car);
         break;
     }
-    return majorRoutingType;
+    if(majorRoutingType==SMT_RT_DYRP||enableCoRPReroute){
+        return true;
+    }
+    return false;
 }
 
-SMTBaseRouting::SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMinorMethod(
+bool SMTBaseRouting::getRouteByMinorMethod(
         SMTEdge* origin, SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (minorRoutingType) {
@@ -445,7 +465,10 @@ SMTBaseRouting::SMT_ROUTING_TYPE SMTBaseRouting::getRouteByMinorMethod(
         getFastestRoute(origin, destination, rou, time, car);
         break;
     }
-    return minorRoutingType;
+    if(minorRoutingType==SMT_RT_DYRP||enableCoRPReroute){
+        return true;
+    }
+    return false;
 }
 
 void SMTBaseRouting::printStatisticInfo() {
@@ -825,6 +848,7 @@ void SMTBaseRouting::importHisXML() {
                 double itA = 0;
                 double nvt = 0;
                 double nit = 0;
+                double lastEnter = 0;
                 while (carElm != NULL) {
                     /*
                      carElm->SetAttribute("id", itHis->second->car->id);
@@ -871,10 +895,12 @@ void SMTBaseRouting::importHisXML() {
                         vtA += hisInfo->viaTime;
                         ++nvt;
                     }
-                    if (hisInfo->intervalToLast < 1.5) {
+                    if (hisInfo->intervalToLast > hisInfo->enterTime - lastEnter
+                            && hisInfo->intervalToLast < 3) {
                         itA += hisInfo->intervalToLast;
                         ++nit;
                     }
+                    lastEnter = hisInfo->enterTime;
                     // toWLane->addHistoricalCar(hisInfo->car, hisInfo->enterTime);
                     carElm = carElm->NextSiblingElement("CAR");
                 }
@@ -884,6 +910,10 @@ void SMTBaseRouting::importHisXML() {
                 if (nit > 0) {
                     toWLane->corpEta = itA / nit;
                 }
+                std::cout << "corpOta:" << toWLane->corpOta << ",vtA:"
+                        << vtA << ",vtN" << nvt << std::endl;
+                std::cout << "corpEta:" << toWLane->corpEta << ",itA:"
+                        << itA << ",itN" << nit << std::endl;
                 toEdgeElm = toEdgeElm->FirstChildElement("To");
             }
             fromEdgeElm = fromEdgeElm->NextSiblingElement("From");
@@ -1518,7 +1548,7 @@ multimap<double, SMTBaseRouting::HisInfo*>::iterator SMTBaseRouting::WeightLane:
             "remove the info in corpMap, before routing method.");
     multimap<double, HisInfo*>::iterator it = corpTimeMap.upper_bound(
             hisInfo->enterTime);
-    double tau = from->edge->length() / hisInfo->car->maxSpeed
+    double tau = from->edge->length() / (hisInfo->car->maxSpeed - 0.1)
             + hisInfo->enterTime;
     // fix by previous car
     if (it != corpTimeMap.begin()) {
@@ -1545,11 +1575,12 @@ double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
     tempHisInfo.enterTime = enterTime;
     tempHisInfo.car = car;
     double freeLen = from->edge->length()
-            - 1.5 * getCoRPQueueLength(enterTime, getCoRPOutTime(&tempHisInfo));
-    if (freeLen < 150) {
-        freeLen = (150 - freeLen) * 1000;
-        std::cout << "freeLen:" << car->id << " at " << from->edge->id << " is "
-                << freeLen << std::endl;
+            - 1.2 * getCoRPQueueLength(enterTime, getCoRPOutTime(&tempHisInfo));
+    if (freeLen < 80) {
+        std::cout << "freeLen:" << car->id << " at " << enterTime
+                << "s in edge " << from->edge->id << " is " << freeLen
+                << std::endl;
+        freeLen = (80 - freeLen) * 1000;
     } else {
         freeLen = 0;
     }
@@ -1567,11 +1598,12 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
             &tempHisInfo);
     costTime = tempHisInfo.outTime - enterTime;
     double freeLen = from->edge->length()
-            - 1.5 * getCoRPQueueLength(enterTime, it);
-    if (freeLen < 150) {
-        freeLen = (150 - freeLen) * 1000;
-        std::cout << "freeLen:" << car->id << " at " << from->edge->id << " is "
-                << freeLen << std::endl;
+            - 1.2 * getCoRPQueueLength(enterTime, it);
+    if (freeLen < 80) {
+        std::cout << "freeLen:" << car->id << " at " << enterTime
+                << "s in edge " << from->edge->id << " is " << freeLen
+                << std::endl;
+        freeLen = (80 - freeLen) * 10000;
     } else {
         freeLen = 0;
     }
@@ -1593,6 +1625,7 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     }
     tempHisInfo.nextDummyTime = tempHisInfo.tau;
     // 判定后方进入车辆是否退出饱和状态
+    int followingCar = 0;
     if (it != corpTimeMap.end()) {
         ++it;
         while (it != corpTimeMap.end()) {
@@ -1602,9 +1635,11 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
             } else {
                 tempHisInfo.nFDT = it->second->nFDT;
                 ++it;
+                ++followingCar;
             }
         }
     }
+    std::cout<<"followed cars at time "<<enterTime<<":"<<followingCar<<std::endl;
     return tempHisInfo.nextDummyTime + corpOta - enterTime + freeLen;
 }
 

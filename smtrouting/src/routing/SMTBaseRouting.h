@@ -251,7 +251,7 @@ public:
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
                     -1), enableHisDataRecord(false), hisRouteDoc(0), hisRouteRoot(
                     0), enableAIR(false), enableCoRP(false), enableCoRPPreImport(
-                    false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
+                    false),enableCoRPReroute(false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
                     false), recordHisRoutingData(false), recordHisRoutingResult(
                     false), endAfterLoadHisXML(false), airUpdateMsg(0), routeType(
                     SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
@@ -279,10 +279,10 @@ public:
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getOldRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual SMT_ROUTING_TYPE getRouteByMajorMethod(SMTEdge* origin,
+    virtual bool getRouteByMajorMethod(SMTEdge* origin,
             SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
             SMTCarInfo* car = NULL);
-    virtual SMT_ROUTING_TYPE getRouteByMinorMethod(SMTEdge* origin,
+    virtual bool getRouteByMinorMethod(SMTEdge* origin,
             SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
             SMTCarInfo* car = NULL);
     virtual void addCoRPCar(WeightRoute* rou);
@@ -317,6 +317,7 @@ protected:
     bool enableAIR;
     bool enableCoRP;
     bool enableCoRPPreImport;
+    bool enableCoRPReroute;
     multimap<double, CoRPUpdateBlock*> corpUpdateQueue;
     int corpUseHisRouteCEC; // TODO
     int corpReRouteCEC;

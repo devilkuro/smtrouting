@@ -36,13 +36,13 @@ public:
         double outPrimaryEdgeTime;  // 离开上一条primary道路的时间
     };
     SMTMobility() :
-            carInfo(0), origin(0), destination(0), hasRouted(false), hasInitialized(
-                    false), arrivedMsg(0), beSuppressed(false), hasSuppressEdge(
-                    false), isSlowDown(false), checkSuppressInterval(10), checkSuppressedEdgesMsg(
-                    0), lastEdge(0), curEdge(0), lastPrimaryEdge(0), nextPrimaryEdge(
-                    0), laneChangeMsg(0), laneChangeDuration(5), preferredLaneIndex(
-                    0), isChangeAndHold(false), isDynamicUpdateRoute(false), smtMap(
-                    0), _pCarManager(0), _pRouting(0) {
+            carInfo(0), origin(0), destination(0), appearTime(0), hasRouted(
+                    false), hasInitialized(false), arrivedMsg(0), beSuppressed(
+                    false), hasSuppressEdge(false), isSlowDown(false), checkSuppressInterval(
+                    10), checkSuppressedEdgesMsg(0), lastEdge(0), curEdge(0), lastPrimaryEdge(
+                    0), nextPrimaryEdge(0), laneChangeMsg(0), laneChangeDuration(
+                    5), preferredLaneIndex(0), isChangeAndHold(false), isDynamicUpdateRoute(
+                    false), smtMap(0), _pCarManager(0), _pRouting(0) {
     }
     virtual ~SMTMobility();
 
@@ -88,6 +88,8 @@ protected:
     SMTEdge* origin;
     SMTEdge* destination;
     list<SMTEdge*> carRoute;
+    list<SMTEdge*> passedRoute;
+    double appearTime;
     // 中间过程变量
     bool hasRouted; // 用于判定是否已经分配路径
     bool hasInitialized;    // 用于判定是否已经于地图上初始化
