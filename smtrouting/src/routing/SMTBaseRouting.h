@@ -251,10 +251,11 @@ public:
                     SMT_RT_FAST), minorRoutingType(SMT_RT_FAST), recordHisRecordRoutingType(
                     -1), enableHisDataRecord(false), hisRouteDoc(0), hisRouteRoot(
                     0), enableAIR(false), enableCoRP(false), enableCoRPPreImport(
-                    false),enableCoRPReroute(false), corpUseHisRouteCEC(1), corpReRouteCEC(0), replaceAIRWithITSWithOccupancy(
-                    false), recordHisRoutingData(false), recordHisRoutingResult(
-                    false), endAfterLoadHisXML(false), airUpdateMsg(0), routeType(
-                    SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
+                    false), enableCoRPReroute(false), corpUseHisRouteCEC(1), corpReRouteCEC(
+                    0), replaceAIRWithITSWithOccupancy(false), recordHisRoutingData(
+                    false), recordHisRoutingResult(false), endAfterLoadHisXML(
+                    false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
+                    0), _pCarManager(0) {
     }
     virtual ~SMTBaseRouting();
 
@@ -264,7 +265,8 @@ public:
     // routing functions
     // TODO 添加基本的寻路方法
     virtual void changeRoad(SMTEdge* from, SMTEdge* to, int toLane, double time,
-            SMTCarInfo* car, double viaTime = -1, double laneTime = -1);
+            SMTCarInfo* car, double viaTime, double laneTime,
+            list<SMTEdge*> &passdRoute, double startTime);
     virtual void getShortestRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getFastestRoute(SMTEdge* origin, SMTEdge* destination,
@@ -279,12 +281,10 @@ public:
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void getOldRoute(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
-    virtual bool getRouteByMajorMethod(SMTEdge* origin,
-            SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
-            SMTCarInfo* car = NULL);
-    virtual bool getRouteByMinorMethod(SMTEdge* origin,
-            SMTEdge* destination, list<SMTEdge*> &rou, double time = -1,
-            SMTCarInfo* car = NULL);
+    virtual bool getRouteByMajorMethod(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
+    virtual bool getRouteByMinorMethod(SMTEdge* origin, SMTEdge* destination,
+            list<SMTEdge*> &rou, double time = -1, SMTCarInfo* car = NULL);
     virtual void addCoRPCar(WeightRoute* rou);
     virtual void removeCoRPCar(WeightRoute* rou);
     // try to change to corrected lane by suppress cars prevent this car

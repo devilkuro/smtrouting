@@ -46,7 +46,7 @@ simple SMTBaseRouting like IBaseRouting
         int minorRoutingType = default(2);
         bool enableCoRPPreImport = default(true);
         bool enableHisDataRecord = default(false);
-        bool enableCoRPReroute = default(true);
+        bool enableCoRPReroute = default(false);
         int recordHisRecordRoutingType = default(-1);
         
         int corpUseHisRouteCEC = default(1);

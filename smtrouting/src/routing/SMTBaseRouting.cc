@@ -78,7 +78,7 @@ void SMTBaseRouting::initialize(int stage) {
         } else {
             enableCoRP = false;
         }
-        if(enableCoRP){
+        if (enableCoRP) {
             enableCoRPReroute = par("enableCoRPReroute").boolValue();
         }
         enableCoRPPreImport = par("enableCoRPPreImport").boolValue();
@@ -282,23 +282,26 @@ int SMTBaseRouting::processDijkstraLoop(SMTEdge* destination) {
 void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
         list<SMTEdge*> &route) {
     // before operation
-    if (enableCoRP && enableCoRPPreImport&&route.size()==0) {
+    if (enableCoRP && enableCoRPPreImport && route.size() == 0) {
         // remove and update CoRP info
         removeCoRPCar(hisRouteMapByCar[carInfo]);
     }
-    if(enableCoRP&&enableCoRPReroute&&route.size()>1){
+    if (enableCoRP && enableCoRPReroute && route.size() > 1) {
         // 构造需要移除的路径信息
-        WeightRoute* route = new WeightRoute();
-        for(list<SMTEdge*>::iterator it = route.begin();it!=route.end();++it){
-            route->edges.push_back(weightEdgeMap[(*it)]);
+        WeightRoute* rou = new WeightRoute();
+        for (list<SMTEdge*>::iterator it = route.begin(); it != route.end();
+                ++it) {
+            rou->edges.push_back(weightEdgeMap[(*it)]);
         }
-        list<WeightEdge*>::iterator itR = route->edges.begin();
+        list<WeightEdge*>::iterator itR = rou->edges.begin();
         WeightEdge* start = *itR;
         ++itR;
         WeightEdge* next = *itR;
         WeightLane* lane = start->w2NextMap[next->edge];
-        route->t = lane->corpCarMap[carInfo]->enterTime;
-        removeCoRPCar(route);
+        rou->car = carInfo;
+        rou->t = lane->corpCarMap[carInfo]->enterTime;
+        removeCoRPCar(rou);
+        delete rou;
     }
     initDijkstra(origin);
     processDijkstraLoop(destination);
@@ -407,8 +410,8 @@ void SMTBaseRouting::getDYRPRoute(SMTEdge* origin, SMTEdge* destination,
     runDijkstraAlgorithm(origin, destination, rou);
 }
 
-bool SMTBaseRouting::getRouteByMajorMethod(
-        SMTEdge* origin, SMTEdge* destination, list<SMTEdge*>& rou, double time,
+bool SMTBaseRouting::getRouteByMajorMethod(SMTEdge* origin,
+        SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (majorRoutingType) {
     case SMT_RT_USEOLDROUTE:
@@ -433,14 +436,14 @@ bool SMTBaseRouting::getRouteByMajorMethod(
         getFastestRoute(origin, destination, rou, time, car);
         break;
     }
-    if(majorRoutingType==SMT_RT_DYRP||enableCoRPReroute){
+    if (majorRoutingType == SMT_RT_DYRP || enableCoRPReroute) {
         return true;
     }
     return false;
 }
 
-bool SMTBaseRouting::getRouteByMinorMethod(
-        SMTEdge* origin, SMTEdge* destination, list<SMTEdge*>& rou, double time,
+bool SMTBaseRouting::getRouteByMinorMethod(SMTEdge* origin,
+        SMTEdge* destination, list<SMTEdge*>& rou, double time,
         SMTCarInfo* car) {
     switch (minorRoutingType) {
     case SMT_RT_USEOLDROUTE:
@@ -465,7 +468,7 @@ bool SMTBaseRouting::getRouteByMinorMethod(
         getFastestRoute(origin, destination, rou, time, car);
         break;
     }
-    if(minorRoutingType==SMT_RT_DYRP||enableCoRPReroute){
+    if (minorRoutingType == SMT_RT_DYRP || enableCoRPReroute) {
         return true;
     }
     return false;
@@ -910,10 +913,10 @@ void SMTBaseRouting::importHisXML() {
                 if (nit > 0) {
                     toWLane->corpEta = itA / nit;
                 }
-                std::cout << "corpOta:" << toWLane->corpOta << ",vtA:"
-                        << vtA << ",vtN" << nvt << std::endl;
-                std::cout << "corpEta:" << toWLane->corpEta << ",itA:"
-                        << itA << ",itN" << nit << std::endl;
+                std::cout << "corpOta:" << toWLane->corpOta << ",vtA:" << vtA
+                        << ",vtN" << nvt << std::endl;
+                std::cout << "corpEta:" << toWLane->corpEta << ",itA:" << itA
+                        << ",itN" << nit << std::endl;
                 toEdgeElm = toEdgeElm->FirstChildElement("To");
             }
             fromEdgeElm = fromEdgeElm->NextSiblingElement("From");
@@ -1046,15 +1049,9 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
             wEdge = wEdge->previous;
         }
         if (enableCoRP) {
-            if (recordHisRoutingResult || enableHisDataRecord) {
-                delete (hisRouteMapByCar[carInfo]);
-                hisRouteMapByCar[carInfo] = rou;
-            }
             addCoRPCar(rou);
         }
-        if (recordHisRoutingResult || enableHisDataRecord) {
-            hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
-        }
+        delete rou;
     } else {
         while (wEdge != NULL) {
             route.push_front(wEdge->edge);
@@ -1064,7 +1061,8 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
 }
 
 void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
-        double time, SMTCarInfo* car, double viaTime, double laneTime) {
+        double time, SMTCarInfo* car, double viaTime, double laneTime,
+        list<SMTEdge*> &passdRoute, double startTime) {
     // update pass time and remove car from weightEdge 'from'
     WeightLane* fromLane = NULL;
     WeightLane* toLane = NULL;
@@ -1109,6 +1107,23 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         toLane->insertCar(car, time);
     } else {
         // car reaches destination
+        // 构造历史路径
+        WeightRoute* rou = new WeightRoute();
+        rou->car = car;
+        rou->t = startTime;
+        for (list<SMTEdge*>::iterator it = passdRoute.begin();
+                it != passdRoute.end(); ++it) {
+            rou->edges.push_back(weightEdgeMap[(*it)]);
+        }
+        if (enableCoRP) {
+            if (recordHisRoutingResult || enableHisDataRecord) {
+                delete (hisRouteMapByCar[carInfo]);
+                hisRouteMapByCar[carInfo] = rou;
+            }
+        }
+        if (recordHisRoutingResult || enableHisDataRecord) {
+            hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
+        }
         rouStatus.arrivedCarCount++;
     }
     if (recordHisRoutingData || enableHisDataRecord) {
@@ -1639,7 +1654,8 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
             }
         }
     }
-    std::cout<<"followed cars at time "<<enterTime<<":"<<followingCar<<std::endl;
+    std::cout << "followed cars at time " << enterTime << ":" << followingCar
+            << std::endl;
     return tempHisInfo.nextDummyTime + corpOta - enterTime + freeLen;
 }
 
