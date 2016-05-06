@@ -177,7 +177,7 @@ public:
         virtual multimap<double, HisInfo*>::iterator getCoRPOutTime(
                 HisInfo* hisInfo);
         virtual double getCoRPQueueLength(double enterTime,
-                multimap<double, HisInfo*>::iterator itPreCar);
+                multimap<double, HisInfo*>::iterator &itPreCar);
         virtual void setCoRPOutInfo(SMTCarInfo* car, double laneTime,
                 double viaTime, double outTime,
                 multimap<double, CoRPUpdateBlock*>& queue);
