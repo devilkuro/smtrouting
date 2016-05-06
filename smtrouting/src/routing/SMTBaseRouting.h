@@ -109,16 +109,17 @@ public:
             int passedCarNum;
         };
         WeightLane() :
-                via(0), con(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlagForDebug(
-                        false), airSI(0), corpEta(1.2), corpOta(0.5), from(0), to(
-                        0), firstCoRPInfo(0), recentCost(-1), recentCostLastupdateTime(
-                        -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
-                        false), airDLastUpdateTime(0), airD(0), lastCarOutTime(
-                        0) {
+                via(0), con(0), viaLen(-1), occupation(0), occStep(
+                        0), occupaChangeFlagForDebug(false), airSI(0), corpEta(
+                        1.2), corpOta(0.5), from(0), to(0), firstCoRPInfo(0), recentCost(
+                        -1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
+                        false), totalRecentCost(0), airCostUpdateFlag(false), airDLastUpdateTime(
+                        0), airD(0), lastCarOutTime(0) {
         }
 
         virtual ~WeightLane();
         laneStatus status;
+        static bool debug;
         SMTVia* via;
         SMTConnection* con;
         double viaLen;
