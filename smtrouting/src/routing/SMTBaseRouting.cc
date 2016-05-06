@@ -24,6 +24,8 @@ double SMTBaseRouting::WeightLane::limitCap = 0.7;
 double SMTBaseRouting::WeightLane::limitFix = 0.01;
 double SMTBaseRouting::WeightLane::airK = 0.2287;
 double SMTBaseRouting::WeightLane::airV = 0.6352;
+bool SMTBaseRouting::WeightLane::minAllowedCostFix = false;
+bool SMTBaseRouting::WeightLane::minRecentCostFix = false;
 
 SMTBaseRouting::~SMTBaseRouting() {
     // 回收 dijkstra's algorithm 算法部分
@@ -95,6 +97,9 @@ void SMTBaseRouting::initialize(int stage) {
         enableHisDataRecord = par("enableHisDataRecord").boolValue();
         hisRecordXMLPath = par("hisRecordXMLPath").stringValue();
         endAfterLoadHisXML = par("endAfterLoadHisXML").boolValue();
+
+        SMTBaseRouting::WeightLane::minAllowedCostFix = par("minAllowedCostFix").boolValue();
+        SMTBaseRouting::WeightLane::minRecentCostFix =  par("minRecentCostFix").boolValue();
     }
     if (stage == 1) {
         // needs to init weightEdgeMap here
@@ -1389,10 +1394,15 @@ void SMTBaseRouting::WeightLane::carGetOut(SMTCarInfo* car, const double& t,
 
 void SMTBaseRouting::WeightLane::initMinAllowedCost() {
     SMTConnection* con = via->start->laneVector[via->fromLane]->conVector[0];
-    minAllowedCost = ((con->tr + con->ty / 2) * (con->tr + con->ty / 2) / 2)
-            / (con->tr + con->tg + con->ty)
-            + con->fromSMTEdge->length()
-                    / via->start->laneVector[via->fromLane]->speed;
+    if (minAllowedCostFix) {
+        minAllowedCost = ((con->tr + con->ty / 2) * (con->tr + con->ty / 2) / 2)
+                / (con->tr + con->tg + con->ty)
+                + con->fromSMTEdge->length()
+                        / via->start->laneVector[via->fromLane]->speed;
+    } else {
+        minAllowedCost = con->fromSMTEdge->length()
+                / via->start->laneVector[via->fromLane]->speed;
+    }
 }
 
 void SMTBaseRouting::WeightLane::carPassVia(double time) {
@@ -1472,8 +1482,10 @@ void SMTBaseRouting::WeightLane::updateCost(double time) {
         if (recentOutCars.size() <= 3) {
             if (enterTimeMap.size() == 0) {
                 recentCost = minAllowedCost;
-            } else if (recentCost < time - enterTimeMap.begin()->first) {
-                recentCost = time - enterTimeMap.begin()->first;
+            } else if(minRecentCostFix){
+                if (recentCost < time - enterTimeMap.begin()->first) {
+                    recentCost = time - enterTimeMap.begin()->first;
+                }
             }
         }
         recentCost = recentCost > minAllowedCost ? recentCost : minAllowedCost;
@@ -1563,7 +1575,7 @@ multimap<double, SMTBaseRouting::HisInfo*>::iterator SMTBaseRouting::WeightLane:
             "remove the info in corpMap, before routing method.");
     multimap<double, HisInfo*>::iterator it = corpTimeMap.upper_bound(
             hisInfo->enterTime);
-    double tau = from->edge->length() / (hisInfo->car->maxSpeed - 0.1)
+    double tau = from->edge->length() / (hisInfo->car->maxSpeed - 0.05)
             + hisInfo->enterTime;
     // fix by previous car
     if (it != corpTimeMap.begin()) {
@@ -1686,7 +1698,7 @@ void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
     // of the historical info of car
     // find previous car in the corpTimeMap
     ASSERT2(itHI->second == hisInfo, "the iterator unmatched.");
-    double tau = from->edge->length() / hisInfo->car->maxSpeed
+    double tau = from->edge->length() / (hisInfo->car->maxSpeed - 0.05)
             + hisInfo->enterTime;
     // fix by previous car
     if (itHI != corpTimeMap.begin()) {
@@ -1716,7 +1728,7 @@ void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
                 + corpEta;
         hisInfo->nFDT = hisInfo->nextDummyTime + corpEta;
     } else {
-        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta;
+        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta + 0.05;
         _fmod = std::fmod(hisInfo->nFDT + con->_t0, con->ta);
         if (_fmod > con->tg) {
             hisInfo->nFDT = hisInfo->nFDT - _fmod + con->ta + corpEta;
@@ -2254,8 +2266,18 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     // corpCarMap.erase(itCar);
     // 保存原始下一条道路进入时间
     double oldOutTime = hisInfo->outTime;
+    // 更新离开信息
+    hisInfo->laneTime = laneTime;
+    hisInfo->viaTime = viaTime;
+    hisInfo->tau = hisInfo->enterTime + laneTime;
+    hisInfo->outTime = outTime;
     // 将hisInfo插入队列头部
     if (firstCoRPInfo != NULL) {
+        // 更新corpEta
+        if (firstCoRPInfo->nextDummyTime + 0.2 > hisInfo->tau) {
+            corpEta = corpEta
+                    + (firstCoRPInfo->tau - hisInfo->tau - corpEta) / 10;
+        }
         // 若存在已经离开道路的头结点,则移除并释放头结点
         corpTimeMap.erase(corpTimeMap.begin());
         corpCarMap.erase(firstCoRPInfo->car);
@@ -2265,11 +2287,20 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     firstCoRPInfo = hisInfo;
     itTold = corpTimeMap.insert(corpTimeMap.begin(),
             std::make_pair(-1, hisInfo));
-    // 更新离开信息
-    hisInfo->laneTime = laneTime;
-    hisInfo->viaTime = viaTime;
-    hisInfo->tau = _eTime + laneTime;
-    hisInfo->outTime = outTime;
+    // 跟新后续影响判定条件
+    hisInfo->nextDummyTime = hisInfo->tau + corpEta;
+    double _fmod = std::fmod(hisInfo->nextDummyTime + con->_t0, con->ta);
+    if (_fmod > con->tg) {
+        hisInfo->nextDummyTime = hisInfo->nextDummyTime - _fmod + con->ta
+                + corpEta;
+        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta;
+    } else {
+        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta + 0.05;
+        _fmod = std::fmod(hisInfo->nFDT + con->_t0, con->ta);
+        if (_fmod > con->tg) {
+            hisInfo->nFDT = hisInfo->nFDT - _fmod + con->ta + corpEta;
+        }
+    }
     // 2nd. 添加后续道路更新和受影响车辆更新
     // 获取时间点最早的受影响车辆,并将其迭代器赋给itTold
     // 由于当前车辆为队列最早车辆,因此后续车辆肯定为itTold后方车辆
