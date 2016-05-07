@@ -304,6 +304,7 @@ void SMTBaseRouting::runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
     // before operation
     if (enableCoRP && enableCoRPPreImport && route.size() == 0) {
         // remove and update CoRP info
+        // route.size == 0 means it routing first time
         removeCoRPCar(hisRouteMapByCar[carInfo]);
     }
     if (enableCoRP && enableCoRPReroute && route.size() > 1) {
@@ -1177,8 +1178,8 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         if (enableCoRP) {
             delete (hisRouteMapByCar[carInfo]);
         }
+        hisRouteMapByCar[carInfo] = rou;
         if (recordHisRoutingResult || enableHisDataRecord) {
-            hisRouteMapByCar[carInfo] = rou;
             hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
         }
         rouStatus.arrivedCarCount++;
@@ -1744,7 +1745,8 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     }
     if (m != 1 || p != 0) {
         std::cout << "at time " << enterTime << ", edge:" << from->edge->id
-                << ", m = " << m << ", p = " << p << std::endl;
+                << ", len = " << from->edge->length() << ", queue = "
+                << maxQueueLen << ", m = " << m << ", p = " << p << std::endl;
     }
     return m * (tempHisInfo.nextDummyTime + corpOta - enterTime) + p;
 }
@@ -1775,7 +1777,7 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
     double laneLen = from->edge->length();
     // fix only queueLen >= 120 (beyond 24 cars)
     // fix only occupancy >=50%
-    double fixedQueueLen = queueLen * 1.5;
+    double fixedQueueLen = queueLen * 1.8;
     if (queueLen < 120 || fixedQueueLen * 2 < laneLen) {
         m = 1;
         p = 0;
@@ -1802,7 +1804,6 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
             p = 1500;
         }
     }
-
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPEdgeTime(double time,
