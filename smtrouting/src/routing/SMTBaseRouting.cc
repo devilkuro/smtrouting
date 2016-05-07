@@ -28,6 +28,9 @@ double SMTBaseRouting::WeightLane::airK = 0.2287;
 double SMTBaseRouting::WeightLane::airV = 0.6352;
 bool SMTBaseRouting::WeightLane::minAllowedCostFix = false;
 bool SMTBaseRouting::WeightLane::minRecentCostFix = false;
+multimap<double, SMTBaseRouting::CoRPUpdateBlock*> *SMTBaseRouting::WeightLane::corpUpdateQueue = NULL;
+multimap<double, SMTBaseRouting::CoRPUpdateBlock*> *SMTBaseRouting::WeightLane::corpAddQueue = NULL;
+multimap<double, SMTBaseRouting::CoRPUpdateBlock*> *SMTBaseRouting::WeightLane::corpRemoveQueue= NULL;
 
 SMTBaseRouting::~SMTBaseRouting() {
     // 回收 dijkstra's algorithm 算法部分
@@ -55,6 +58,10 @@ void SMTBaseRouting::initialize(int stage) {
         WeightLane::limitCap = par("limitCap").doubleValue();
         WeightLane::airK = par("airK").doubleValue();
         WeightLane::airV = par("airV").doubleValue();
+        WeightLane::corpUpdateQueue = &corpUpdateQueue;
+        WeightLane::corpAddQueue = &corpAddQueue;
+        WeightLane::corpRemoveQueue = &corpRemoveQueue;
+
         majorRoutingType =
                 (enum SMT_ROUTING_TYPE) par("majorRoutingType").longValue();
         minorRoutingType =
@@ -988,9 +995,7 @@ void SMTBaseRouting::importHisXML() {
 }
 
 void SMTBaseRouting::updateCoRPQueue() {
-    if (corpUpdateQueue.size() > 0) {
-        corpUpdateQueue.begin()->second->lane->updateCoRPCar(corpUpdateQueue);
-    }
+    WeightLane::updateCoRPCar();
 }
 
 void SMTBaseRouting::getOldRoute(SMTEdge* origin, SMTEdge* destination,
@@ -1010,6 +1015,8 @@ void SMTBaseRouting::getOldRoute(SMTEdge* origin, SMTEdge* destination,
 }
 
 void SMTBaseRouting::addCoRPCar(WeightRoute* rou) {
+    // 为了避免交叉更新,增加路径需要每次独立添加至corpAddQueue
+    // 并在完成corpUpdateQueue更新后依次进行
     if (rou->edges.size() > 1) {
         // 只有一条道路的属于短暂车辆,不影响道路状态
         CoRPUpdateBlock* block = new CoRPUpdateBlock();
@@ -1024,12 +1031,14 @@ void SMTBaseRouting::addCoRPCar(WeightRoute* rou) {
         block->rou->edges = rou->edges;
         block->rouIt = block->rou->edges.begin();
         ++(block->rouIt);
-        corpUpdateQueue.insert(std::make_pair(block->timeStamp, block));
+        corpAddQueue.insert(std::make_pair(block->timeStamp, block));
         updateCoRPQueue();
     }
 }
 
 void SMTBaseRouting::removeCoRPCar(WeightRoute* rou) {
+    // remove队列具有最高优先级
+    // 依次删除所有队列,然后依次更新被影响车辆
     if (rou->edges.size() > 1) {
         // 只有一条道路的属于短暂车辆,不影响道路状态
         CoRPUpdateBlock* block = new CoRPUpdateBlock();
@@ -1047,11 +1056,14 @@ void SMTBaseRouting::removeCoRPCar(WeightRoute* rou) {
 //            block->fromTime = it->second->enterTime;
 //            block->timeStamp = it->second->enterTime;
 //        }
-        block->rou = new WeightRoute();
-        block->rou->edges = rou->edges;
-        block->rouIt = block->rou->edges.begin();
-        ++(block->rouIt);
-        corpUpdateQueue.insert(std::make_pair(block->timeStamp, block));
+        // FIXME [delay]似乎没用
+        if (debug) {
+            block->rou = new WeightRoute();
+            block->rou->edges = rou->edges;
+            block->rouIt = block->rou->edges.begin();
+            ++(block->rouIt);
+        }
+        corpRemoveQueue.insert(std::make_pair(block->timeStamp, block));
         updateCoRPQueue();
     }
 }
@@ -1074,7 +1086,7 @@ void SMTBaseRouting::updateCoRPAllLaneInfo(double curTime) {
         for (map<SMTEdge*, WeightLane*>::iterator itWL =
                 fromWEdge->w2NextMap.begin();
                 itWL != fromWEdge->w2NextMap.end(); ++itWL) {
-            itWL->second->updateCoRPEdgeTime(curTime, corpUpdateQueue);
+            itWL->second->updateCoRPEdgeTime(curTime);
         }
     }
 }
@@ -1088,7 +1100,7 @@ void SMTBaseRouting::updateCoRPSuppressedLaneInfo(double curTime) {
             for (map<SMTEdge*, WeightLane*>::iterator itWL =
                     fromWEdge->w2NextMap.begin();
                     itWL != fromWEdge->w2NextMap.end(); ++itWL) {
-                itWL->second->updateCoRPEdgeTime(curTime, corpUpdateQueue);
+                itWL->second->updateCoRPEdgeTime(curTime);
             }
         }
     }
@@ -1098,7 +1110,6 @@ void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
     if (recordHisRoutingResult || enableCoRP) {
-        // TODO [delay] this should be report by mobility
         // if use dynamic routing
         WeightRoute* rou = new WeightRoute();
         rou->car = carInfo;
@@ -1147,7 +1158,7 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
                     << std::endl;
         }
         // 执行更新队列
-        fromLane->setCoRPOutInfo(car, laneTime, viaTime, time, corpUpdateQueue);
+        fromLane->setCoRPOutInfo(car, laneTime, viaTime, time);
         updateCoRPQueue();
         // 如果使用动态寻路, 更新道路情况
     }
@@ -1703,7 +1714,6 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     costTime = tempHisInfo.outTime - enterTime;
     double queueLen = getCoRPQueueLength(enterTime, itQS) + car->length
             + car->minGap;
-    // TODO [delay]get the longest queue length
     double maxQueueLen = queueLen;
     // calculate the affection to other cars
     // 遍历enter time后方队列,计算可能的最大队列长度.
@@ -1725,10 +1735,8 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     tempHisInfo.nextDummyTime = tempHisInfo.tau;
     // 判定后方进入车辆是否退出饱和状态
     // 同时进行最大可能队列长度判定
-    static SMTMap* map = NULL;
-    if (map == NULL) {
-        map = SMTMapAccess().get();
-    }
+
+#ifdef _FANJING_WL_DEBUG
     static WeightLane* debugLane = NULL;
     if (debugLane == NULL) {
         if(from->edge->id=="18/12to18/14"){
@@ -1737,10 +1745,11 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
             }
         }
     }
-    int followingCar = 0;
     if (this == debugLane) {
         std::cout << car->id << " -> ";
     }
+#endif
+    int followingCar = 0;
     if (it != corpTimeMap.end()) {
         // 修正it为enter time 后方车辆
         // 此处不需要修改queuelen,因为it可能为end
@@ -1750,9 +1759,11 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
             ++it;
         }
         while (it != corpTimeMap.end()) {
+#ifdef _FANJING_WL_DEBUG
             if (this == debugLane) {
                 std::cout << it->second->car->id << "-"<<it->second->tau<<" ";
             }
+#endif
             if (it->second->tau >= tempHisInfo.nFDT + 0.05) {
                 break;
             } else {
@@ -1780,9 +1791,11 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
                 ++followingCar;
             }
         }
+#ifdef _FANJING_WL_DEBUG
         if (this == debugLane) {
             std::cout << std::endl;
         }
+#endif
     }
     double m = 1;
     double p = 0;
@@ -1792,12 +1805,14 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
                 << followingCar << std::endl;
     }
     double deltaW = tempHisInfo.nextDummyTime + corpOta - enterTime;
+#ifdef _FANJING_WL_DEBUG
     if (this == debugLane && (m != 1 || p != 0)) {
         std::cout << "at time " << enterTime << ", edge:" << from->edge->id
                 << "_" << con->fromLane << ", len = " << from->edge->length()
                 << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
                 << ", deltaW = " << deltaW << std::endl;
     }
+#endif
     return m * deltaW + p;
 }
 
@@ -1859,8 +1874,7 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
     }
 }
 
-void SMTBaseRouting::WeightLane::updateCoRPEdgeTime(double time,
-        multimap<double, CoRPUpdateBlock*>& queue) {
+void SMTBaseRouting::WeightLane::updateCoRPEdgeTime(double time) {
     // 更改离开时间,并添加后续影响至队列
     // 检索车辆
     multimap<double, HisInfo*>::iterator itT = corpTimeMap.find(0);
@@ -1915,7 +1929,7 @@ void SMTBaseRouting::WeightLane::updateCoRPEdgeTime(double time,
             // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
             block->rou = NULL;
             block->srcHisInfo = hisInfo;
-            queue.insert(std::make_pair(block->timeStamp, block));
+            corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
         }
     }
     // 受影响车辆更新
@@ -1933,7 +1947,7 @@ void SMTBaseRouting::WeightLane::updateCoRPEdgeTime(double time,
         // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
         block->rou = NULL;
         block->srcHisInfo = hisInfo;
-        queue.insert(std::make_pair(block->timeStamp, block));
+        corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
     }
 }
 
@@ -1981,8 +1995,7 @@ void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
     }
 }
 
-void SMTBaseRouting::WeightLane::updateCoRPCar(
-        multimap<double, CoRPUpdateBlock*> &queue) {
+void SMTBaseRouting::WeightLane::updateCoRPCar() {
     // 车辆更新策略
     // 车辆更新主要分为2部分
     // 1. 进入时间更新
@@ -2008,38 +2021,39 @@ void SMTBaseRouting::WeightLane::updateCoRPCar(
     // 如果from!=-1,to!=-1则表示修改车辆
     // 都不为-1时,如果from!=to则修改进入时间
     // 反之from==to,则修改离开时间
-    //static unsigned int operationNum = 0;
-    if (queue.size() == 0) {
-        //std::cout << operationNum << std::endl;
+    // 3. 增加车辆路径
+    // 见SMTBaseRouting::addCoRPCar
+    // 4. 删除车辆路径
+    // 见SMTBaseRouting::removeCoRPCar
+    static unsigned int operationNum = 0;
+    // 继续更新queue
+    ++operationNum;
+
+    CoRPUpdateBlock* block = NULL;
+    if (corpRemoveQueue->size() > 0) {
+        block = corpRemoveQueue->begin()->second;
+        block->lane->removeCoRPQueueInfo(block);
+    } else if (corpUpdateQueue->size() > 0) {
+        block = corpRemoveQueue->begin()->second;
+        if (block->fromTime == block->toTime) {
+            block->lane->updateCoRPQueueOutInfo(block);
+        } else {
+            block->lane->updateCoRPQueueEnterInfo(block);
+        }
+    } else if (corpAddQueue->size() > 0) {
+        block = corpAddQueue->begin()->second;
+        block->lane->addCoRPQueueInfo(block);
+    } else {
+        std::cout<<"updateCoRPCar"<<operationNum<<std::endl;
         return;
     }
-    CoRPUpdateBlock* block = queue.begin()->second;
-    if (block->fromTime == -1) {
-        if (block->toTime == -1) {
-            std::cout << "unknown situation" << std::endl;
-            // removeCoRPCar(block, queue);
-        } else {
-            block->lane->addCoRPQueueInfo(block, queue);
-        }
-    } else {
-        if (block->toTime == -1) {
-            block->lane->removeCoRPQueueInfo(block, queue);
-        } else if (block->fromTime != block->toTime) {
-            block->lane->updateCoRPQueueEnterInfo(block, queue);
-        } else {
-            block->lane->updateCoRPQueueOutInfo(block, queue);
-        }
-    }
-    // 继续更新queue
-    //++operationNum;
-    updateCoRPCar(queue);
+    updateCoRPCar();
 }
 
-void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
-        multimap<double, CoRPUpdateBlock*>& queue) {
+void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block) {
     if (block->lane != this) {
         std::cout << "unmatched lane" << std::endl;
-        block->lane->addCoRPQueueInfo(block, queue);
+        block->lane->addCoRPQueueInfo(block);
         return;
     }
     // 同一时间,之前进入的不做处理
@@ -2049,8 +2063,9 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
     map<SMTCarInfo*, HisInfo*>::iterator itCar = corpCarMap.find(block->car);
     // 该功能用于导入历史路径信息阶段，此时对应车辆不应存在于对应corpCarMap队列
     if (itCar != corpCarMap.end()) {
+        // TODO remove过程改变需要更新
         // 在remove当前车辆信息前先从queue临时移除当前block
-        queue.erase(queue.begin());
+        corpAddQueue->erase(corpAddQueue->begin());
         std::cout << "this function is used in import historical xml file."
                 << std::endl;
         std::cout << "the car should not be here before insert it by new route."
@@ -2088,10 +2103,10 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
             ++(rBlock->rouIt);
         }
         rBlock->srcHisInfo = itCar->second;
-        queue.insert(queue.begin(), std::make_pair(rBlock->timeStamp, rBlock));
-        updateCoRPCar(queue);
+        corpRemoveQueue->insert(corpRemoveQueue->begin(), std::make_pair(rBlock->timeStamp, rBlock));
+        updateCoRPCar();
         // 将block加回queue
-        queue.insert(std::make_pair(block->timeStamp, block));
+        corpAddQueue->insert(std::make_pair(block->timeStamp, block));
     }
     // 插入对应车辆信息至corpTimeMap与corpCarMap,并为后续影响修改queue信息
     HisInfo* hisInfo = new HisInfo();
@@ -2104,7 +2119,7 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
     // 同步更新离开信息
     updateCoRPOutInfo(hisInfo, itT);
     // 对应block处理完毕,从queue移除block
-    queue.erase(queue.begin());
+    corpAddQueue->erase(corpAddQueue->begin());
     // 2nd. 后续影响,将受影响车辆更新需求插入queue
     // 如果还有后续道路,则将其加入队列.
     // 若下一跳道路是终点,并且不影响其他车辆则释放当前block内存
@@ -2118,7 +2133,7 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
         block->toTime = hisInfo->outTime;
         block->timeStamp = block->toTime;
         block->srcHisInfo = hisInfo;
-        queue.insert(std::make_pair(block->timeStamp, block));
+        corpAddQueue->insert(std::make_pair(block->timeStamp, block));
     } else {
         hisInfo->next = NULL;
         // 在最后的添加block需要释放rou占用的空间
@@ -2144,7 +2159,7 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
             // 更新信息不需要设置route信息,因为对应hisInfo有next参数
             block->rou = NULL;
             block->srcHisInfo = itT->second;
-            queue.insert(std::make_pair(block->timeStamp, block));
+            corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
         }
     }
     if (releaseFlag) {
@@ -2152,13 +2167,12 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block,
     }
 }
 
-void SMTBaseRouting::WeightLane::removeCoRPQueueInfo(CoRPUpdateBlock* block,
-        multimap<double, CoRPUpdateBlock*>& queue) {
+void SMTBaseRouting::WeightLane::removeCoRPQueueInfo(CoRPUpdateBlock* block) {
     // 移除车辆,并添加后续影响至queue
     // 1st. 移除车辆
     if (block->lane != this) {
         std::cout << "unmatched lane" << std::endl;
-        block->lane->removeCoRPQueueInfo(block, queue);
+        block->lane->removeCoRPQueueInfo(block);
         return;
     }
     // 检索车辆
@@ -2189,7 +2203,7 @@ void SMTBaseRouting::WeightLane::removeCoRPQueueInfo(CoRPUpdateBlock* block,
     corpTimeMap.erase(itTold);
     corpCarMap.erase(itCar);
     // 对应block处理完毕,从queue移除block
-    queue.erase(queue.begin());
+    corpRemoveQueue->erase(corpRemoveQueue->begin());
     // 2nd. 后续影响
     bool releaseFlag = true;
     // 继续移除当前车辆的后续路径
@@ -2205,7 +2219,7 @@ void SMTBaseRouting::WeightLane::removeCoRPQueueInfo(CoRPUpdateBlock* block,
                 ++(block->rouIt);
             }
         }
-        queue.insert(std::make_pair(block->timeStamp, block));
+        corpRemoveQueue->insert(std::make_pair(block->timeStamp, block));
     } else {
         if (debug) {
             // FIXME [delay] 似乎没用
@@ -2236,7 +2250,7 @@ void SMTBaseRouting::WeightLane::removeCoRPQueueInfo(CoRPUpdateBlock* block,
         // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
         block->rou = NULL;
         block->srcHisInfo = hisInfo;
-        queue.insert(std::make_pair(block->timeStamp, block));
+        corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
     }
     if (releaseFlag) {
         delete block;
@@ -2244,18 +2258,18 @@ void SMTBaseRouting::WeightLane::removeCoRPQueueInfo(CoRPUpdateBlock* block,
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
-        CoRPUpdateBlock* block, multimap<double, CoRPUpdateBlock*>& queue) {
+        CoRPUpdateBlock* block) {
     // 移动车辆,并添加后续影响至队列
     // 1st. 移动车辆
     if (block->lane != this) {
         std::cout << "unmatched lane" << std::endl;
-        block->lane->updateCoRPQueueEnterInfo(block, queue);
+        block->lane->updateCoRPQueueEnterInfo(block);
         return;
     }
     // 通过判定toTime是否与srcHisInfo内容一致验证block是否过期
     if (block->srcHisInfo->outTime != block->toTime) {
         std::cout << "expired update enter info block" << std::endl;
-        queue.erase(queue.begin());
+        corpUpdateQueue->erase(corpUpdateQueue->begin());
         delete block;
         return;
     }
@@ -2273,7 +2287,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
         block->fromTime = hisInfo->enterTime;
         if (hisInfo->enterTime == block->toTime) {
             // 由于多次更新导致进入时间相等的更新由out info更新完成
-            queue.erase(queue.begin());
+            corpUpdateQueue->erase(corpUpdateQueue->begin());
             delete block;
             return;
         }
@@ -2304,7 +2318,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
             std::make_pair(hisInfo->enterTime, hisInfo));
     updateCoRPOutInfo(hisInfo, itTold);
     // 对应block处理完毕,从queue移除block
-    queue.erase(queue.begin());
+    corpUpdateQueue->erase(corpUpdateQueue->begin());
     // 2nd. 添加后续道路更新和受影响车辆更新
     bool releaseFlag = true;
     // 获取时间点最早的受影响车辆,并将其迭代器赋给itTold
@@ -2331,7 +2345,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
                             block->fromTime : block->toTime;
             block->lane = hisInfo->next;
             block->srcHisInfo = hisInfo;
-            queue.insert(std::make_pair(block->timeStamp, block));
+            corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
         }
     }
     // 受影响车辆更新
@@ -2354,23 +2368,22 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
         // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
         block->rou = NULL;
         block->srcHisInfo = hisInfo;
-        queue.insert(std::make_pair(block->timeStamp, block));
+        corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
     }
     if (releaseFlag) {
         delete block;
     }
 }
 
-void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
-        multimap<double, CoRPUpdateBlock*>& queue) {
+void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block) {
     if (block->lane != this) {
         std::cout << "unmatched lane" << std::endl;
-        block->lane->updateCoRPQueueOutInfo(block, queue);
+        block->lane->updateCoRPQueueOutInfo(block);
         return;
     }
     // 通过判定toTime是否与srcHisInfo内容一致验证block是否过期
     if (block->srcHisInfo->enterTime != block->toTime) {
-        queue.erase(queue.begin());
+        corpUpdateQueue->erase(corpUpdateQueue->begin());
         delete block;
         return;
     }
@@ -2384,7 +2397,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
     // 通过判定toTime是否与enterTime内容一致验证block是否过期
     if (hisInfo->enterTime != block->toTime) {
         std::cout << "expired update out info block" << std::endl;
-        queue.erase(queue.begin());
+        corpUpdateQueue->erase(corpUpdateQueue->begin());
         delete block;
         return;
     }
@@ -2403,7 +2416,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
     double oldOutTime = hisInfo->outTime;
     updateCoRPOutInfo(hisInfo, itT);
     // 信息更新完成,移除block
-    queue.erase(queue.begin());
+    corpUpdateQueue->erase(corpUpdateQueue->begin());
     bool releaseFlag = true;
     // 若离开路口状态改变, 则更新后续车辆
     if (hisInfo->tau != oldTau) {
@@ -2420,7 +2433,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
                                 block->fromTime : block->toTime;
                 block->lane = hisInfo->next;
                 block->srcHisInfo = hisInfo;
-                queue.insert(std::make_pair(block->timeStamp, block));
+                corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
             }
         }
         // 添加后方受影响车辆更新信息
@@ -2445,7 +2458,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
             // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
             block->rou = NULL;
             block->srcHisInfo = hisInfo;
-            queue.insert(std::make_pair(block->timeStamp, block));
+            corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
         }
     }
     if (releaseFlag) {
@@ -2478,8 +2491,7 @@ SMTBaseRouting::CoRPUpdateBlock::~CoRPUpdateBlock() {
 }
 
 void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
-        double laneTime, double viaTime, double outTime,
-        multimap<double, CoRPUpdateBlock*>& queue) {
+        double laneTime, double viaTime, double outTime) {
     // 移动车辆进入时间至队列顶部(队列中车辆都是未离开车辆)
     // 更改离开时间,并添加后续影响至队列
     // 检索车辆
@@ -2572,7 +2584,7 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
             // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
             block->rou = NULL;
             block->srcHisInfo = hisInfo;
-            queue.insert(std::make_pair(block->timeStamp, block));
+            corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
         }
     }
     // 受影响车辆更新
@@ -2590,6 +2602,6 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
         // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
         block->rou = NULL;
         block->srcHisInfo = hisInfo;
-        queue.insert(std::make_pair(block->timeStamp, block));
+        corpUpdateQueue->insert(std::make_pair(block->timeStamp, block));
     }
 }

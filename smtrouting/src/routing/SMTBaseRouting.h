@@ -148,6 +148,10 @@ public:
         multimap<double, HisInfo*> hisTimeMap;
         map<SMTCarInfo*, HisInfo*> corpCarMap;
         multimap<double, HisInfo*> corpTimeMap;
+
+        static multimap<double, CoRPUpdateBlock*> *corpUpdateQueue;
+        static multimap<double, CoRPUpdateBlock*> *corpAddQueue;
+        static multimap<double, CoRPUpdateBlock*> *corpRemoveQueue;
         // 用于表示CoRP队列的头部
         // 头部节点在车辆离开时不移除队列,以此保证队列占用有效性
         HisInfo* firstCoRPInfo;
@@ -173,7 +177,6 @@ public:
         void getOutHistoricalCar(SMTCarInfo* car, double laneTime,
                 double viaTime, double time, WeightLane* next);
         void removeHistoricalCar(SMTCarInfo* car, double t);
-        virtual void updateCoRPCar(multimap<double, CoRPUpdateBlock*> &queue);
         WeightLane* getNextLane(SMTEdge* toEdge);
         virtual multimap<double, HisInfo*>::iterator getCoRPOutTime(
                 HisInfo* hisInfo);
@@ -181,11 +184,10 @@ public:
                 multimap<double, HisInfo*>::iterator &itPreCar);
         virtual void getCoRPQueueFixPar(double queueLen, double &m, double &p);
         virtual void setCoRPOutInfo(SMTCarInfo* car, double laneTime,
-                double viaTime, double outTime,
-                multimap<double, CoRPUpdateBlock*>& queue);
+                double viaTime, double outTime);
         // set the first car out time if the edge is suppressed
-        virtual void updateCoRPEdgeTime(double time,
-                multimap<double, CoRPUpdateBlock*>& queue);
+        virtual void updateCoRPEdgeTime(double time);
+        static void updateCoRPCar();
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -198,14 +200,10 @@ public:
         double airD;
         double lastCarOutTime;
         virtual void updateCost(double time);
-        virtual void addCoRPQueueInfo(CoRPUpdateBlock* block,
-                multimap<double, CoRPUpdateBlock*> &queue);
-        virtual void removeCoRPQueueInfo(CoRPUpdateBlock* block,
-                multimap<double, CoRPUpdateBlock*> &queue);
-        virtual void updateCoRPQueueEnterInfo(CoRPUpdateBlock* block,
-                multimap<double, CoRPUpdateBlock*> &queue);
-        virtual void updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
-                multimap<double, CoRPUpdateBlock*> &queue);
+        virtual void addCoRPQueueInfo(CoRPUpdateBlock* block);
+        virtual void removeCoRPQueueInfo(CoRPUpdateBlock* block);
+        virtual void updateCoRPQueueEnterInfo(CoRPUpdateBlock* block);
+        virtual void updateCoRPQueueOutInfo(CoRPUpdateBlock* block);
         virtual void updateCoRPOutInfo(HisInfo* hisInfo,
                 multimap<double, HisInfo*>::iterator itHI);
     };
@@ -326,6 +324,8 @@ protected:
     bool enableCoRPPreImport;
     bool enableCoRPReroute;
     multimap<double, CoRPUpdateBlock*> corpUpdateQueue;
+    multimap<double, CoRPUpdateBlock*> corpAddQueue;
+    multimap<double, CoRPUpdateBlock*> corpRemoveQueue;
     int corpUseHisRouteCEC; // TODO
     int corpReRouteCEC;
     cMessage* corpUpdateMsg;
