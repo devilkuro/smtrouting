@@ -135,6 +135,7 @@ public:
         static double limitFix;
         static bool minAllowedCostFix;
         static bool minRecentCostFix;
+        static unsigned int operationNum;
         double corpEta; // 车辆通过路口占用的平均通行时间
         double corpOta; // 车辆通过辅道的平均通行时间
         WeightEdge* from;
