@@ -1858,10 +1858,10 @@ double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
 void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
         double& p) {
     double laneLen = from->edge->length();
-    // fix only queueLen >= 120 (beyond 24 cars)
+    // fix only queueLen >= 120 (beyond 28 cars)
     // fix only occupancy >=50%
-    double fixedQueueLen = queueLen * 1.8;
-    if (queueLen < 120 || fixedQueueLen * 2 < laneLen) {
+    double fixedQueueLen = queueLen * 1.5;
+    if (queueLen < 140 || fixedQueueLen * 2 < laneLen) {
         m = 1;
         p = 0;
         return;
@@ -1870,7 +1870,7 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
     double ocRatio = fixedQueueLen / laneLen;
     m = 1;
     p = 0;
-    if (ocRatio > 0.5) {
+    if (ocRatio > 0.7) {
         if (ocRatio < 0.79 && freeLen > 100) {
             m = 1 / (0.8 - ocRatio);
         } else {
