@@ -1628,7 +1628,7 @@ multimap<double, SMTBaseRouting::HisInfo*>::iterator SMTBaseRouting::WeightLane:
         HisInfo* hisInfo) {
     // get the corresponding out info in corpCarMap
     // of the historical info of car
-    // find previous car in the corpTimeMap
+    // find previous car in the corpTimeMap or begin car if no previous car
     ASSERT2(corpCarMap.find(hisInfo->car) == corpCarMap.end(),
             "remove the info in corpMap, before routing method.");
     multimap<double, HisInfo*>::iterator it = corpTimeMap.upper_bound(
@@ -1694,13 +1694,15 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     tempHisInfo.car = car;
     // it is the previous car last car whose enter time is not later than hisInfo
     // it是enter time之前的最后一辆进入车辆
+    // 或者为队列第一辆车如果enter time之前没有车
     multimap<double, SMTBaseRouting::HisInfo*>::iterator it = getCoRPOutTime(
             &tempHisInfo);
     // the iterator of the starter of queue
     multimap<double, SMTBaseRouting::HisInfo*>::iterator itQS = it;
     multimap<double, SMTBaseRouting::HisInfo*>::iterator itQE = it;
     costTime = tempHisInfo.outTime - enterTime;
-    double queueLen = getCoRPQueueLength(enterTime, itQS);
+    double queueLen = getCoRPQueueLength(enterTime, itQS) + car->length
+            + car->minGap;
     // TODO [delay]get the longest queue length
     double maxQueueLen = queueLen;
     // calculate the affection to other cars
@@ -1722,13 +1724,38 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     }
     tempHisInfo.nextDummyTime = tempHisInfo.tau;
     // 判定后方进入车辆是否退出饱和状态
+    // 同时进行最大可能队列长度判定
     int followingCar = 0;
     if (it != corpTimeMap.end()) {
-        ++it;
+        // 修正it为enter time 后方车辆
+        // 此处不需要修改queuelen,因为it可能为end
+        // 之前版本为总是++it
+        // 会导致前方没有车辆时跳过插入之后的地一辆车,导致后续判定错误
+        if (it->second->enterTime <= enterTime) {
+            ++it;
+        }
         while (it != corpTimeMap.end()) {
             if (it->second->tau >= tempHisInfo.nFDT + 0.05) {
                 break;
             } else {
+                // it所在车辆受前一辆(或者当前插入车辆影响)
+                // update queue length
+                // it对应车辆进入队列
+                queueLen += it->second->car->minGap + it->second->car->length;
+                // 移除在it进入队列时已经离开的车辆
+                // 仅移除it之前的车辆
+                while (itQS != it) {
+                    // it进入时itQS已经离开
+                    if (itQS->second->outTime < it->second->enterTime) {
+                        queueLen -= itQS->second->car->minGap
+                                + itQS->second->car->length;
+                        ++itQS;
+                    } else {
+                        break;
+                    }
+                }
+                // 更新最大队列长度
+                maxQueueLen = maxQueueLen > queueLen ? maxQueueLen : queueLen;
                 tempHisInfo.nFDT = it->second->nFDT;
                 tempHisInfo.nextDummyTime = it->second->nextDummyTime;
                 ++it;
@@ -1753,6 +1780,8 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
 
 double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
         multimap<double, HisInfo*>::iterator &it) {
+    // it指针会被指向队列包含的最早节点
+    // 即tau>=enter time且enterTime>enter time的最后一个节点
     double result = 0;
     if (it != corpTimeMap.end()) {
         if (it->second->enterTime > enterTime) {
@@ -1760,13 +1789,14 @@ double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
             return result;
         }
         // 进入时还未离开车辆即队列中车辆
-        while (it->second->tau >= enterTime) {
-            result += it->second->car->length + it->second->car->minGap;
-            if (it != corpTimeMap.begin()) {
-                --it;
+        while (it != corpTimeMap.begin()) {
+            if (it->second->tau >= enterTime) {
+                result += it->second->car->length + it->second->car->minGap;
             } else {
+                // 还原指针
                 break;
             }
+            --it;
         }
     }
     return result;
