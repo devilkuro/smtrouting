@@ -1725,7 +1725,22 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     tempHisInfo.nextDummyTime = tempHisInfo.tau;
     // 判定后方进入车辆是否退出饱和状态
     // 同时进行最大可能队列长度判定
+    static SMTMap* map = NULL;
+    if (map == NULL) {
+        map = SMTMapAccess().get();
+    }
+    static WeightLane* debugLane = NULL;
+    if (debugLane == NULL) {
+        if(from->edge->id=="18/12to18/14"){
+            if(con->fromLane==1){
+                debugLane = this;
+            }
+        }
+    }
     int followingCar = 0;
+    if (this == debugLane) {
+        std::cout << car->id << " -> ";
+    }
     if (it != corpTimeMap.end()) {
         // 修正it为enter time 后方车辆
         // 此处不需要修改queuelen,因为it可能为end
@@ -1735,6 +1750,9 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
             ++it;
         }
         while (it != corpTimeMap.end()) {
+            if (this == debugLane) {
+                std::cout << it->second->car->id << "-"<<it->second->tau<<" ";
+            }
             if (it->second->tau >= tempHisInfo.nFDT + 0.05) {
                 break;
             } else {
@@ -1746,7 +1764,7 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
                 // 仅移除it之前的车辆
                 while (itQS != it) {
                     // it进入时itQS已经离开
-                    if (itQS->second->outTime < it->second->enterTime) {
+                    if (itQS->second->tau < it->second->enterTime) {
                         queueLen -= itQS->second->car->minGap
                                 + itQS->second->car->length;
                         ++itQS;
@@ -1762,6 +1780,9 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
                 ++followingCar;
             }
         }
+        if (this == debugLane) {
+            std::cout << std::endl;
+        }
     }
     double m = 1;
     double p = 0;
@@ -1770,12 +1791,14 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
         std::cout << "followed cars at time " << enterTime << ":"
                 << followingCar << std::endl;
     }
-    if (m != 1 || p != 0) {
+    double deltaW = tempHisInfo.nextDummyTime + corpOta - enterTime;
+    if (this == debugLane && (m != 1 || p != 0)) {
         std::cout << "at time " << enterTime << ", edge:" << from->edge->id
-                << ", len = " << from->edge->length() << ", queue = "
-                << maxQueueLen << ", m = " << m << ", p = " << p << std::endl;
+                << "_" << con->fromLane << ", len = " << from->edge->length()
+                << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
+                << ", deltaW = " << deltaW << std::endl;
     }
-    return m * (tempHisInfo.nextDummyTime + corpOta - enterTime) + p;
+    return m * deltaW + p;
 }
 
 double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
@@ -2346,7 +2369,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueOutInfo(CoRPUpdateBlock* block,
         return;
     }
     // 通过判定toTime是否与srcHisInfo内容一致验证block是否过期
-    if (block->srcHisInfo->outTime != block->toTime) {
+    if (block->srcHisInfo->enterTime != block->toTime) {
         queue.erase(queue.begin());
         delete block;
         return;
