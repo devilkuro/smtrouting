@@ -48,7 +48,7 @@ int SMTBaseRouting::numInitStages() const {
 void SMTBaseRouting::initialize(int stage) {
     if (stage == 0) {
         debug = par("debug").boolValue();
-        WeightLane::debug= debug;
+        WeightLane::debug = debug;
         suppressLength = par("suppressLength").doubleValue();
         WeightLane::limitStart = par("limitStart").doubleValue();
         WeightLane::limitFix = par("limitFix").doubleValue();
@@ -138,9 +138,10 @@ void SMTBaseRouting::initialize(int stage) {
                 wLane->from = it->second;
                 wLane->to = weightEdgeMap[vIt->first];
                 if (debug) {
-                    std::cout << "viaLane from " << wLane->from->edge->id << " to "
-                            << wLane->to->edge->id << "- Len:" << wLane->viaLen
-                            << ", viaOta:" << wLane->corpOta << std::endl;
+                    std::cout << "viaLane from " << wLane->from->edge->id
+                            << " to " << wLane->to->edge->id << "- Len:"
+                            << wLane->viaLen << ", viaOta:" << wLane->corpOta
+                            << std::endl;
                 }
                 wLane->initMinAllowedCost();
                 if (it->second->w2NextMap.find(vIt->first)
@@ -927,10 +928,10 @@ void SMTBaseRouting::importHisXML() {
                     toWLane->corpEta = itA / nit;
                 }
                 if (debug) {
-                    std::cout << "corpOta:" << toWLane->corpOta << ",vtA:" << vtA
-                            << ",vtN" << nvt << std::endl;
-                    std::cout << "corpEta:" << toWLane->corpEta << ",itA:" << itA
-                            << ",itN" << nit << std::endl;
+                    std::cout << "corpOta:" << toWLane->corpOta << ",vtA:"
+                            << vtA << ",vtN" << nvt << std::endl;
+                    std::cout << "corpEta:" << toWLane->corpEta << ",itA:"
+                            << itA << ",itN" << nit << std::endl;
                 }
                 toEdgeElm = toEdgeElm->FirstChildElement("To");
             }
@@ -1302,6 +1303,13 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         ASSERT2(itWL != from->w2NextMap.end(),
                 "w2NextMap initialized abnormally");
         deltaW = itWL->second->getCoRPTTSCost(from->t, carInfo, costTime);
+        if (false) {
+            if(suppressedEdges.size()>0){
+                if(suppressedEdges.find(from->edge)!=suppressedEdges.end()){
+                    deltaW = deltaW*2;
+                }
+            }
+        }
         if (deltaW < 0) {
             std::cout << "processDijkstralNeighbors:"
                     << "cannot handle negative via cost from" << from->edge->id
@@ -1599,12 +1607,12 @@ multimap<double, SMTBaseRouting::HisInfo*>::iterator SMTBaseRouting::WeightLane:
     hisInfo->viaTime = corpOta;
     hisInfo->outTime = hisInfo->tau + hisInfo->viaTime;
     if (debug) {
-        std::cout << "t0:" << con->t0 << ", tg:" << con->tg << ", ta:" << con->ta
-                << std::endl;
+        std::cout << "t0:" << con->t0 << ", tg:" << con->tg << ", ta:"
+                << con->ta << std::endl;
         std::cout << "enter:" << hisInfo->enterTime << ", reach:" << reach
                 << ", pre:" << it->second->tau << ", beSi:" << beforeSignal
-                << ", sig:" << signalTime << ", tau:" << hisInfo->tau << ", out:"
-                << hisInfo->outTime << std::endl;
+                << ", sig:" << signalTime << ", tau:" << hisInfo->tau
+                << ", out:" << hisInfo->outTime << std::endl;
     }
     // it is the previous car last car whose enter time is not later than hisInfo
     return it;
@@ -1621,17 +1629,15 @@ double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
     // the iterator of the starter of queue
     multimap<double, SMTBaseRouting::HisInfo*>::iterator itQS = it;
     costTime = tempHisInfo.outTime - enterTime;
-    double freeLen = from->edge->length()
-            - 1.2 * getCoRPQueueLength(enterTime, itQS);
-    if (freeLen < 80) {
-        std::cout << "freeLen:" << car->id << " at " << enterTime
-                << "s in edge " << from->edge->id << " is " << freeLen
-                << std::endl;
-        freeLen = 10000;
-    } else {
-        freeLen = 0;
+    double queueLen = getCoRPQueueLength(enterTime, itQS);
+    double m = 1;
+    double p = 0;
+    getCoRPQueueFixPar(queueLen, m, p);
+    if (m != 1 || p != 0) {
+        std::cout << "at time " << enterTime << ", edge:" << from->edge->id
+                << ", m = " << m << ", p = " << p << std::endl;
     }
-    return costTime + freeLen;
+    return m * costTime + p;
 }
 
 double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
@@ -1682,21 +1688,18 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
             }
         }
     }
-
-    double freeLen = from->edge->length() - 1.2 * maxQueueLen;
-    if (freeLen < 80) {
-        std::cout << "freeLen:" << car->id << " at " << enterTime
-                << "s in edge " << from->edge->id << " is " << freeLen
-                << std::endl;
-        freeLen = 10000;
-    } else {
-        freeLen = 0;
-    }
+    double m = 1;
+    double p = 0;
+    getCoRPQueueFixPar(maxQueueLen, m, p);
     if (debug) {
-        std::cout << "followed cars at time " << enterTime << ":" << followingCar
-                << std::endl;
+        std::cout << "followed cars at time " << enterTime << ":"
+                << followingCar << std::endl;
     }
-    return tempHisInfo.nextDummyTime + corpOta - enterTime + freeLen;
+    if (m != 1 || p != 0) {
+        std::cout << "at time " << enterTime << ", edge:" << from->edge->id
+                << ", m = " << m << ", p = " << p << std::endl;
+    }
+    return m * (tempHisInfo.nextDummyTime + corpOta - enterTime) + p;
 }
 
 double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
@@ -1718,6 +1721,41 @@ double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
         }
     }
     return result;
+}
+
+void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
+        double& p) {
+    double laneLen = from->edge->length();
+    // fix only queueLen >= 120 (beyond 24 cars)
+    // fix only occupancy >=50%
+    double fixedQueueLen = queueLen * 1.5;
+    if (queueLen < 120 || fixedQueueLen * 2 < laneLen) {
+        m = 1;
+        p = 0;
+        return;
+    }
+    double freeLen = laneLen - fixedQueueLen;
+    double ocRatio = fixedQueueLen / laneLen;
+    m = 1;
+    p = 0;
+    if (ocRatio > 0.5) {
+        if (ocRatio < 0.79 && freeLen > 100) {
+            m = 1 / (0.8 - ocRatio);
+        } else {
+            m = 1000;
+        }
+    }
+    if (freeLen > 300) {
+        p = 0;
+        return;
+    } else {
+        if (freeLen > 100) {
+            p = (300 - freeLen) * 2.5;
+        } else {
+            p = 1500;
+        }
+    }
+
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
@@ -2305,10 +2343,12 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     if (firstCoRPInfo != NULL) {
         // 更新corpEta
         if (firstCoRPInfo->nextDummyTime + 0.1 > hisInfo->tau
-                && hisInfo->tau - firstCoRPInfo->tau  < 2 * corpEta) {
+                && hisInfo->tau - firstCoRPInfo->tau < 2 * corpEta) {
             corpEta = corpEta
                     + (hisInfo->tau - firstCoRPInfo->tau - corpEta) / 10;
-            std::cout << "corpEta:" << corpEta << std::endl;
+            if (debug) {
+                std::cout << "corpEta:" << corpEta << std::endl;
+            }
         }
         // 若存在已经离开道路的头结点,则移除并释放头结点
         corpTimeMap.erase(corpTimeMap.begin());

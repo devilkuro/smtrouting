@@ -179,9 +179,12 @@ public:
                 HisInfo* hisInfo);
         virtual double getCoRPQueueLength(double enterTime,
                 multimap<double, HisInfo*>::iterator &itPreCar);
+        virtual void getCoRPQueueFixPar(double queueLen, double &m, double &p);
         virtual void setCoRPOutInfo(SMTCarInfo* car, double laneTime,
                 double viaTime, double outTime,
                 multimap<double, CoRPUpdateBlock*>& queue);
+        // set the first car out time if the edge is suppressed
+        virtual void updateCoRPEdgeTime(double time);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
