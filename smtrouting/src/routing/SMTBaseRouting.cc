@@ -1814,6 +1814,12 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
                 << followingCar << std::endl;
     }
     double deltaW = tempHisInfo.nextDummyTime + corpOta - enterTime;
+    if (m != 1 || p != 0) {
+        std::cout << "at time " << enterTime << ", edge:" << from->edge->id
+        << "_" << con->fromLane << ", len = " << from->edge->length()
+        << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
+        << ", deltaW = " << deltaW << std::endl;
+    }
 #ifdef _FANJING_WL_DEBUG
     if (this == debugLane && (m != 1 || p != 0)) {
         std::cout << "at time " << enterTime << ", edge:" << from->edge->id
@@ -2038,23 +2044,24 @@ void SMTBaseRouting::WeightLane::updateCoRPCar() {
     ++operationNum;
 
     CoRPUpdateBlock* block = NULL;
-    if (corpRemoveQueue->size() > 0) {
-        block = corpRemoveQueue->begin()->second;
-        block->lane->removeCoRPQueueInfo(block);
-    } else if (corpUpdateQueue->size() > 0) {
-        block = corpUpdateQueue->begin()->second;
-        if (block->fromTime == block->toTime) {
-            block->lane->updateCoRPQueueOutInfo(block);
+    while (true) {
+        if (corpRemoveQueue->size() > 0) {
+            block = corpRemoveQueue->begin()->second;
+            block->lane->removeCoRPQueueInfo(block);
+        } else if (corpUpdateQueue->size() > 0) {
+            block = corpUpdateQueue->begin()->second;
+            if (block->fromTime == block->toTime) {
+                block->lane->updateCoRPQueueOutInfo(block);
+            } else {
+                block->lane->updateCoRPQueueEnterInfo(block);
+            }
+        } else if (corpAddQueue->size() > 0) {
+            block = corpAddQueue->begin()->second;
+            block->lane->addCoRPQueueInfo(block);
         } else {
-            block->lane->updateCoRPQueueEnterInfo(block);
+            break;
         }
-    } else if (corpAddQueue->size() > 0) {
-        block = corpAddQueue->begin()->second;
-        block->lane->addCoRPQueueInfo(block);
-    } else {
-        return;
     }
-    updateCoRPCar();
 }
 
 void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block) {
