@@ -979,6 +979,9 @@ void SMTBaseRouting::importHisXML() {
 //                block->timeStamp = it->second->enterTime;
 //            }
             if (enableCoRPPreImport) {
+//                if(rou->car->id=="car20"){
+//                    rou->cost = 0;
+//                }
                 addCoRPCar(rou);
             }
             hisRouteMapByCar[rou->car] = rou;
@@ -2034,7 +2037,7 @@ void SMTBaseRouting::WeightLane::updateCoRPCar() {
         block = corpRemoveQueue->begin()->second;
         block->lane->removeCoRPQueueInfo(block);
     } else if (corpUpdateQueue->size() > 0) {
-        block = corpRemoveQueue->begin()->second;
+        block = corpUpdateQueue->begin()->second;
         if (block->fromTime == block->toTime) {
             block->lane->updateCoRPQueueOutInfo(block);
         } else {
