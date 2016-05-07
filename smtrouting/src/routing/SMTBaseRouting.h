@@ -184,7 +184,8 @@ public:
                 double viaTime, double outTime,
                 multimap<double, CoRPUpdateBlock*>& queue);
         // set the first car out time if the edge is suppressed
-        virtual void updateCoRPEdgeTime(double time);
+        virtual void updateCoRPEdgeTime(double time,
+                multimap<double, CoRPUpdateBlock*>& queue);
     protected:
         // set to true when recentOutCars or totalCost changed
         double recentCost;    // stand for pass through time
@@ -258,7 +259,7 @@ public:
                     -1), enableHisDataRecord(false), hisRouteDoc(0), hisRouteRoot(
                     0), enableAIR(false), enableCoRP(false), enableCoRPPreImport(
                     false), enableCoRPReroute(false), corpUseHisRouteCEC(1), corpReRouteCEC(
-                    0), replaceAIRWithITSWithOccupancy(false), recordHisRoutingData(
+                    0),corpUpdateMsg(0),corpUpdateCount(0), replaceAIRWithITSWithOccupancy(false), recordHisRoutingData(
                     false), recordHisRoutingResult(false), endAfterLoadHisXML(
                     false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
                     0), _pCarManager(0) {
@@ -327,6 +328,8 @@ protected:
     multimap<double, CoRPUpdateBlock*> corpUpdateQueue;
     int corpUseHisRouteCEC; // TODO
     int corpReRouteCEC;
+    cMessage* corpUpdateMsg;
+    int corpUpdateCount;
 
     bool replaceAIRWithITSWithOccupancy;
     // record historical routing data
@@ -353,6 +356,9 @@ protected:
     virtual void updateStatisticInfo();
     virtual void updateAIRInfo();
     virtual void updateCoRPQueue();
+    virtual void updateCoRPInfo();
+    virtual void updateCoRPAllLaneInfo(double curTime);
+    virtual void updateCoRPSuppressedLaneInfo(double curTime);
     virtual void runDijkstraAlgorithm(SMTEdge* origin, SMTEdge* destination,
             list<SMTEdge*> &route);
     // independent weight modify function

@@ -161,6 +161,10 @@ void SMTBaseRouting::initialize(int stage) {
             airUpdateMsg = new cMessage("air update");
             scheduleAt(simTime() + 1.0, airUpdateMsg);
         }
+        if (enableCoRP) {
+            corpUpdateMsg = new cMessage("corp update");
+            scheduleAt(simTime() + 3.0, corpUpdateMsg);
+        }
         statisticMsg = new cMessage("statisticMsg)");
         scheduleAt(simTime() + rouStatus.recordActiveCarInterval, statisticMsg);
     }
@@ -184,6 +188,9 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
                 scheduleAt(simTime() + 120, debugMsg);
                 printStatisticInfo();
             }
+        } else if (msg == corpUpdateMsg) {
+            updateCoRPInfo();
+            scheduleAt(simTime() + 3, corpUpdateMsg);
         } else if (msg == airUpdateMsg) {
             updateAIRInfo();
         } else if (msg == statisticMsg) {
@@ -1048,6 +1055,44 @@ void SMTBaseRouting::removeCoRPCar(WeightRoute* rou) {
     }
 }
 
+void SMTBaseRouting::updateCoRPInfo() {
+    ++corpUpdateCount;
+    if (corpUpdateCount == 5) {
+        updateCoRPAllLaneInfo(simTime().dbl());
+        corpUpdateCount = 0;
+    } else {
+        updateCoRPSuppressedLaneInfo(simTime().dbl());
+    }
+}
+
+void SMTBaseRouting::updateCoRPAllLaneInfo(double curTime) {
+    WeightEdge* fromWEdge = NULL;
+    for (map<SMTEdge*, WeightEdge*>::iterator itWE = weightEdgeMap.begin();
+            itWE != weightEdgeMap.end(); ++itWE) {
+        fromWEdge = itWE->second;
+        for (map<SMTEdge*, WeightLane*>::iterator itWL =
+                fromWEdge->w2NextMap.begin();
+                itWL != fromWEdge->w2NextMap.end(); ++itWL) {
+            itWL->second->updateCoRPEdgeTime(curTime, corpUpdateQueue);
+        }
+    }
+}
+
+void SMTBaseRouting::updateCoRPSuppressedLaneInfo(double curTime) {
+    if (suppressedEdges.size() > 0) {
+        WeightEdge* fromWEdge = NULL;
+        for (map<SMTEdge*, double>::iterator itSE = suppressedEdges.begin();
+                itSE != suppressedEdges.end(); ++itSE) {
+            fromWEdge = weightEdgeMap[itSE->first];
+            for (map<SMTEdge*, WeightLane*>::iterator itWL =
+                    fromWEdge->w2NextMap.begin();
+                    itWL != fromWEdge->w2NextMap.end(); ++itWL) {
+                itWL->second->updateCoRPEdgeTime(curTime, corpUpdateQueue);
+            }
+        }
+    }
+}
+
 void SMTBaseRouting::getDijkstralResult(SMTEdge* destination,
         list<SMTEdge*>& route) {
     WeightEdge* wEdge = weightEdgeMap[destination];
@@ -1304,9 +1349,11 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                 "w2NextMap initialized abnormally");
         deltaW = itWL->second->getCoRPTTSCost(from->t, carInfo, costTime);
         if (false) {
-            if(suppressedEdges.size()>0){
-                if(suppressedEdges.find(from->edge)!=suppressedEdges.end()){
-                    deltaW = deltaW*2;
+            if (suppressedEdges.size() > 0) {
+                map<SMTEdge*, double>::iterator itSE = suppressedEdges.find(
+                        from->edge);
+                if (itSE != suppressedEdges.end()) {
+                    deltaW = deltaW * itSE->second / 35;
                 }
             }
         }
@@ -1756,6 +1803,84 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
         }
     }
 
+}
+
+void SMTBaseRouting::WeightLane::updateCoRPEdgeTime(double time,
+        multimap<double, CoRPUpdateBlock*>& queue) {
+    // 更改离开时间,并添加后续影响至队列
+    // 检索车辆
+    multimap<double, HisInfo*>::iterator itT = corpTimeMap.find(0);
+    // 如果没车,啥都不做
+    if (itT == corpTimeMap.end()) {
+        return;
+    }
+    // 如果第一辆车离开时间不早于当前时间什么都不做
+    if (itT->second->outTime >= time) {
+        return;
+    }
+    // 保留当前车辆指针,用于后续路径操作
+    HisInfo* hisInfo = itT->second;
+    SMTCarInfo* car = hisInfo->car;
+    // itT后移,用于指示下一个车辆
+    ++itT;
+    // 保存原始下一条道路进入时间
+    double oldOutTime = hisInfo->outTime;
+    // 更新离开信息
+    hisInfo->laneTime = time - corpOta - hisInfo->enterTime;
+    hisInfo->viaTime = corpOta;
+    hisInfo->tau = time - corpOta;
+    hisInfo->outTime = time;
+    // 跟新后续影响判定条件
+    hisInfo->nextDummyTime = hisInfo->tau + corpEta;
+    double _fmod = std::fmod(hisInfo->nextDummyTime + con->_t0, con->ta);
+    if (_fmod > con->tg) {
+        hisInfo->nextDummyTime = hisInfo->nextDummyTime - _fmod + con->ta
+                + corpEta;
+        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta;
+    } else {
+        hisInfo->nFDT = hisInfo->nextDummyTime + corpEta;
+        _fmod = std::fmod(hisInfo->nFDT + con->_t0, con->ta);
+        if (_fmod > con->tg) {
+            hisInfo->nFDT = hisInfo->nFDT - _fmod + con->ta + corpEta;
+        }
+    }
+    // 2nd. 添加后续道路更新和受影响车辆更新
+    // 添加后续道路更新
+    CoRPUpdateBlock* block = NULL;
+    if (hisInfo->next != NULL) {
+        // 如果离开状态改变,则进行下一条道路的更新
+        if (oldOutTime != hisInfo->outTime) {
+            block = new CoRPUpdateBlock();
+            block->fromTime = oldOutTime;
+            block->toTime = hisInfo->outTime;
+            block->timeStamp =
+                    block->fromTime < block->toTime ?
+                            block->fromTime : block->toTime;
+            block->lane = hisInfo->next;
+            block->car = car;
+            // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
+            block->rou = NULL;
+            block->srcHisInfo = hisInfo;
+            queue.insert(std::make_pair(block->timeStamp, block));
+        }
+    }
+    // 受影响车辆更新
+    // 构造out info更新消息
+    if (itT != corpTimeMap.end()) {
+        hisInfo = itT->second;
+        // 设置受影响车辆outInfo更新消息
+        block = new CoRPUpdateBlock();
+        // 重设block为修改被影响车辆进入时间
+        block->fromTime = hisInfo->enterTime;
+        block->toTime = hisInfo->enterTime;
+        block->timeStamp = hisInfo->enterTime;
+        block->lane = this;
+        block->car = hisInfo->car;
+        // 修改车辆信息不需要设置route信息,因为对应hisInfo有next参数
+        block->rou = NULL;
+        block->srcHisInfo = hisInfo;
+        queue.insert(std::make_pair(block->timeStamp, block));
+    }
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPOutInfo(HisInfo* hisInfo,
