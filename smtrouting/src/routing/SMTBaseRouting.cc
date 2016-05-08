@@ -2591,7 +2591,7 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
                 // 如果大于红等间隔则认为受红灯影响,不做更新
             }
             // 仅在变化大于0.1时更新eta
-            if(corpCalcEta>corpEta+0.1||corpCalcEta>corpEta-0.1){
+            if(corpCalcEta>corpEta+0.1||corpCalcEta<corpEta-0.1){
                 corpEta = corpCalcEta;
                 std::cout << "at time " << outTime << ", lane:" << from->edge->id
                         << "_" << con->fromLane << "corpEta:" << oldEta << "->"
