@@ -1703,9 +1703,11 @@ double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
     double m = 1;
     double p = 0;
     getCoRPQueueFixPar(queueLen, m, p);
-    if (m != 1 || p != 0) {
-        std::cout << "at time " << enterTime << ", edge:" << from->edge->id
-                << ", m = " << m << ", p = " << p << std::endl;
+    if (debug) {
+        if (m != 1 || p != 0) {
+            std::cout << "at time " << enterTime << ", edge:" << from->edge->id
+                    << ", m = " << m << ", p = " << p << std::endl;
+        }
     }
     return m * (costTime + p);
 }
@@ -1816,12 +1818,15 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
                 << followingCar << std::endl;
     }
     double deltaW = tempHisInfo.nextDummyTime + corpOta - enterTime;
-    if (m != 1 || p != 0) {
-        std::cout << "at time " << enterTime << ", edge:" << from->edge->id
-                << "_" << con->fromLane << ", len = " << from->edge->length()
-                << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
-                << ", deltaW = " << deltaW << std::endl;
+    if (debug) {
+        if (m != 1 || p != 0) {
+            std::cout << "at time " << enterTime << ", edge:" << from->edge->id
+                    << "_" << con->fromLane << ", len = " << from->edge->length()
+                    << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
+                    << ", deltaW = " << deltaW << std::endl;
+        }
     }
+
 #ifdef _FANJING_WL_DEBUG
     if (this == debugLane && (m != 1 || p != 0)) {
         std::cout << "at time " << enterTime << ", edge:" << from->edge->id
@@ -2593,9 +2598,11 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
             // 仅在变化大于0.1时更新eta
             if(corpCalcEta>corpEta+0.1||corpCalcEta<corpEta-0.1){
                 corpEta = corpCalcEta;
-                std::cout << "at time " << outTime << ", lane:" << from->edge->id
-                        << "_" << con->fromLane << "corpEta:" << oldEta << "->"
-                        << newEta << ":" << corpEta << std::endl;
+                if (debug) {
+                    std::cout << "at time " << outTime << ", lane:" << from->edge->id
+                            << "_" << con->fromLane << "corpEta:" << oldEta << "->"
+                            << newEta << ":" << corpEta << std::endl;
+                }
             }
             if (debug) {
                 std::cout << "corpEta:" << corpEta << std::endl;
