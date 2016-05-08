@@ -297,15 +297,17 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
             }
             if (curLaneIndex != targetLaneIndex) {
                 // 仅在不在目标车道时进行更改车道的尝试
-                cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
-                        laneChangeDuration);
+                double pos = cmdGetLanePosition();
+                if (pos>10) {
+                    cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
+                            laneChangeDuration);
+                }
                 if (!hasSuppressEdge) {
                     // suppressing curEdge
                     // if have not changed lane successfully near cross
                     // and has not suppress edge already
                     // FROM 2016-4-23, suppress edge at beginning of edge
                     // slow down and wait to change lane
-                    double pos = cmdGetLanePosition();
                     //
                     if (pos > 35 && pos > curEdge->length() * 0.2) {
                         hasSuppressEdge = getRouting()->suppressEdge(curEdge,

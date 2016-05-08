@@ -30,11 +30,11 @@ bool SMTBaseRouting::WeightLane::minAllowedCostFix = false;
 bool SMTBaseRouting::WeightLane::minRecentCostFix = false;
 unsigned int SMTBaseRouting::WeightLane::operationNum = 0;
 multimap<double, SMTBaseRouting::CoRPUpdateBlock*> *SMTBaseRouting::WeightLane::corpUpdateQueue =
-        NULL;
+NULL;
 multimap<double, SMTBaseRouting::CoRPUpdateBlock*> *SMTBaseRouting::WeightLane::corpAddQueue =
-        NULL;
+NULL;
 multimap<double, SMTBaseRouting::CoRPUpdateBlock*> *SMTBaseRouting::WeightLane::corpRemoveQueue =
-        NULL;
+NULL;
 
 SMTBaseRouting::~SMTBaseRouting() {
     // 回收 dijkstra's algorithm 算法部分
@@ -1705,7 +1705,7 @@ double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
         std::cout << "at time " << enterTime << ", edge:" << from->edge->id
                 << ", m = " << m << ", p = " << p << std::endl;
     }
-    return m * costTime + p;
+    return m * (costTime + p);
 }
 
 double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
@@ -1816,9 +1816,9 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     double deltaW = tempHisInfo.nextDummyTime + corpOta - enterTime;
     if (m != 1 || p != 0) {
         std::cout << "at time " << enterTime << ", edge:" << from->edge->id
-        << "_" << con->fromLane << ", len = " << from->edge->length()
-        << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
-        << ", deltaW = " << deltaW << std::endl;
+                << "_" << con->fromLane << ", len = " << from->edge->length()
+                << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
+                << ", deltaW = " << deltaW << std::endl;
     }
 #ifdef _FANJING_WL_DEBUG
     if (this == debugLane && (m != 1 || p != 0)) {
@@ -1828,7 +1828,7 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
         << ", deltaW = " << deltaW << std::endl;
     }
 #endif
-    return m * deltaW + p;
+    return m * (deltaW + p);
 }
 
 double SMTBaseRouting::WeightLane::getCoRPQueueLength(double enterTime,
@@ -1870,21 +1870,18 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
     double ocRatio = fixedQueueLen / laneLen;
     m = 1;
     p = 0;
-    if (ocRatio > 0.7) {
-        if (ocRatio < 0.79 && freeLen > 100) {
-            m = 1 / (0.8 - ocRatio);
+    if (freeLen > 300) {
+        m = 1;
+    } else {
+        if (freeLen > 100) {
+            m = (301 - freeLen) * 2.5;
         } else {
             m = 1000;
         }
     }
-    if (freeLen > 300) {
-        p = 0;
-        return;
-    } else {
-        if (freeLen > 100) {
-            p = (300 - freeLen) * 2.5;
-        } else {
-            p = 1500;
+    if (m > 1) {
+        if (lane < 800) {
+            p = 800 - laneLen;
         }
     }
 }
@@ -2551,6 +2548,7 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     // corpCarMap.erase(itCar);
     // 保存原始下一条道路进入时间
     double oldOutTime = hisInfo->outTime;
+    double oldTau = hisInfo->tau;
     // 更新离开信息
     hisInfo->laneTime = laneTime;
     hisInfo->viaTime = viaTime;
@@ -2558,11 +2556,18 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     hisInfo->outTime = outTime;
     // 将hisInfo插入队列头部
     if (firstCoRPInfo != NULL) {
-        // 更新corpEta
-        if (firstCoRPInfo->nextDummyTime + 0.1 > hisInfo->tau
-                && hisInfo->tau - firstCoRPInfo->tau < 2 * corpEta) {
-            corpEta = corpEta
-                    + (hisInfo->tau - firstCoRPInfo->tau - corpEta) / 10;
+        // 若修正tau之前,预测前方车辆与当前车辆连续通过,则可能更新corpEta
+        if (firstCoRPInfo->tau + corpEta + 0.1 > oldTau) {
+            double newEta = hisInfo->tau - firstCoRPInfo->tau;
+            if (con->tr == 0) {
+                // 没有红灯的情况下总是对通过间隔进行更新
+                corpEta = corpEta + (newEta - corpEta) / 10;
+            } else {
+                if (newEta < con->tr - 0.1) {
+                    corpEta = corpEta + (newEta - corpEta) / 10;
+                }
+                // 如果大于红等间隔则认为受红灯影响,不做更新
+            }
             if (debug) {
                 std::cout << "corpEta:" << corpEta << std::endl;
             }
