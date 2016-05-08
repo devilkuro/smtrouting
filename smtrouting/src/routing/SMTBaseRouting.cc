@@ -142,8 +142,10 @@ void SMTBaseRouting::initialize(int stage) {
                 wLane->occStep = 1 / it->first->length();
                 if (wLane->con->tr == 0) {
                     wLane->corpEta = 2.0;
+                    wLane->corpCalcEta = 2.0;
                 } else {
                     wLane->corpEta = 1.3;
+                    wLane->corpCalcEta = 1.3;
                 }
                 wLane->corpOta = wLane->viaLen / 30;
                 wLane->from = it->second;
@@ -211,8 +213,6 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
         } else if (msg == endSimMsg) {
             cancelAndDelete(msg);
             endSimMsg = NULL;
-            std::cout << "updateCoRPCar:" << WeightLane::operationNum
-                    << std::endl;
             endSimulation();
         }
     } else {
@@ -592,6 +592,7 @@ void SMTBaseRouting::updateStatisticInfo() {
             }
         }
     }
+    std::cout << "updateCoRPCar:" << WeightLane::operationNum << std::endl;
 }
 
 void SMTBaseRouting::exportHisXML() {
@@ -947,6 +948,7 @@ void SMTBaseRouting::importHisXML() {
                 }
                 if (nit > 0) {
                     toWLane->corpEta = itA / nit;
+                    toWLane->corpCalcEta = toWLane->corpOta;
                 }
                 if (debug) {
                     std::cout << "corpOta:" << toWLane->corpOta << ",vtA:"
@@ -1867,7 +1869,7 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
         return;
     }
     double freeLen = laneLen - fixedQueueLen;
-    double ocRatio = fixedQueueLen / laneLen;
+//    double ocRatio = fixedQueueLen / laneLen;
     m = 1;
     p = 0;
     if (freeLen > 300) {
@@ -1880,7 +1882,7 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
         }
     }
     if (m > 1) {
-        if (lane < 800) {
+        if (laneLen < 800) {
             p = 800 - laneLen;
         }
     }
@@ -2557,16 +2559,43 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
     // 将hisInfo插入队列头部
     if (firstCoRPInfo != NULL) {
         // 若修正tau之前,预测前方车辆与当前车辆连续通过,则可能更新corpEta
-        if (firstCoRPInfo->tau + corpEta + 0.1 > oldTau) {
+        if (firstCoRPInfo->tau + corpEta + 0.001 > oldTau) {
             double newEta = hisInfo->tau - firstCoRPInfo->tau;
+            double oldEta = corpCalcEta;
             if (con->tr == 0) {
-                // 没有红灯的情况下总是对通过间隔进行更新
-                corpEta = corpEta + (newEta - corpEta) / 10;
+                if (con->ty == 0) {
+                    // 只有绿灯时仅对小于阈值的eta进行更新
+                    if (newEta < 2.5) {
+                        if (newEta > corpCalcEta) {
+                            corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.125;
+                        } else {
+                            corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.5;
+                        }
+                    }
+                } else {
+                    // 没有红灯且有黄灯时的情况下总是对通过间隔进行更新
+                    if (newEta > corpCalcEta) {
+                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.125;
+                    } else {
+                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.5;
+                    }
+                }
             } else {
-                if (newEta < con->tr - 0.1) {
-                    corpEta = corpEta + (newEta - corpEta) / 10;
+                if (newEta < 1.5) {
+                    if (newEta > corpCalcEta) {
+                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.125;
+                    } else {
+                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.25;
+                    }
                 }
                 // 如果大于红等间隔则认为受红灯影响,不做更新
+            }
+            // 仅在变化大于0.1时更新eta
+            if(corpCalcEta>corpEta+0.1||corpCalcEta>corpEta-0.1){
+                corpEta = corpCalcEta;
+                std::cout << "at time " << outTime << ", lane:" << from->edge->id
+                        << "_" << con->fromLane << "corpEta:" << oldEta << "->"
+                        << newEta << ":" << corpEta << std::endl;
             }
             if (debug) {
                 std::cout << "corpEta:" << corpEta << std::endl;

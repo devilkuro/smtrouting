@@ -111,7 +111,7 @@ public:
         WeightLane() :
                 via(0), con(0), viaLen(-1), occupation(0), occStep(
                         0), occupaChangeFlagForDebug(false), airSI(0), corpEta(
-                        1.2), corpOta(0.5), from(0), to(0), firstCoRPInfo(0), recentCost(
+                        1.2),corpCalcEta(1.2), corpOta(0.5), from(0), to(0), firstCoRPInfo(0), recentCost(
                         -1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
                         false), totalRecentCost(0), airCostUpdateFlag(false), airDLastUpdateTime(
                         0), airD(0), lastCarOutTime(0) {
@@ -137,6 +137,7 @@ public:
         static bool minRecentCostFix;
         static unsigned int operationNum;
         double corpEta; // 车辆通过路口占用的平均通行时间
+        double corpCalcEta; // used for reduce corpEta update times
         double corpOta; // 车辆通过辅道的平均通行时间
         WeightEdge* from;
         WeightEdge* to; // FIXME may lead to multiple edges
