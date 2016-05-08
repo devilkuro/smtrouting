@@ -1376,7 +1376,7 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
                 map<SMTEdge*, double>::iterator itSE = suppressedEdges.find(
                         from->edge);
                 if (itSE != suppressedEdges.end()) {
-                    deltaW = deltaW * itSE->second / 35;
+                    deltaW = deltaW * itSE->second / 17;
                 }
             }
         }
@@ -1882,7 +1882,7 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
     double laneLen = from->edge->length();
     // fix only queueLen >= 120 (beyond 28 cars)
     // fix only occupancy >=50%
-    double fixedQueueLen = queueLen * 1.5;
+    double fixedQueueLen = queueLen * 1.3;
     if (queueLen < 140 || fixedQueueLen * 2 < laneLen) {
         m = 1;
         p = 0;
@@ -1892,20 +1892,20 @@ void SMTBaseRouting::WeightLane::getCoRPQueueFixPar(double queueLen, double& m,
 //    double ocRatio = fixedQueueLen / laneLen;
     m = 1;
     p = 0;
-    if (freeLen > 300) {
-        m = 1;
+    if (freeLen > 250) {
+        p = 1;
     } else {
         if (freeLen > 100) {
-            m = (301 - freeLen) * 2.5;
+            p = (251 - freeLen) * 10000;
         } else {
-            m = 1000;
+            p = 2000000;
         }
     }
-    if (m > 1) {
-        if (laneLen < 800) {
-            p = 800 - laneLen;
-        }
-    }
+//    if (m > 1) {
+//        if (laneLen < 800) {
+//            p = 800 - laneLen;
+//        }
+//    }
 }
 
 void SMTBaseRouting::WeightLane::updateCoRPEdgeTime(double time) {
