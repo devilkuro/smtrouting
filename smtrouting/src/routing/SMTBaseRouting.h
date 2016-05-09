@@ -300,12 +300,12 @@ public:
     inline const map<SMTEdge*, double> &getSuppressedEdgeMapRef() {
         return suppressedEdges;
     }
+    map<SMTEdge*, double> suppressedEdges;
 protected:
     // members for dijkstra's algorithm
     // weightEdgeMap用于存储所有WeightEdge便于回收内存
     map<SMTEdge*, WeightEdge*> weightEdgeMap;
     multimap<double, WeightEdge*> processMap;
-    map<SMTEdge*, double> suppressedEdges;
     double suppressLength;
 
     bool debug;

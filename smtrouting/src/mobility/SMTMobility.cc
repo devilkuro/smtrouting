@@ -298,7 +298,7 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
             if (curLaneIndex != targetLaneIndex) {
                 // 仅在不在目标车道时进行更改车道的尝试
                 double pos = cmdGetLanePosition();
-                if (pos>10) {
+                if (pos > 10) {
                     cmdChangeLane((uint8_t) laneChangeMsg->getKind(),
                             laneChangeDuration);
                 }
@@ -316,7 +316,14 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                         if (hasSuppressEdge) {
                             cmdSpeedDown(0);
                         } else {
-                            cmdSpeedDown(1 + 2 * curLaneIndex);
+                            if (pos
+                                    > getRouting()->suppressedEdges[curEdge]
+                                            + 20
+                                    && pos > curEdge->length() * 0.6) {
+                                cmdSpeedDown(0);
+                            } else {
+                                cmdSpeedDown(1 + 2 * curLaneIndex);
+                            }
                         }
                     }
                 }
