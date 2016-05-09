@@ -1406,11 +1406,11 @@ double SMTBaseRouting::modifyWeightFromEdgeToEdge(WeightEdge* from,
         // fix deltaW by occupation if occupation is bigger than half
         // fix deltaW only when cars in this lane cannot pass in one green time
         // and the occupation reach the limit
-        if (itWL->second->occupation > 0.6
+        if (itWL->second->occupation > WeightLane::airK
                 && itWL->second->occupation * itWL->second->from->edge->length()
                         > (carInfo->length + carInfo->minGap) * 24) {
-            if (itWL->second->occupation < 0.8 - 0.01) {
-                deltaW = deltaW / (0.8 - itWL->second->occupation);
+            if (itWL->second->occupation < WeightLane::airV - 0.01) {
+                deltaW = deltaW / (WeightLane::airV - itWL->second->occupation);
             } else {
                 if (debug) {
                     if (itWL->second->occupaChangeFlagForDebug) {
