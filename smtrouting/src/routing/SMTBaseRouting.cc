@@ -69,7 +69,7 @@ void SMTBaseRouting::initialize(int stage) {
         majorRoutingType =
                 (enum SMT_ROUTING_TYPE) par("majorRoutingType").longValue();
         minorRoutingType =
-                (enum SMT_ROUTING_TYPE) par("majorRoutingType").longValue();
+                (enum SMT_ROUTING_TYPE) par("minorRoutingType").longValue();
         recordHisRecordRoutingType =
                 par("recordHisRecordRoutingType").longValue();
         if (majorRoutingType == SMT_RT_AIR || minorRoutingType == SMT_RT_AIR) {
