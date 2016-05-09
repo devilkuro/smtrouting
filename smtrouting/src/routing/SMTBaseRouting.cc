@@ -1169,8 +1169,10 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
                     << std::endl;
         }
         // 执行更新队列
-        fromLane->setCoRPOutInfo(car, laneTime, viaTime, time);
-        updateCoRPQueue();
+        if (enableCoRP) {
+            fromLane->setCoRPOutInfo(car, laneTime, viaTime, time);
+            updateCoRPQueue();
+        }
         // 如果使用动态寻路, 更新道路情况
     }
     // add car into weightEdge 'to'
