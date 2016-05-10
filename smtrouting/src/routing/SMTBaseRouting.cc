@@ -224,7 +224,8 @@ void SMTBaseRouting::finish() {
     if (debug) {
         printStatisticInfo();
     }
-    static string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
+    string titleTime = "time";
+    string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
     srt->changeName("mainCarTTS", titleMainCarTTS) << simTime().dbl()
             << rouStatus.mainCarTTS << srt->endl;
     srt->outputSeparate(recordXMLPrefix + ".txt");
