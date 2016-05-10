@@ -564,6 +564,10 @@ void SMTBaseRouting::updateStatisticInfo() {
     static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
     srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
             << rouStatus.arrivedCarCount << srt->endl;
+    static string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
+    srt->changeName("mainCarTTS", titleMainCarTTS) << simTime().dbl()
+            << rouStatus.mainCarTTS << srt->endl;
+
     srt->outputSeparate(recordXMLPrefix + ".txt");
     if (getCarManager()->carMapByTime.size() == 0) {
         // all cars are deployed
@@ -1206,6 +1210,9 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         if (recordHisRoutingResult || enableHisDataRecord) {
             hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
         }
+        if (car->isMajorType) {
+            rouStatus.mainCarTTS += time - car->time;
+        }
         rouStatus.arrivedCarCount++;
     }
     if (recordHisRoutingData || enableHisDataRecord) {
@@ -1687,11 +1694,11 @@ multimap<double, SMTBaseRouting::HisInfo*>::iterator SMTBaseRouting::WeightLane:
 #ifdef _FANJING_BASE_ROUTING_DEBUG
     if (debug) {
         std::cout << "t0:" << con->t0 << ", tg:" << con->tg << ", ta:"
-                << con->ta << std::endl;
+        << con->ta << std::endl;
         std::cout << "enter:" << hisInfo->enterTime << ", reach:" << reach
-                << ", pre:" << it->second->tau << ", beSi:" << beforeSignal
-                << ", sig:" << signalTime << ", tau:" << hisInfo->tau
-                << ", out:" << hisInfo->outTime << std::endl;
+        << ", pre:" << it->second->tau << ", beSi:" << beforeSignal
+        << ", sig:" << signalTime << ", tau:" << hisInfo->tau
+        << ", out:" << hisInfo->outTime << std::endl;
     }
 #endif
     // it is the previous car last car whose enter time is not later than hisInfo
@@ -1717,7 +1724,7 @@ double SMTBaseRouting::WeightLane::getCoRPSelfCost(double enterTime,
     if (debug) {
         if (m != 1 || p != 0) {
             std::cout << "at time " << enterTime << ", edge:" << from->edge->id
-                    << ", m = " << m << ", p = " << p << std::endl;
+            << ", m = " << m << ", p = " << p << std::endl;
         }
     }
 #endif
@@ -1828,7 +1835,7 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
 #ifdef _FANJING_BASE_ROUTING_DEBUG
     if (debug) {
         std::cout << "followed cars at time " << enterTime << ":"
-                << followingCar << std::endl;
+        << followingCar << std::endl;
     }
 #endif
     double deltaW = tempHisInfo.nextDummyTime + corpOta - enterTime;
@@ -1837,9 +1844,9 @@ double SMTBaseRouting::WeightLane::getCoRPTTSCost(double enterTime,
     if (debug) {
         if (m != 1 || p != 0) {
             std::cout << "at time " << enterTime << ", edge:" << from->edge->id
-                    << "_" << con->fromLane << ", len = " << from->edge->length()
-                    << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
-                    << ", deltaW = " << deltaW << std::endl;
+            << "_" << con->fromLane << ", len = " << from->edge->length()
+            << ", queue = " << maxQueueLen << ", m = " << m << ", p = " << p
+            << ", deltaW = " << deltaW << std::endl;
         }
     }
 #endif
@@ -2130,8 +2137,8 @@ void SMTBaseRouting::WeightLane::addCoRPQueueInfo(CoRPUpdateBlock* block) {
                 itCar = lane->corpCarMap.find(block->car);
                 if (itCar == lane->corpCarMap.end()) {
                     std::cout << "error@addCoRPCarInfo: "
-                            << "the next lane in his info does not contain this car"
-                            << std::endl;
+                    << "the next lane in his info does not contain this car"
+                    << std::endl;
                     break;
                 }
             }
@@ -2332,7 +2339,7 @@ void SMTBaseRouting::WeightLane::updateCoRPQueueEnterInfo(
 #ifdef _FANJING_BASE_ROUTING_DEBUG
         if (debug) {
             std::cout << "unmatched from Time when process update block"
-                    << std::endl;
+            << std::endl;
         }
 #endif
         // 可能存在上一跳outTime被多次改变使得fromTime无法对齐的问题
@@ -2602,37 +2609,43 @@ void SMTBaseRouting::WeightLane::setCoRPOutInfo(SMTCarInfo* car,
                     // 只有绿灯时仅对小于阈值的eta进行更新
                     if (newEta < 2.5) {
                         if (newEta > corpCalcEta) {
-                            corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.125;
+                            corpCalcEta = corpCalcEta
+                                    + (newEta - corpCalcEta) * 0.125;
                         } else {
-                            corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.5;
+                            corpCalcEta = corpCalcEta
+                                    + (newEta - corpCalcEta) * 0.5;
                         }
                     }
                 } else {
                     // 没有红灯且有黄灯时的情况下总是对通过间隔进行更新
                     if (newEta > corpCalcEta) {
-                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.125;
+                        corpCalcEta = corpCalcEta
+                                + (newEta - corpCalcEta) * 0.125;
                     } else {
-                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.5;
+                        corpCalcEta = corpCalcEta
+                                + (newEta - corpCalcEta) * 0.5;
                     }
                 }
             } else {
                 if (newEta < 1.5) {
                     if (newEta > corpCalcEta) {
-                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.125;
+                        corpCalcEta = corpCalcEta
+                                + (newEta - corpCalcEta) * 0.125;
                     } else {
-                        corpCalcEta = corpCalcEta + (newEta - corpCalcEta) * 0.25;
+                        corpCalcEta = corpCalcEta
+                                + (newEta - corpCalcEta) * 0.25;
                     }
                 }
                 // 如果大于红等间隔则认为受红灯影响,不做更新
             }
             // 仅在变化大于0.1时更新eta
-            if(corpCalcEta>corpEta+0.1||corpCalcEta<corpEta-0.1){
+            if (corpCalcEta > corpEta + 0.1 || corpCalcEta < corpEta - 0.1) {
                 corpEta = corpCalcEta;
 #ifdef _FANJING_BASE_ROUTING_DEBUG
                 if (debug) {
                     std::cout << "at time " << outTime << ", lane:" << from->edge->id
-                            << "_" << con->fromLane << "corpEta:" << oldEta << "->"
-                            << newEta << ":" << corpEta << std::endl;
+                    << "_" << con->fromLane << "corpEta:" << oldEta << "->"
+                    << newEta << ":" << corpEta << std::endl;
                 }
 #endif
             }

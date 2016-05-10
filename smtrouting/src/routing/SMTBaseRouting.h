@@ -109,12 +109,12 @@ public:
             int passedCarNum;
         };
         WeightLane() :
-                via(0), con(0), viaLen(-1), occupation(0), occStep(
-                        0), occupaChangeFlagForDebug(false), airSI(0), corpEta(
-                        1.2),corpCalcEta(1.2), corpOta(0.5), from(0), to(0), firstCoRPInfo(0), recentCost(
-                        -1), recentCostLastupdateTime(-1), recentCostRefreshFlag(
-                        false), totalRecentCost(0), airCostUpdateFlag(false), airDLastUpdateTime(
-                        0), airD(0), lastCarOutTime(0) {
+                via(0), con(0), viaLen(-1), occupation(0), occStep(0), occupaChangeFlagForDebug(
+                        false), airSI(0), corpEta(1.2), corpCalcEta(1.2), corpOta(
+                        0.5), from(0), to(0), firstCoRPInfo(0), recentCost(-1), recentCostLastupdateTime(
+                        -1), recentCostRefreshFlag(false), totalRecentCost(0), airCostUpdateFlag(
+                        false), airDLastUpdateTime(0), airD(0), lastCarOutTime(
+                        0) {
         }
 
         virtual ~WeightLane();
@@ -245,11 +245,12 @@ public:
     public:
         RoutingStatus() :
                 arrivedCarCount(0), recordActiveCarNum(false), recordActiveCarInterval(
-                        120) {
+                        120), mainCarTTS(0) {
         }
         double arrivedCarCount;
         bool recordActiveCarNum;
         double recordActiveCarInterval;
+        double mainCarTTS;
     };
 public:
     SMTBaseRouting() :
@@ -259,10 +260,10 @@ public:
                     -1), enableHisDataRecord(false), hisRouteDoc(0), hisRouteRoot(
                     0), enableAIR(false), enableCoRP(false), enableCoRPPreImport(
                     false), enableCoRPReroute(false), corpUseHisRouteCEC(1), corpReRouteCEC(
-                    0),corpUpdateMsg(0),corpUpdateCount(0), replaceAIRWithITSWithOccupancy(false), recordHisRoutingData(
-                    false), recordHisRoutingResult(false), endAfterLoadHisXML(
-                    false), airUpdateMsg(0), routeType(SMT_RT_FAST), srt(0), _pMap(
-                    0), _pCarManager(0) {
+                    0), corpUpdateMsg(0), corpUpdateCount(0), replaceAIRWithITSWithOccupancy(
+                    false), recordHisRoutingData(false), recordHisRoutingResult(
+                    false), endAfterLoadHisXML(false), airUpdateMsg(0), routeType(
+                    SMT_RT_FAST), srt(0), _pMap(0), _pCarManager(0) {
     }
     virtual ~SMTBaseRouting();
 
