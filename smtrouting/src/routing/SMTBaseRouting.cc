@@ -224,6 +224,9 @@ void SMTBaseRouting::finish() {
     if (debug) {
         printStatisticInfo();
     }
+    static string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
+    srt->changeName("mainCarTTS", titleMainCarTTS) << simTime().dbl()
+            << rouStatus.mainCarTTS << srt->endl;
     srt->outputSeparate(recordXMLPrefix + ".txt");
     exportHisXML();
 }
@@ -564,11 +567,8 @@ void SMTBaseRouting::updateStatisticInfo() {
     static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
     srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
             << rouStatus.arrivedCarCount << srt->endl;
-    static string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
-    srt->changeName("mainCarTTS", titleMainCarTTS) << simTime().dbl()
-            << rouStatus.mainCarTTS << srt->endl;
 
-    srt->outputSeparate(recordXMLPrefix + ".txt");
+    // srt->outputSeparate(recordXMLPrefix + ".txt");
     if (getCarManager()->carMapByTime.size() == 0) {
         // all cars are deployed
         static unsigned int activedCarSinceLastStatistics = 0;
