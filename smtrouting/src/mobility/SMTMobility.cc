@@ -316,14 +316,7 @@ void SMTMobility::handleLaneChangeMsg(cMessage* msg) {
                         if (hasSuppressEdge) {
                             cmdSpeedDown(0);
                         } else {
-                            if (pos
-                                    > getRouting()->suppressedEdges[curEdge]
-                                            + 12 * (curLaneIndex+1)
-                                    && pos > curEdge->length() * 0.6) {
-                                cmdSpeedDown(0);
-                            } else {
-                                cmdSpeedDown(1 + 2 * curLaneIndex);
-                            }
+                            cmdSpeedDown(1 + 2 * curLaneIndex);
                         }
                     }
                 }
