@@ -36,8 +36,8 @@ public:
         double outPrimaryEdgeTime;  // 离开上一条primary道路的时间
     };
     SMTMobility() :
-            carInfo(0), origin(0), destination(0), appearTime(0), hasRouted(
-                    false), hasInitialized(false), arrivedMsg(0), beSuppressed(
+            isArrived(false), carInfo(0), origin(0), destination(0), appearTime(
+                    0), hasRouted(false), hasInitialized(false), arrivedMsg(0), beSuppressed(
                     false), hasSuppressEdge(false), isSlowDown(false), checkSuppressInterval(
                     10), checkSuppressedEdgesMsg(0), lastEdge(0), curEdge(0), lastPrimaryEdge(
                     0), nextPrimaryEdge(0), laneChangeMsg(0), laneChangeDuration(
@@ -59,9 +59,12 @@ public:
     // 交通控制API
     void setPreferredLaneIndex(uint8_t laneIndex);
     void changeToPreferredLane(int laneIndex = -1);
+    double getTotalCO2Emission();
+    bool isArrived;
+    SMTStat smtStat;
+    Veins::TraCIMobility::Statistics* getStatistics();
 protected:
     // 接口成员
-    SMTStat smtStat;
     SMTCarInfo* carInfo;
     SMTBaseRouting* getRouting() {
         if (_pRouting == NULL) {

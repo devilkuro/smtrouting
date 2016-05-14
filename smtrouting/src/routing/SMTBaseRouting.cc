@@ -16,6 +16,7 @@
 #include "SMTBaseRouting.h"
 #include "StringHelper.h"
 #include <cmath>
+#include "SMTMobility.h"
 
 Define_Module(SMTBaseRouting);
 
@@ -551,24 +552,69 @@ void SMTBaseRouting::updateAIRInfo() {
 }
 
 void SMTBaseRouting::updateStatisticInfo() {
+    double curTime = simTime().dbl();
     static string titleTime = "time";
     static string titleActiveCarCount = titleTime + "\t" + "carCount";
-    if (rouStatus.recordActiveCarNum) {
-        srt->changeName("activeCarCount", titleActiveCarCount)
-                << simTime().dbl()
-                << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
-    }
-    static string titleTTS = titleTime + "\t" + "TTS";
-    srt->changeName("TTS", titleTTS) << simTime().dbl()
-            << getMap()->getLaunchd()->getTTS() << srt->endl;
     static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
-    srt->changeName("arrivedCarCount", titleArrivedCarCount) << simTime().dbl()
-            << rouStatus.arrivedCarCount << srt->endl;
+    static string titleTTS = titleTime + "\t" + "TTS";
     static string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
-    srt->changeName("mainCarTTS", titleMainCarTTS) << simTime().dbl()
-            << rouStatus.mainCarTTS << srt->endl;
+    static string titleCO2Emission = titleTime + "\t" + "CO2Emission";
+    static string titleMainCO2Emission = titleTime + "\t" + "mainCO2Emission";
+    static string titleDistance = titleTime + "\t" + "Distance";
+    static string titleMainDistance = titleTime + "\t" + "mainDistance";
+    static string titleOperationNum = titleTime + "\t" + "operationNum";
+    if (rouStatus.recordActiveCarNum) {
+        double curCO2Emission = rouStatus.totalCO2EmissionForArrivedCars;
+        double curMainCO2Emission =
+                rouStatus.totalCO2EmissionForMajorArrivedCars;
+        double curDis = rouStatus.totalDistanceForArrivedCars;
+        double curMainDis =
+                rouStatus.totalDistanceForMajorArrivedCars;
+        double curTTS = rouStatus.TTS;
+        double curMainTTS = rouStatus.mainCarTTS;
+        for (map<string, SMTCarInfo*>::iterator it =
+                getCarManager()->carMapByID.begin();
+                it != getCarManager()->carMapByID.end(); ++it) {
+            if (it->second->mobility != NULL || it->second->inTeleport) {
+                curTTS += curTime - it->second->time;
+                if (it->second->mobility != NULL) {
+                    curCO2Emission +=
+                            it->second->mobility->getStatistics()->totalCO2Emission;
+                    curDis +=
+                            it->second->mobility->getStatistics()->totalDistance;
+                }
+                if (it->second->isMajorType) {
+                    curMainTTS += curTime - it->second->time;
+                    if (it->second->mobility != NULL) {
+                        curMainCO2Emission +=
+                                it->second->mobility->getStatistics()->totalCO2Emission;
+                        curMainDis +=
+                                it->second->mobility->getStatistics()->totalDistance;
+                    }
+                }
+            }
+        }
 
-    srt->outputSeparate(recordXMLPrefix + ".txt");
+        srt->changeName("activeCarCount", titleActiveCarCount) << curTime
+                << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
+        srt->changeName("TTS", titleTTS) << curTime << curTTS << srt->endl;
+        srt->changeName("arrivedCarCount", titleArrivedCarCount) << curTime
+                << rouStatus.arrivedCarCount << srt->endl;
+        srt->changeName("mainCarTTS", titleMainCarTTS) << curTime << curMainTTS
+                << srt->endl;
+        srt->changeName("CO2Emission", titleCO2Emission) << curTime
+                << curCO2Emission << srt->endl;
+        srt->changeName("mainCO2Emission", titleMainCO2Emission) << curTime
+                << curMainCO2Emission << srt->endl;
+        srt->changeName("distance", titleDistance) << curTime
+                << curDis << srt->endl;
+        srt->changeName("mainDistance", titleMainDistance) << curTime
+                << curMainDis << srt->endl;
+        srt->changeName("operationNum", titleOperationNum) << curTime
+                << WeightLane::operationNum  << srt->endl;
+    }
+
+    std::cout << "updateCoRPCar:" << WeightLane::operationNum << std::endl;
     if (getCarManager()->carMapByTime.size() == 0) {
         // all cars are deployed
         static unsigned int activedCarSinceLastStatistics = 0;
@@ -582,7 +628,7 @@ void SMTBaseRouting::updateStatisticInfo() {
                     getMap()->getLaunchd()->getActiveVehicleCount();
             stackTimes = 0;
         }
-        if (stackTimes == 3
+        if (stackTimes >= 5
                 || getMap()->getLaunchd()->getActiveVehicleCount() == 0) {
             if (debug) {
                 std::cout << "getActiveVehicleCount: "
@@ -591,12 +637,12 @@ void SMTBaseRouting::updateStatisticInfo() {
                         << getCarManager()->carMapByTime.size() << std::endl;
             }
             if (endSimMsg == NULL) {
+                srt->outputSeparate(recordXMLPrefix + ".txt");
                 endSimMsg = new cMessage("end simulation by routing)");
                 scheduleAt(simTime() + 0.1, endSimMsg);
             }
         }
     }
-    std::cout << "updateCoRPCar:" << WeightLane::operationNum << std::endl;
 }
 
 void SMTBaseRouting::exportHisXML() {
@@ -1210,10 +1256,6 @@ void SMTBaseRouting::changeRoad(SMTEdge* from, SMTEdge* to, int toLaneIndex,
         if (recordHisRoutingResult || enableHisDataRecord) {
             hisRouteMapByTime.insert(std::make_pair(rou->t, rou));
         }
-        if (car->isMajorType) {
-            rouStatus.mainCarTTS += time - car->time;
-        }
-        rouStatus.arrivedCarCount++;
     }
     if (recordHisRoutingData || enableHisDataRecord) {
         if (fromLane != NULL) {
@@ -2069,10 +2111,10 @@ void SMTBaseRouting::WeightLane::updateCoRPCar() {
     // 4. 删除车辆路径
     // 见SMTBaseRouting::removeCoRPCar
     // 继续更新queue
-    ++operationNum;
 
     CoRPUpdateBlock* block = NULL;
     while (true) {
+        ++operationNum;
         if (corpRemoveQueue->size() > 0) {
             block = corpRemoveQueue->begin()->second;
             block->lane->removeCoRPQueueInfo(block);

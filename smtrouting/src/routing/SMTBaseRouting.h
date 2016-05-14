@@ -245,12 +245,19 @@ public:
     public:
         RoutingStatus() :
                 arrivedCarCount(0), recordActiveCarNum(false), recordActiveCarInterval(
-                        120), mainCarTTS(0) {
+                        120), TTS(0), mainCarTTS(0), totalCO2EmissionForMajorArrivedCars(
+                        0), totalCO2EmissionForArrivedCars(0), totalDistanceForMajorArrivedCars(
+                        0), totalDistanceForArrivedCars(0) {
         }
         double arrivedCarCount;
         bool recordActiveCarNum;
         double recordActiveCarInterval;
+        double TTS;
         double mainCarTTS;
+        double totalCO2EmissionForMajorArrivedCars;
+        double totalCO2EmissionForArrivedCars;
+        double totalDistanceForMajorArrivedCars;
+        double totalDistanceForArrivedCars;
     };
 public:
     SMTBaseRouting() :
@@ -301,6 +308,7 @@ public:
     inline const map<SMTEdge*, double> &getSuppressedEdgeMapRef() {
         return suppressedEdges;
     }
+    RoutingStatus rouStatus;
 protected:
     // members for dijkstra's algorithm
     // weightEdgeMap用于存储所有WeightEdge便于回收内存
@@ -345,7 +353,6 @@ protected:
     bool endAfterLoadHisXML;
     cMessage* airUpdateMsg;
     SMT_ROUTING_TYPE routeType;
-    RoutingStatus rouStatus;
     Fanjing::StatisticsRecordTools* srt;
     // functions
     virtual int numInitStages() const;

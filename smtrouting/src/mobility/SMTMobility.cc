@@ -30,6 +30,8 @@ void SMTMobility::initialize(int stage) {
         isChangeAndHold = par("isChangeAndHold").boolValue();
         laneChangeDuration = par("laneChangeDuration").doubleValue();
         carInfo = getCarManager()->carMapByID[external_id];
+        carInfo->mobility = this;
+        carInfo->inTeleport = false;
         ASSERT2(carInfo, "undefined car in car manager.");
         origin = getMap()->getSMTEdgeById(carInfo->origin);
         destination = getMap()->getSMTEdgeById(carInfo->destination);
@@ -49,6 +51,27 @@ void SMTMobility::finish() {
     if (checkSuppressedEdgesMsg) {
         cancelAndDelete(checkSuppressedEdgesMsg);
         checkSuppressedEdgesMsg = NULL;
+    }
+    if (carInfo->isMajorType) {
+        getRouting()->rouStatus.totalCO2EmissionForMajorArrivedCars +=
+                statistics.totalCO2Emission;
+        getRouting()->rouStatus.totalDistanceForMajorArrivedCars +=
+                statistics.totalDistance;
+    }
+    double curTime = simTime().dbl();
+    getRouting()->rouStatus.totalCO2EmissionForArrivedCars +=
+            statistics.totalCO2Emission;
+    getRouting()->rouStatus.totalDistanceForArrivedCars +=
+            statistics.totalDistance;
+    carInfo->mobility = NULL;
+    if (curEdge == destination) {
+        if (carInfo->isMajorType) {
+            getRouting()->rouStatus.mainCarTTS += curTime - carInfo->time;
+        }
+        getRouting()->rouStatus.TTS += curTime - carInfo->time;
+        getRouting()->rouStatus.arrivedCarCount++;
+    } else {
+        carInfo->inTeleport = true;
     }
 }
 
@@ -142,17 +165,14 @@ bool SMTMobility::processAtRouting() {
     cmdSetNoOvertake();
     // 设置路径
     if (carInfo->isMajorType) {
-        if (getRouting()->getRouteByMajorMethod(
+        isDynamicUpdateRoute = getRouting()->getRouteByMajorMethod(
                 getMap()->getSMTEdgeById(road_id), destination, carRoute,
-                simTime().dbl(), carInfo) == SMTBaseRouting::SMT_RT_DYRP) {
-            isDynamicUpdateRoute = true;
-        }
+                simTime().dbl(), carInfo);
     } else {
-        if (getRouting()->getRouteByMinorMethod(
+        isDynamicUpdateRoute = getRouting()->getRouteByMinorMethod(
                 getMap()->getSMTEdgeById(road_id), destination, carRoute,
-                simTime().dbl(), carInfo) == SMTBaseRouting::SMT_RT_DYRP) {
-            isDynamicUpdateRoute = true;
-        }
+                simTime().dbl(), carInfo);
+
     }
     return updateVehicleRoute();
 }
@@ -172,6 +192,7 @@ void SMTMobility::processWhenChangeRoad() {
     }
     if (curEdge == destination) {
         // 车辆抵达终点操作
+        isArrived = true;
         arrivedMsg = new cMessage("arrived");
         scheduleAt(simTime() + 1, arrivedMsg);
         // change to lane -1 means car arriving
@@ -421,6 +442,14 @@ void SMTMobility::cmdSpeedDown(double speed) {
         isSlowDown = true;
     }
     getComIf()->setSpeed(getExternalId(), speed);
+}
+
+double SMTMobility::getTotalCO2Emission() {
+    return statistics.totalCO2Emission;
+}
+
+Veins::TraCIMobility::Statistics* SMTMobility::getStatistics() {
+    return &statistics;
 }
 
 void SMTMobility::cmdSpeedUp(double speed) {

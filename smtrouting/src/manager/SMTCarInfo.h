@@ -21,6 +21,7 @@
 
 using namespace std;
 using namespace tinyxml2;
+class SMTMobility;
 class SMTCarInfo {
 public:
     enum RouteType {
@@ -43,6 +44,8 @@ public:
     string toString();
 public:
     string id;
+    SMTMobility* mobility;
+    bool inTeleport;
     unsigned int index;
     bool isMajorType;
     RouteType type;
