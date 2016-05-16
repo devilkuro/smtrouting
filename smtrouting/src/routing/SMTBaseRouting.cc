@@ -611,7 +611,7 @@ void SMTBaseRouting::updateStatisticInfo() {
         srt->changeName("mainDistance", titleMainDistance) << curTime
                 << curMainDis << srt->endl;
         srt->changeName("operationNum", titleOperationNum) << curTime
-                << WeightLane::operationNum  << srt->endl;
+                << WeightLane::operationNum << srt->endl;
     }
 
     std::cout << "updateCoRPCar:" << WeightLane::operationNum << std::endl;
