@@ -207,10 +207,11 @@ void SMTBaseRouting::handleMessage(cMessage* msg) {
             scheduleAt(simTime() + 3, corpUpdateMsg);
         } else if (msg == airUpdateMsg) {
             updateAIRInfo();
+            scheduleAt(simTime() + 1, airUpdateMsg);
         } else if (msg == statisticMsg) {
+            handleStatisticsMsg(msg);
             scheduleAt(simTime() + rouStatus.recordActiveCarInterval,
                     statisticMsg);
-            updateStatisticInfo();
         } else if (msg == endSimMsg) {
             cancelAndDelete(msg);
             endSimMsg = NULL;
@@ -225,7 +226,7 @@ void SMTBaseRouting::finish() {
     if (debug) {
         printStatisticInfo();
     }
-    srt->outputSeparate(recordXMLPrefix + ".txt");
+    //    srt->outputSeparate(recordXMLPrefix + ".txt");
     exportHisXML();
 }
 
@@ -551,74 +552,14 @@ void SMTBaseRouting::updateAIRInfo() {
     }
 }
 
-void SMTBaseRouting::updateStatisticInfo() {
-    double curTime = simTime().dbl();
-    static string titleTime = "time";
-    static string titleActiveCarCount = titleTime + "\t" + "carCount";
-    static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
-    static string titleTTS = titleTime + "\t" + "TTS";
-    static string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
-    static string titleCO2Emission = titleTime + "\t" + "CO2Emission";
-    static string titleMainCO2Emission = titleTime + "\t" + "mainCO2Emission";
-    static string titleDistance = titleTime + "\t" + "Distance";
-    static string titleMainDistance = titleTime + "\t" + "mainDistance";
-    static string titleOperationNum = titleTime + "\t" + "operationNum";
+void SMTBaseRouting::handleStatisticsMsg(cMessage* msg) {
     if (rouStatus.recordActiveCarNum) {
-        double curCO2Emission = rouStatus.totalCO2EmissionForArrivedCars;
-        double curMainCO2Emission =
-                rouStatus.totalCO2EmissionForMajorArrivedCars;
-        double curDis = rouStatus.totalDistanceForArrivedCars;
-        double curMainDis =
-                rouStatus.totalDistanceForMajorArrivedCars;
-        double curTTS = rouStatus.TTS;
-        double curMainTTS = rouStatus.mainCarTTS;
-        for (map<string, SMTCarInfo*>::iterator it =
-                getCarManager()->carMapByID.begin();
-                it != getCarManager()->carMapByID.end(); ++it) {
-            if (it->second->mobility != NULL || it->second->inTeleport) {
-                curTTS += curTime - it->second->time;
-                if (it->second->mobility != NULL) {
-                    curCO2Emission +=
-                            it->second->mobility->getStatistics()->totalCO2Emission;
-                    curDis +=
-                            it->second->mobility->getStatistics()->totalDistance;
-                }
-                if (it->second->isMajorType) {
-                    curMainTTS += curTime - it->second->time;
-                    if (it->second->mobility != NULL) {
-                        curMainCO2Emission +=
-                                it->second->mobility->getStatistics()->totalCO2Emission;
-                        curMainDis +=
-                                it->second->mobility->getStatistics()->totalDistance;
-                    }
-                }
-            }
-        }
-
-        srt->changeName("activeCarCount", titleActiveCarCount) << curTime
-                << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
-        srt->changeName("TTS", titleTTS) << curTime << curTTS << srt->endl;
-        srt->changeName("arrivedCarCount", titleArrivedCarCount) << curTime
-                << rouStatus.arrivedCarCount << srt->endl;
-        srt->changeName("mainCarTTS", titleMainCarTTS) << curTime << curMainTTS
-                << srt->endl;
-        srt->changeName("CO2Emission", titleCO2Emission) << curTime
-                << curCO2Emission << srt->endl;
-        srt->changeName("mainCO2Emission", titleMainCO2Emission) << curTime
-                << curMainCO2Emission << srt->endl;
-        srt->changeName("distance", titleDistance) << curTime
-                << curDis << srt->endl;
-        srt->changeName("mainDistance", titleMainDistance) << curTime
-                << curMainDis << srt->endl;
-        srt->changeName("operationNum", titleOperationNum) << curTime
-                << WeightLane::operationNum << srt->endl;
+        updateStatisticInfo();
     }
-
-    std::cout << "updateCoRPCar:" << WeightLane::operationNum << std::endl;
     if (getCarManager()->carMapByTime.size() == 0) {
         // all cars are deployed
         static unsigned int activedCarSinceLastStatistics = 0;
-        // 如果所有车辆都已部署且360秒内车辆数目不变,则认为存在环路阻塞,终止试验
+        // 如果所有车辆都已部署且600秒内车辆数目不变,则认为存在环路阻塞,终止试验
         static int stackTimes = 0;
         if (getMap()->getLaunchd()->getActiveVehicleCount()
                 == activedCarSinceLastStatistics) {
@@ -637,12 +578,79 @@ void SMTBaseRouting::updateStatisticInfo() {
                         << getCarManager()->carMapByTime.size() << std::endl;
             }
             if (endSimMsg == NULL) {
+                if (!rouStatus.recordActiveCarNum) {
+                    updateStatisticInfo();
+                }
                 srt->outputSeparate(recordXMLPrefix + ".txt");
                 endSimMsg = new cMessage("end simulation by routing)");
                 scheduleAt(simTime() + 0.1, endSimMsg);
             }
         }
     }
+}
+
+void SMTBaseRouting::updateStatisticInfo() {
+    double curTime = simTime().dbl();
+    static string titleTime = "time";
+    static string titleActiveCarCount = titleTime + "\t" + "carCount";
+    static string titleArrivedCarCount = titleTime + "\t" + "arrivedCarCount";
+    static string titleTTS = titleTime + "\t" + "TTS";
+    static string titleMainCarTTS = titleTime + "\t" + "mainCarTTS";
+    static string titleCO2Emission = titleTime + "\t" + "CO2Emission";
+    static string titleMainCO2Emission = titleTime + "\t" + "mainCO2Emission";
+    static string titleDistance = titleTime + "\t" + "Distance";
+    static string titleMainDistance = titleTime + "\t" + "mainDistance";
+    static string titleOperationNum = titleTime + "\t" + "operationNum";
+    double curTTS = rouStatus.TTS;
+    double curMainTTS = rouStatus.mainCarTTS;
+    if (rouStatus.recordActiveCarNum) {
+        double curCO2Emission = rouStatus.totalCO2EmissionForArrivedCars;
+        double curMainCO2Emission = rouStatus.totalCO2EmissionForMajorArrivedCars;
+        double curDis = rouStatus.totalDistanceForArrivedCars;
+        double curMainDis = rouStatus.totalDistanceForMajorArrivedCars;
+        for (map<string, SMTCarInfo*>::iterator it =
+                getCarManager()->carMapByID.begin();
+                it != getCarManager()->carMapByID.end(); ++it) {
+            if (it->second->mobility != NULL || it->second->inTeleport) {
+                curTTS += curTime - it->second->time;
+                if (it->second->mobility != NULL) {
+                    curCO2Emission +=
+                            it->second->mobility->getStatistics()->totalCO2Emission;
+                    curDis += it->second->mobility->getStatistics()->totalDistance;
+                }
+                if (it->second->isMajorType) {
+                    curMainTTS += curTime - it->second->time;
+                    if (it->second->mobility != NULL) {
+                        curMainCO2Emission +=
+                                it->second->mobility->getStatistics()->totalCO2Emission;
+                        curMainDis +=
+                                it->second->mobility->getStatistics()->totalDistance;
+                    }
+                }
+            }
+        }
+
+        srt->changeName("activeCarCount", titleActiveCarCount) << curTime
+                << getMap()->getLaunchd()->getActiveVehicleCount() << srt->endl;
+        srt->changeName("arrivedCarCount", titleArrivedCarCount) << curTime
+                << rouStatus.arrivedCarCount << srt->endl;
+        srt->changeName("CO2Emission", titleCO2Emission) << curTime
+                << curCO2Emission << srt->endl;
+        srt->changeName("mainCO2Emission", titleMainCO2Emission) << curTime
+                << curMainCO2Emission << srt->endl;
+        srt->changeName("distance", titleDistance) << curTime << curDis
+                << srt->endl;
+        srt->changeName("mainDistance", titleMainDistance) << curTime << curMainDis
+                << srt->endl;
+        srt->changeName("operationNum", titleOperationNum) << curTime
+                << WeightLane::operationNum << srt->endl;
+    }
+
+
+    srt->changeName("TTS", titleTTS) << curTime << curTTS << srt->endl;
+    srt->changeName("mainCarTTS", titleMainCarTTS) << curTime << curMainTTS
+            << srt->endl;
+    std::cout << "updateCoRPCar:" << WeightLane::operationNum << std::endl;
 }
 
 void SMTBaseRouting::exportHisXML() {

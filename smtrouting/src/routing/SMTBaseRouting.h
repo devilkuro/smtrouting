@@ -360,6 +360,9 @@ protected:
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
 
+    /*handle messages*/
+    virtual void handleStatisticsMsg(cMessage *msg);
+
     virtual void exportHisXML();
     virtual void importHisXML();
     virtual void printStatisticInfo();
